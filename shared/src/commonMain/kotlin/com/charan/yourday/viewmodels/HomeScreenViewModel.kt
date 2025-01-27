@@ -33,7 +33,7 @@ class HomeScreenViewModel(
         viewModelScope.launch {
             permissionState = permissionsController.getPermissionState(Permission.LOCATION)
         }
-//        getOrProvidePermission()
+        getOrProvidePermission()
     }
 
 

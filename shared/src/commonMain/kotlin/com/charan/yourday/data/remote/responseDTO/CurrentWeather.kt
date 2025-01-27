@@ -1,5 +1,7 @@
 package com.charan.yourday.data.remote.responseDTO
 
+import com.charan.yourday.utils.WeatherIconName
+import dev.icerock.moko.resources.ImageResource
 import kotlinx.serialization.*
 
 @Serializable
@@ -46,6 +48,18 @@ data class WeatherDTO (
     }
     fun getLocation() : String {
         return this.location?.name ?: "Unable to fetch"
+    }
+
+    fun getWeatherIconCode() : String {
+        return this?.current?.condition?.code?.toInt()?.toString() ?: "0"
+    }
+    fun getIfIsDay() : Boolean {
+        return this?.current?.isDay == 1.0
+    }
+
+    fun getImageIcon() : ImageResource {
+
+        return WeatherIconName.weatherIcon(getWeatherIconCode(),getIfIsDay())!!
     }
 }
 

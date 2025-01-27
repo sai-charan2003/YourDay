@@ -12,9 +12,8 @@ import io.ktor.http.URLProtocol
 import io.ktor.http.append
 import io.ktor.http.path
 
-private const val base_url = "api.weatherapi.com/v1"
+private const val base_url = "api.weatherapi.com"
 class ApiService (val client : HttpClient) {
-
     suspend fun getCurrentWeather(lat : Double, long : Double) : WeatherDTO? {
         try {
             return client.get {
@@ -37,7 +36,7 @@ class ApiService (val client : HttpClient) {
         return client.get {
             url {
                 host = base_url
-                path("forecast.json")
+                path("/v1/forecast.json")
                 parameters.append("q","$lat,$long")
                 parameters.append("key",BuildKonfig.API_KEY)
             }

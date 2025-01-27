@@ -1,5 +1,6 @@
 package com.charan.yourday.presentation.home.components
 import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.WbSunny
@@ -10,7 +11,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.charan.yourday.MR
 import com.charan.yourday.data.remote.responseDTO.WeatherDTO
+import dev.icerock.moko.resources.compose.painterResource
 
 
 @Composable
@@ -37,10 +40,10 @@ fun WeatherCard(
                 if (isLoading) {
                     CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
                 } else {
-                    Icon(
-                        imageVector = Icons.Default.WbSunny,
-                        contentDescription = "Sunny",
-                        tint = Color(0xFFFFD700)
+                    Image(
+                        painter = painterResource(weatherDTO.getImageIcon()),
+                        null,
+                        modifier = Modifier.size(24.dp)
                     )
                 }
             }

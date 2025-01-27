@@ -5,14 +5,14 @@ import Shared
 @main
 struct iOSApp: App {
     init(){
-        IOSModuleKt.doInitKoin()
+        KointInitHelper().doInitKoin()
         
     }
 
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            HomeScreenView()
         }
     }
 }

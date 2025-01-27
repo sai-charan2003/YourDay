@@ -2,6 +2,7 @@ package com.charan.yourday.data.repository.impl
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.util.Log
 import com.charan.yourday.data.local.Location
 
 
@@ -18,12 +19,12 @@ class LocationServiceImp(private val context : Context): LocationServiceRepo{
     @SuppressLint("MissingPermission")
     override suspend fun getCurrentLocation(): Location? = suspendCoroutine{ continuation ->
             fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                Log.d("TAG", "getCurrentLocation: $location")
                 location?.let {
                     continuation.resume(Location(it.latitude,it.longitude))
-                } ?: run {
-                    continuation.resumeWithException(Exception("Unable to get current location"))
                 }
             }.addOnFailureListener { e ->
+                Log.d("TAG", "getCurrentLocation: ${e.message}")
                 continuation.resumeWithException(e)
             }
 

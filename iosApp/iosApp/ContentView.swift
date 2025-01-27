@@ -2,11 +2,13 @@ import SwiftUI
 import Shared
 
 struct ContentView: View {
+    @State private var viewModel = ProvideComponents().getHomeViewModel()
+    
    
     var body: some View {
         VStack {
             Button("Click me!") {
-                ProvideComponents().getHomeViewModel()
+                
                 
             }
 

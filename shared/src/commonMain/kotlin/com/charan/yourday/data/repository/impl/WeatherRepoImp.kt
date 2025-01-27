@@ -26,6 +26,7 @@ class WeatherRepoImp(private val apiService: ApiService) : WeatherRepo {
             val data = apiService.getForecastWeather(lat, long)
             processState.emit(ProcessState.Success(data))
         } catch (e:Exception){
+            println(e)
             processState.emit(ProcessState.Error(e.message.toString()))
         }
         return processState
