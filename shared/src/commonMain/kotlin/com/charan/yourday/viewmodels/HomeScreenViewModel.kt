@@ -9,6 +9,7 @@ import com.charan.yourday.data.remote.responseDTO.WeatherDTO
 import com.charan.yourday.data.repository.LocationServiceRepo
 import com.charan.yourday.data.repository.WeatherRepo
 import com.charan.yourday.utils.ProcessState
+import com.charan.yourday.utils.asCommonFlow
 import dev.icerock.moko.permissions.DeniedAlwaysException
 import dev.icerock.moko.permissions.DeniedException
 import dev.icerock.moko.permissions.Permission
@@ -26,7 +27,7 @@ class HomeScreenViewModel(
     private val locationServiceRepo: LocationServiceRepo
 ) : ViewModel() {
     private val _weatherData = MutableStateFlow<ProcessState<WeatherDTO>>(ProcessState.Loading)
-    val weatherData = _weatherData.asStateFlow()
+    val weatherData = _weatherData.asCommonFlow()
     var permissionState by mutableStateOf(PermissionState.NotDetermined)
         private set
     init {

@@ -10,9 +10,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.charan.yourday.data.remote.responseDTO.WeatherDTO
 import com.charan.yourday.presentation.home.components.TopBarTitleContent
 import com.charan.yourday.presentation.home.components.WeatherCard
+import com.charan.yourday.utils.ProcessState
+import com.charan.yourday.utils.asCommonFlow
 import com.charan.yourday.viewmodels.HomeScreenViewModel
 import dev.icerock.moko.permissions.PermissionState
 import org.koin.androidx.compose.koinViewModel
@@ -23,7 +26,7 @@ fun HomeScreen(
 
 ) {
     val viewModel = koinViewModel<HomeScreenViewModel>()
-    val weatherStatus = viewModel.weatherData.collectAsState()
+    val weatherStatus = viewModel.weatherData.collectAsState(ProcessState.Loading)
 
 
     Scaffold(

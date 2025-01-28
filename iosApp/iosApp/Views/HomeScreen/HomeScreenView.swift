@@ -11,13 +11,45 @@ import Combine
 
 struct HomeScreenView: View {
     @State private var viewModel = ProvideComponents().getHomeViewModel()
+    @State private var uiState: ProcessState<WeatherDTO> = .loading
+    @State private var isFetching: Bool = true
+    @State private var weatherData: Shared.ProcessState<Shared.WeatherDTO>?
+
     var body: some View {
-        VStack {
-
+        NavigationStack {
+            VStack {
+                WeatherCardView(
+                    weatherData: Binding(
+                        get: {
+                            weatherData?.extractData()
+                        },
+                        set: { _ in }
+                    ),
+                    isFetching: Binding(get: {
+                        weatherData?.isLoading() == true
+                    }, set: { _ in
+                        
+                    })
+                )
+                .frame(maxHeight: .infinity, alignment: .top)
+            }
+            .navigationTitle(DateUtils().getGreeting())
+            .onAppear {
+                observeWeatherData()
+            }
         }
-
-        .padding()
     }
 
+    private func observeWeatherData() {
+        viewModel.weatherData.watch { (processState: Shared.ProcessState<WeatherDTO>?) in
+            if let processState = processState {
+                weatherData = processState
+            }
+
+        }
+    }
 }
+
+
+
 
