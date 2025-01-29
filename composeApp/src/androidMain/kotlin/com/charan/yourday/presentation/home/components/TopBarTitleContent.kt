@@ -8,6 +8,7 @@ import com.charan.yourday.utils.DateUtils
 
 @Composable
 fun TopBarTitleContent() {
+
     Column {
         Text(DateUtils.getGreeting())
         Text(DateUtils.getDateInDDMMYYYY(), style = MaterialTheme.typography.bodyLarge)

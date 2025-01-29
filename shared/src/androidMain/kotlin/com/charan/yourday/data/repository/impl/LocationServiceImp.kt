@@ -3,7 +3,7 @@ package com.charan.yourday.data.repository.impl
 import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
-import com.charan.yourday.data.local.Location
+import com.charan.yourday.data.model.Location
 
 
 import com.charan.yourday.data.repository.LocationServiceRepo

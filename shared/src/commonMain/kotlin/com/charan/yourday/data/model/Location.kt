@@ -1,4 +1,4 @@
-package com.charan.yourday.data.local
+package com.charan.yourday.data.model
 
 data class Location(
     var latitude : Double? = null,

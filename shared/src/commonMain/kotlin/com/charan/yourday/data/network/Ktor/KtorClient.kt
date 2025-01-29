@@ -1,4 +1,4 @@
-package com.charan.yourday.data.network
+package com.charan.yourday.data.network.Ktor
 
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine

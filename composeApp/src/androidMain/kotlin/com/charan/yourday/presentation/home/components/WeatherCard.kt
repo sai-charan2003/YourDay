@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.charan.yourday.MR
-import com.charan.yourday.data.remote.responseDTO.WeatherDTO
+import com.charan.yourday.data.network.responseDTO.WeatherDTO
 import dev.icerock.moko.resources.compose.painterResource
 
 
@@ -41,7 +41,7 @@ fun WeatherCard(
                     CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
                 } else {
                     Image(
-                        painter = painterResource(weatherDTO.getImageIcon()),
+                        painter = painterResource(weatherDTO.getImageIcon() ?: MR.images.icy),
                         null,
                         modifier = Modifier.size(24.dp)
                     )
@@ -53,7 +53,7 @@ fun WeatherCard(
                 Text("Loading weather data...", style = MaterialTheme.typography.bodyMedium)
             } else {
 
-                Text("${weatherDTO.getMaxTemperatureInC()}°C", style = MaterialTheme.typography.displayLarge.copy(fontWeight = FontWeight.Bold))
+                Text("${weatherDTO.getCurrentTemperatureInC()}°C", style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween

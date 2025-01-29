@@ -1,6 +1,6 @@
 package com.charan.yourday.data.repository
 
-import com.charan.yourday.data.remote.responseDTO.WeatherDTO
+import com.charan.yourday.data.network.responseDTO.WeatherDTO
 import com.charan.yourday.utils.ProcessState
 import kotlinx.coroutines.flow.Flow
 

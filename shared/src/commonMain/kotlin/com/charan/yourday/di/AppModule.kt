@@ -1,12 +1,10 @@
 package com.charan.yourday.di
 
-import com.charan.yourday.data.network.ApiService
-import com.charan.yourday.data.network.createHttpClient
-import com.charan.yourday.data.repository.LocationServiceRepo
+import com.charan.yourday.data.network.Ktor.ApiService
+import com.charan.yourday.data.network.Ktor.createHttpClient
 import com.charan.yourday.data.repository.WeatherRepo
 import com.charan.yourday.data.repository.impl.WeatherRepoImp
 import com.charan.yourday.viewmodels.HomeScreenViewModel
-import dev.icerock.moko.permissions.PermissionsController
 import org.koin.core.context.startKoin
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.KoinAppDeclaration
@@ -16,7 +14,7 @@ import org.koin.dsl.module
         single { createHttpClient(get()) }
         factory  { ApiService(client = get()) }
         factory  <WeatherRepo> { WeatherRepoImp(apiService = get()) }
-        viewModel { HomeScreenViewModel(get(),get(), get()) }
+        viewModel { HomeScreenViewModel(get(),get(), get(),get(),get()) }
     }
 
     fun initKoin(appDeclaration: KoinAppDeclaration = {}) = startKoin {

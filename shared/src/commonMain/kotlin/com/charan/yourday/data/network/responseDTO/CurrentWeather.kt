@@ -1,4 +1,4 @@
-package com.charan.yourday.data.remote.responseDTO
+package com.charan.yourday.data.network.responseDTO
 
 import com.charan.yourday.utils.WeatherIconName
 import dev.icerock.moko.resources.ImageResource
@@ -57,9 +57,9 @@ data class WeatherDTO (
         return this?.current?.isDay == 1.0
     }
 
-    fun getImageIcon() : ImageResource {
+    fun getImageIcon() : ImageResource? {
 
-        return WeatherIconName.weatherIcon(getWeatherIconCode(),getIfIsDay())!!
+        return WeatherIconName.weatherIcon(getWeatherIconCode(),getIfIsDay())
     }
 }
 
