@@ -43,6 +43,7 @@ kotlin {
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
             implementation(libs.koin.androidx.compose)
+            implementation (libs.accompanist.permissions)
 
 
 

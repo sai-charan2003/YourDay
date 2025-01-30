@@ -1,5 +1,6 @@
 package com.charan.yourday
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -10,7 +11,9 @@ import androidx.core.app.ActivityCompat.PermissionCompatDelegate
 import androidx.core.view.WindowCompat
 import com.charan.yourday.di.androidModule
 import com.charan.yourday.di.initKoin
+import com.charan.yourday.viewmodels.HomeScreenViewModel
 import dev.icerock.moko.permissions.compose.BindEffect
+import org.koin.android.ext.android.get
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.dsl.module
@@ -25,13 +28,12 @@ class MainActivity : ComponentActivity() {
             modules(androidModule)
             androidLogger()
         }
-
-
-
         setContent {
             App()
         }
     }
+
+
 }
 
 @Preview

@@ -1,4 +1,5 @@
 [versions]
+accompanistPermissions = "0.31.1-alpha"
 agp = "8.5.2"
 android-compileSdk = "34"
 android-minSdk = "24"
@@ -30,6 +31,7 @@ navigationCompose = "2.8.0-alpha02"
 lifecycleViewModel = "2.8.7"
 
 [libraries]
+accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissions" }
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }

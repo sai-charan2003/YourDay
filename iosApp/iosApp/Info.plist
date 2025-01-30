@@ -44,6 +44,8 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSCalendarsUsageDescription</key>
+	<string>Your app uses calender permission to show the events</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Your app uses location services only when the app is running</string>
 	<key>UISupportedInterfaceOrientations~ipad</key>

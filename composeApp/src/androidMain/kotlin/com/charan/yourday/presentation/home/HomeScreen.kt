@@ -24,6 +24,8 @@ import com.charan.yourday.presentation.home.components.WeatherCard
 import com.charan.yourday.utils.ProcessState
 import com.charan.yourday.utils.asCommonFlow
 import com.charan.yourday.viewmodels.HomeScreenViewModel
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberPermissionState
 import dev.icerock.moko.permissions.PermissionState
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.getKoin
@@ -32,7 +34,7 @@ import org.koin.core.context.GlobalContext.get
 import org.koin.dsl.module
 import java.util.Date
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun HomeScreen(
 
@@ -40,9 +42,6 @@ fun HomeScreen(
     val viewModel = koinViewModel<HomeScreenViewModel>()
     val weatherStatus = viewModel.weatherData.collectAsState(ProcessState.Loading)
     val calenderEvents = viewModel.calenderEvents.collectAsState(emptyList())
-
-
-
     Scaffold(
         topBar = {
             LargeTopAppBar(

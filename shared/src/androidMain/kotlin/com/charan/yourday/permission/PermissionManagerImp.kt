@@ -6,6 +6,9 @@ import android.content.Context
 import android.content.pm.PackageManager
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import dev.icerock.moko.permissions.PermissionState
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 
 class PermissionManagerImp(
     private val context : Context
@@ -23,13 +26,12 @@ class PermissionManagerImp(
 
     }
 
-    override fun requestCalenderPermission() {
+    override fun requestCalenderPermission()  {
         if (!hasCalenderPermission()) {
             ActivityCompat.requestPermissions(
                 context as Activity,
                 arrayOf(
                     Manifest.permission.READ_CALENDAR,
-                    Manifest.permission.WRITE_CALENDAR
                 ),
                 CALENDAR_PERMISSION_REQUEST_CODE
             )

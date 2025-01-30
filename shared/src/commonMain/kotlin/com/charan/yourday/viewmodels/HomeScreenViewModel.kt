@@ -20,7 +20,6 @@ import dev.icerock.moko.permissions.PermissionState
 import dev.icerock.moko.permissions.PermissionsController
 import dev.icerock.moko.permissions.RequestCanceledException
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -35,14 +34,27 @@ class HomeScreenViewModel(
     val weatherData = _weatherData.asCommonFlow()
     private val _calenderEvents = MutableStateFlow<List<CalenderItems>>(emptyList())
     val calenderEvents = _calenderEvents.asCommonFlow()
+    val notificationPermissionstate = MutableStateFlow(PermissionState.NotDetermined)
     var permissionState by mutableStateOf(PermissionState.NotDetermined)
         private set
     init {
         viewModelScope.launch {
             permissionState = permissionsController.getPermissionState(Permission.LOCATION)
             permissionsController.getPermissionState(Permission.LOCATION)
+            notificationPermissionstate.collectLatest {
+                when(it){
+                    PermissionState.NotDetermined -> {}
+                    PermissionState.NotGranted -> {}
+                    PermissionState.Granted -> {
+                        getCalenderEvents()
+                    }
+                    PermissionState.Denied -> {}
+                    PermissionState.DeniedAlways -> {}
+                }
+            }
         }
         getOrProvidePermission()
+
 
 
     }
@@ -83,6 +95,7 @@ class HomeScreenViewModel(
     private fun getCalenderPermission(){
         permissionManager.requestCalenderPermission()
         getCalenderEvents()
+
     }
 
     fun getCalenderEvents() {

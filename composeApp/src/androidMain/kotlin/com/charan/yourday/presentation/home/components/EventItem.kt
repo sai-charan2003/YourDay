@@ -39,7 +39,7 @@ import com.charan.yourday.utils.DateUtils
 @Composable
 fun EventItem(calenderEvent: CalenderItems) {
     val eventColor = Color(color = calenderEvent.calenderColor?.toLong() ?: 0)
-    Row(modifier = Modifier.padding(top = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+    Row(modifier = Modifier.padding(top = 12.dp), verticalAlignment = Alignment.CenterVertically) {
         VerticalDivider(
             modifier = Modifier.padding(end = 8.dp).clip(RoundedCornerShape(8.dp)).height(30.dp),
             color = eventColor,

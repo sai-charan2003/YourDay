@@ -14,10 +14,11 @@ struct HomeScreenView: View {
     @State private var uiState: ProcessState<WeatherDTO> = .loading
     @State private var isFetching: Bool = true
     @State private var weatherData: Shared.ProcessState<Shared.WeatherDTO>?
+    @State private var calenderEvents : [Shared.CalenderItems]?
 
     var body: some View {
         NavigationStack {
-            VStack {
+            LazyVStack {
                 WeatherCardView(
                     weatherData: Binding(
                         get: {
@@ -31,11 +32,17 @@ struct HomeScreenView: View {
                         
                     })
                 )
-                .frame(maxHeight: .infinity, alignment: .top)
+                if let calenderEvents = calenderEvents {
+                    CalenderCard(calenderData: calenderEvents)
+                }
+                
+                
             }
+            .frame(maxHeight: .infinity, alignment: .top)
             .navigationTitle(DateUtils().getGreeting())
             .onAppear {
                 observeWeatherData()
+                observeCalenderData()
             }
         }
     }
@@ -46,6 +53,17 @@ struct HomeScreenView: View {
                 weatherData = processState
             }
 
+        }
+    }
+    
+    private func observeCalenderData() {
+        viewModel.calenderEvents.watch { items in
+            print("Items")
+            print(items)
+            if let calenderEvent = items {
+                calenderEvents = items as! [CalenderItems]?
+            }
+            
         }
     }
 }
