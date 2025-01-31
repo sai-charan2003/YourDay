@@ -14,7 +14,7 @@ import org.koin.dsl.module
         single { createHttpClient(get()) }
         factory  { ApiService(client = get()) }
         factory  <WeatherRepo> { WeatherRepoImp(apiService = get()) }
-        viewModel { HomeScreenViewModel(get(),get(), get(),get(),get()) }
+        viewModel { HomeScreenViewModel(get(),get(), get(),get()) }
     }
 
     fun initKoin(appDeclaration: KoinAppDeclaration = {}) = startKoin {

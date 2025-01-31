@@ -1,5 +1,6 @@
 package com.charan.yourday
 
+import android.Manifest
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
@@ -17,6 +18,7 @@ import com.charan.yourday.utils.DateUtils
 import com.charan.yourday.viewmodels.HomeScreenViewModel
 import com.example.compose.AppTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.accompanist.permissions.rememberPermissionState
 import dev.icerock.moko.permissions.PermissionState
@@ -36,6 +38,16 @@ fun App() {
     KoinContext  {
         val permissionsController: PermissionsController = koinInject()
         BindEffect(permissionsController = permissionsController)
+        val calenderPermissionState = rememberPermissionState(Manifest.permission.READ_CALENDAR)
+        when(calenderPermissionState.status){
+            is PermissionStatus.Denied -> {
+                Log.d("TAG", "HomeScreen: denied")
+            }
+            PermissionStatus.Granted -> {
+                Log.d("TAG", "HomeScreen: granted")
+
+            }
+        }
         AppTheme {
             Surface {
                 HomeScreen()

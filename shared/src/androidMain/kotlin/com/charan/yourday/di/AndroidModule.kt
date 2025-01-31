@@ -7,6 +7,7 @@ import com.charan.yourday.data.repository.impl.CalenderEventsImp
 import com.charan.yourday.data.repository.impl.LocationServiceImp
 import com.charan.yourday.permission.PermissionManager
 import com.charan.yourday.permission.PermissionManagerImp
+import com.charan.yourday.utils.PlatformSettings
 import dev.icerock.moko.permissions.PermissionsController
 import io.ktor.client.engine.okhttp.OkHttp
 
@@ -21,5 +22,6 @@ val androidModule = module {
         PermissionManagerImp(context = androidContext())
     }
     single <CalenderEventsRepo> { CalenderEventsImp(context = androidContext())}
+    single <PlatformSettings>{ PlatformSettings(context = androidContext()) }
 
 }

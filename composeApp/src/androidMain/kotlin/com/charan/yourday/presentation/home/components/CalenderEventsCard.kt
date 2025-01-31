@@ -1,5 +1,6 @@
 package com.charan.yourday.presentation.home.components
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.DateRange
@@ -14,9 +15,13 @@ import androidx.compose.ui.unit.dp
 import com.charan.yourday.data.model.CalenderItems
 
 @Composable
-fun CalendarCard(calenderEvents : List<CalenderItems>,modifier: Modifier= Modifier) {
+fun CalendarCard(
+    calenderEvents : List<CalenderItems>
+    ,modifier: Modifier= Modifier,
+    isPermissionGranted : Boolean,
+    grantPermission : () -> Unit) {
     ElevatedCard(
-        modifier = Modifier.fillMaxWidth().then(modifier),
+        modifier = Modifier.fillMaxWidth().then(modifier).animateContentSize(),
     ) {
         Column(
             modifier = Modifier
@@ -28,13 +33,18 @@ fun CalendarCard(calenderEvents : List<CalenderItems>,modifier: Modifier= Modifi
                 )
                 .fillMaxWidth()
         ) {
-            Text(
-                text = "Today's Events",
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Medium),
-                modifier = Modifier.padding(bottom = 10.dp)
-            )
-            for(event in calenderEvents){
-                EventItem(event)
+            if(!isPermissionGranted) GrantPermissionContent("Please Grant Permission to access calender") {
+                grantPermission()
+
+            } else {
+                Text(
+                    text = "Today's Events",
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Medium),
+                    modifier = Modifier.padding(bottom = 10.dp)
+                )
+                for (event in calenderEvents) {
+                    EventItem(event)
+                }
             }
 
 
@@ -43,19 +53,19 @@ fun CalendarCard(calenderEvents : List<CalenderItems>,modifier: Modifier= Modifi
     }
 }
 
-@Composable
-@Preview()
-fun CalendarCardPreview() {
-    val calenderItem = CalenderItems(
-        title = "Team Meeting",
-        stateTime = 1738144788145,
-        endTime = 1738161000000,
-        calenderColor = "-6299161"
-    )
-
-    MaterialTheme {
-        Surface {
-            CalendarCard(listOf(calenderItem,calenderItem))
-        }
-    }
-}
+//@Composable
+//@Preview()
+//fun CalendarCardPreview() {
+//    val calenderItem = CalenderItems(
+//        title = "Team Meeting",
+//        stateTime = 1738144788145,
+//        endTime = 1738161000000,
+//        calenderColor = "-6299161"
+//    )
+//
+//    MaterialTheme {
+//        Surface {
+//            CalendarCard(listOf(calenderItem,calenderItem))
+//        }
+//    }
+//}

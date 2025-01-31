@@ -19,10 +19,12 @@ import org.koin.android.ext.koin.androidLogger
 import org.koin.dsl.module
 
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         WindowCompat.setDecorFitsSystemWindows(window, false)
         super.onCreate(savedInstanceState)
+
         initKoin{
             androidContext(this@MainActivity)
             modules(androidModule)
@@ -31,6 +33,10 @@ class MainActivity : ComponentActivity() {
         setContent {
             App()
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
     }
 
 

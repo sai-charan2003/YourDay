@@ -1,10 +1,11 @@
 package com.charan.yourday.permission
 
-import dev.icerock.moko.permissions.PermissionState
-import kotlinx.coroutines.flow.Flow
-
 interface PermissionManager {
 
-    fun hasCalenderPermission() : Boolean
-    fun requestCalenderPermission()
+    fun isPermissionGranted(permissions: Permissions) : Boolean
+    fun requestPermission(permissions: Permissions)
+    fun requestMultiplePermissions(permissions: List<Permissions>)
+    fun openAppSettings()
+
+
 }
