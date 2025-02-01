@@ -57,8 +57,13 @@ struct HomeScreenView: View {
                                 },
                                 set: { _ in
                                     
-                                })) {
-                            viewModel.grantCalenderPermission(shouldShowRationale: permissionObserver.calendarPermission != Shared.PermissionState.notGranted)
+                                }
+                                )
+                        ) {
+                            permissionObserver.checkCalendarPermission()
+                            if(permissionObserver.calendarPermission == PermissionState.notGranted){
+                                viewModel.grantCalenderPermission(shouldShowRationale: false)
+                            }
                         }
                     }
                     
@@ -90,9 +95,7 @@ struct HomeScreenView: View {
                     print(permissionState)
                     switch permissionState{
                     case Shared.PermissionState.granted:
-                        print("Getting calender events")
                         viewModel.getCalenderEvents()
-                        observeCalenderData()
                         
                     default :
                         print("Not Granted calender")
@@ -118,8 +121,6 @@ struct HomeScreenView: View {
     private func observeCalenderData() {
         viewModel.calenderEvents.watch { items in
             if let calenderEvent = items {
-                print("From swift")
-                print(calenderEvent)
                 calenderEvents = calenderEvent as! [CalenderItems]?
             }
             

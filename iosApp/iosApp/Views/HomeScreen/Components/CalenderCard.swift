@@ -17,7 +17,7 @@ struct CalenderCard : View {
         GroupBox{
             VStack(alignment: .leading){
                 if(!isCalenderPermissionGranted && calenderData.isEmpty){
-                    GrantPermission(onGrant: {
+                    GrantPermissionItem(onGrant: {
                         onGrant()
                     }, title: "Please allow calender permission to fetch calender events")
                 } else {

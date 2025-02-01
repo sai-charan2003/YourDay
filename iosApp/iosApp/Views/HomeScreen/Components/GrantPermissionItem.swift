@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-struct GrantPermission : View {
+struct GrantPermissionItem : View {
     var onGrant: (() -> Void )
     var title: String
     var body: some View {

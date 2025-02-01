@@ -38,7 +38,7 @@ class PermissionObserver: NSObject, ObservableObject, CLLocationManagerDelegate 
     }
     
     func checkLocationPermission() {
-        switch CLLocationManager.authorizationStatus() {
+        switch locationManager.authorizationStatus {
         case .authorizedWhenInUse, .authorizedAlways:
             
             locationPermission = .granted
@@ -60,21 +60,18 @@ class PermissionObserver: NSObject, ObservableObject, CLLocationManagerDelegate 
         print(status.rawValue)
         switch status {
         case .authorized, .fullAccess:
-            print("given")
             calendarPermission = .granted
         case .denied, .restricted:
             calendarPermission = .notGranted
         case .notDetermined:
             calendarPermission = .notDetermined
-        @unknown default:
+        default:
             print("Unknown calendar permission status")
         }
     }
     
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-        print("Location authorization status changed")
         checkLocationPermission()
-        checkCalendarPermission()
     }
 
     

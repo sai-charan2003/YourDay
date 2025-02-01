@@ -19,19 +19,21 @@ struct WeatherCardView: View {
         GroupBox {
             VStack(alignment: .leading) {
                 if(!isPermissionGranted){
-                    GrantPermission(onGrant: {
-                        onLocationPermission()
-                    }, title: "Please allow location permission to fetch weather data")
+                    GrantPermissionItem(
+                        onGrant: {
+                            onLocationPermission()
+                        },
+                        title: "Please allow location permission to fetch weather data")
                 }
                 else if(isFetching)
-                {LoadingItem()
+                {
+                    LoadingItem()
                 } else{
                     HStack {
                         Text( weatherData?.getLocation() ?? "Unknown Location")
                             .font(.headline)
                         
-                        Spacer()
-                        
+                        Spacer()                   
                         
                         if let iconName = weatherData?.getImageIcon() {
                             Image(resource: iconName)
