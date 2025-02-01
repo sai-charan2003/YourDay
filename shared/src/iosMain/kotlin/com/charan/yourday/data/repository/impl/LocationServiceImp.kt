@@ -12,6 +12,7 @@ class LocationServiceImp : LocationServiceRepo {
     @OptIn(ExperimentalForeignApi::class)
     override suspend fun getCurrentLocation(): Location? {
         return locationManager.location?.coordinate?.useContents {
+            print(latitude)
             Location(latitude, longitude)
         }
     }

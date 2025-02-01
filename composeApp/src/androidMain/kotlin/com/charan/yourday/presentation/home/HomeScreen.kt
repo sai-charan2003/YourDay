@@ -57,6 +57,9 @@ fun HomeScreen(
     val calenderEvents = viewModel.calenderEvents.collectAsState(emptyList())
     val locationPermissionState = rememberPermissionState(Manifest.permission.ACCESS_FINE_LOCATION)
     val calenderPermissionState = rememberPermissionState(Manifest.permission.READ_CALENDAR)
+    LaunchedEffect(Unit) {
+        viewModel.requestLocationCalenderPermission()
+    }
     LaunchedEffect(locationPermissionState.status) {
         when(locationPermissionState.status){
             is PermissionStatus.Denied -> {}

@@ -9,6 +9,8 @@ import android.net.Uri
 import android.provider.Settings
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 
 class PermissionManagerImp(
     private val context : Context
@@ -51,6 +53,11 @@ class PermissionManagerImp(
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
         }
         context.startActivity(intent)
+    }
+
+    override fun observeCalenderPermission(): Flow<Boolean> {
+        return MutableStateFlow(false)
+
     }
 
     private fun getPlatformPermission(permissions: Permissions) : String {

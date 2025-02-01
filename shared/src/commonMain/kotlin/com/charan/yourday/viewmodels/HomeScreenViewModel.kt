@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.charan.yourday.Platform
 import com.charan.yourday.data.model.CalenderItems
 import com.charan.yourday.data.network.responseDTO.WeatherDTO
 import com.charan.yourday.data.repository.CalenderEventsRepo
@@ -12,10 +13,12 @@ import com.charan.yourday.data.repository.LocationServiceRepo
 import com.charan.yourday.data.repository.WeatherRepo
 import com.charan.yourday.permission.PermissionManager
 import com.charan.yourday.permission.Permissions
+import com.charan.yourday.utils.CommonFlow
 import com.charan.yourday.utils.PlatformSettings
 import com.charan.yourday.utils.ProcessState
 import com.charan.yourday.utils.asCommonFlow
 import dev.icerock.moko.permissions.PermissionsController
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -31,9 +34,12 @@ class HomeScreenViewModel(
     val weatherData = _weatherData.asCommonFlow()
     private val _calenderEvents = MutableStateFlow<List<CalenderItems>>(emptyList())
     val calenderEvents = _calenderEvents.asCommonFlow()
+    private val _calenderPermission = MutableStateFlow<Boolean>(false)
+    val calenderPermission = _calenderPermission.asCommonFlow()
+
 
     init {
-        permissionManager.requestMultiplePermissions(listOf(Permissions.CALENDER,Permissions.LOCATION))
+        isCalenderPermissionGranted()
     }
 
 
@@ -56,8 +62,8 @@ class HomeScreenViewModel(
         _calenderEvents.tryEmit(calenderEventsRepo.getCalenderEvents())
     }
 
-    fun grantLocationPermission(openSettings : Boolean) {
-        if(openSettings) {
+    fun grantLocationPermission(shouldShowRationale : Boolean) {
+        if(shouldShowRationale) {
             permissionManager.requestPermission(Permissions.LOCATION)
 
         } else {
@@ -66,14 +72,35 @@ class HomeScreenViewModel(
         }
     }
 
-    fun grantCalenderPermission(openSettings: Boolean) {
-        if(openSettings) {
+    fun grantCalenderPermission(shouldShowRationale: Boolean) {
+        if(shouldShowRationale) {
             permissionManager.requestPermission(Permissions.CALENDER)
 
         } else {
             permissionManager.openAppSettings()
 
         }
+
+    }
+
+    fun isPermissionEnabled(permissions: Permissions) : Boolean {
+        return permissionManager.isPermissionGranted(permissions)
+
+    }
+
+    fun isCalenderPermissionGranted() = viewModelScope.launch{
+       permissionManager.observeCalenderPermission().collectLatest {
+           if(it == true){
+               getCalenderEvents()
+           }
+           _calenderPermission.tryEmit(it)
+
+       }
+    }
+
+    fun requestLocationCalenderPermission() {
+        permissionManager.requestMultiplePermissions(listOf(Permissions.LOCATION,Permissions.CALENDER))
+
 
     }
 
