@@ -3,6 +3,7 @@ package com.charan.yourday.permission
 import android.Manifest
 import android.app.Activity
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -13,7 +14,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
 class PermissionManagerImp(
-    private val context : Context
+    private val context : Context,
+
 ) : PermissionManager {
     companion object {
         private const val PERMISSION_CODE = 1001
@@ -26,23 +28,11 @@ class PermissionManagerImp(
     }
 
     override fun requestPermission(permissions: Permissions)  {
-        ActivityCompat.requestPermissions(
-            context as Activity,
-            arrayOf(getPlatformPermission(permissions)),
-            PERMISSION_CODE
 
-        )
     }
 
     override fun requestMultiplePermissions(permissions: List<Permissions>) {
-        val permissionList = permissions.map {
-            getPlatformPermission(it)
-        }.toTypedArray()
-        ActivityCompat.requestPermissions(
-            context as Activity,
-            permissionList,
-            PERMISSION_CODE
-        )
+
 
     }
 

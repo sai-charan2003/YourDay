@@ -49,6 +49,8 @@ kotlin {
             api(libs.permissions)
             api(libs.permissions.compose)
             implementation(libs.koin.compose.viewmodel)
+            api(libs.datastore.preferences)
+            api(libs.datastore)
             // put your Multiplatform dependencies here
         }
         androidMain.dependencies {
@@ -86,6 +88,10 @@ buildkonfig {
     defaultConfigs {
         val apiKey: String = gradleLocalProperties(rootDir, providers).getProperty("API_KEY")
         buildConfigField(FieldSpec.Type.STRING, "API_KEY", apiKey)
+        val todoistClientID: String = gradleLocalProperties(rootDir, providers).getProperty("TODOIST_CLIENT_ID")
+        buildConfigField(FieldSpec.Type.STRING, "TODOIST_CLIENT_ID", todoistClientID)
+        val todoistClientSecret: String = gradleLocalProperties(rootDir, providers).getProperty("TODOIST_CLIENT_SECRET")
+        buildConfigField(FieldSpec.Type.STRING, "TODOIST_CLIENT_SECRET", todoistClientSecret)
     }
 }
 

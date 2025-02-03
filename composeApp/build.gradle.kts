@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.kotlinSerialization)
 
 }
 
@@ -44,6 +45,8 @@ kotlin {
             implementation(libs.koin.compose)
             implementation(libs.koin.androidx.compose)
             implementation (libs.accompanist.permissions)
+            implementation(libs.androidx.navigation.compose)
+            implementation(libs.kotlinx.serialization.json)
 
 
 

@@ -24,19 +24,9 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         WindowCompat.setDecorFitsSystemWindows(window, false)
         super.onCreate(savedInstanceState)
-
-        initKoin{
-            androidContext(this@MainActivity)
-            modules(androidModule)
-            androidLogger()
-        }
         setContent {
             App()
         }
-    }
-
-    override fun onResume() {
-        super.onResume()
     }
 
 

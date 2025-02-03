@@ -13,7 +13,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.navigation.compose.rememberNavController
 import com.charan.yourday.presentation.home.HomeScreen
+import com.charan.yourday.presentation.navigation.NavigationAppHost
 import com.charan.yourday.utils.DateUtils
 import com.charan.yourday.viewmodels.HomeScreenViewModel
 import com.example.compose.AppTheme
@@ -38,19 +40,27 @@ fun App() {
     KoinContext  {
         val permissionsController: PermissionsController = koinInject()
         BindEffect(permissionsController = permissionsController)
-        val calenderPermissionState = rememberPermissionState(Manifest.permission.READ_CALENDAR)
-        when(calenderPermissionState.status){
-            is PermissionStatus.Denied -> {
-                Log.d("TAG", "HomeScreen: denied")
-            }
-            PermissionStatus.Granted -> {
-                Log.d("TAG", "HomeScreen: granted")
+        val multiplePermissionRequest = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.RequestMultiplePermissions()
+        ) { permissions ->
+            permissions.keys.forEach {
 
             }
         }
+        LaunchedEffect(Unit) {
+            multiplePermissionRequest.launch(
+                arrayOf(
+                    Manifest.permission.READ_CALENDAR,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                )
+            )
+        }
         AppTheme {
             Surface {
-                HomeScreen()
+                NavigationAppHost(
+                    navHostController = rememberNavController()
+
+                )
 
             }
         }

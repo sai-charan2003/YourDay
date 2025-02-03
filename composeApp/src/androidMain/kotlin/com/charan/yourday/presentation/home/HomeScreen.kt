@@ -6,6 +6,7 @@ import android.content.Context
 import android.net.Uri
 import android.provider.CalendarContract
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -27,8 +28,11 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.compose.currentStateAsState
+import androidx.navigation.NavHostController
+import com.charan.yourday.data.network.responseDTO.TodoistTokenDTO
 import com.charan.yourday.data.network.responseDTO.WeatherDTO
 import com.charan.yourday.presentation.home.components.CalendarCard
+import com.charan.yourday.presentation.home.components.TodoCard
 import com.charan.yourday.presentation.home.components.TopBarTitleContent
 import com.charan.yourday.presentation.home.components.WeatherCard
 import com.charan.yourday.utils.ProcessState
@@ -40,6 +44,7 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import dev.icerock.moko.permissions.PermissionState
+import kotlinx.coroutines.flow.collectLatest
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.getKoin
 import org.koin.compose.koinInject
@@ -50,15 +55,48 @@ import java.util.Date
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun HomeScreen(
-
+    navHostController: NavHostController,
+    authorizationId : String? = null
 ) {
     val viewModel = koinViewModel<HomeScreenViewModel>()
+    val context = LocalContext.current
     val weatherStatus = viewModel.weatherData.collectAsState(ProcessState.Loading)
     val calenderEvents = viewModel.calenderEvents.collectAsState(emptyList())
     val locationPermissionState = rememberPermissionState(Manifest.permission.ACCESS_FINE_LOCATION)
     val calenderPermissionState = rememberPermissionState(Manifest.permission.READ_CALENDAR)
-    LaunchedEffect(Unit) {
-        viewModel.requestLocationCalenderPermission()
+    val todoistAuthorizationFlow by viewModel.todoistAuthorizationFlow.collectAsState(ProcessState.NotDetermined)
+    val tokenFlow by viewModel.todoistAuthToken.collectAsState(null)
+    val todoTasks by viewModel.todoistTasks.collectAsState(ProcessState.NotDetermined)
+    LaunchedEffect(authorizationId) {
+        if(authorizationId!=null){
+            viewModel.getTodoistAccessToken(authorizationId)
+        }
+    }
+    LaunchedEffect(tokenFlow) {
+        if(tokenFlow!=null){
+            Log.d("TAG", "HomeScreen: $tokenFlow")
+            viewModel.getTodoistTodayTasks(tokenFlow!!)
+        }
+    }
+    LaunchedEffect(todoistAuthorizationFlow) {
+        when(todoistAuthorizationFlow){
+            is ProcessState.Error -> {
+                Toast.makeText(context, (todoistAuthorizationFlow as ProcessState.Error).message,Toast.LENGTH_LONG).show()
+
+            }
+            ProcessState.Loading -> {
+
+            }
+            ProcessState.NotDetermined -> {
+
+            }
+            is ProcessState.Success -> {
+                if((todoistAuthorizationFlow as ProcessState.Success<TodoistTokenDTO>).data.access_token!=null) {
+                    viewModel.saveTodoistToken((todoistAuthorizationFlow as ProcessState.Success<TodoistTokenDTO>).data.access_token!!)
+                    viewModel.getToken()
+                }
+            }
+        }
     }
     LaunchedEffect(locationPermissionState.status) {
         when(locationPermissionState.status){
@@ -112,6 +150,16 @@ fun HomeScreen(
 
                     },
                     isPermissionGranted = calenderPermissionState.status.isGranted
+                )
+
+                TodoCard(
+                    isAuthenticating = todoistAuthorizationFlow.isLoading(),
+                    onClick = {
+                        viewModel.requestTodoistAuthentication()
+                    },
+                    todoContent = todoTasks.extractData() ?: emptyList(),
+                    isContentLoading = todoTasks.isLoading(),
+                    showContent = tokenFlow.isNullOrEmpty().not()
                 )
 
             }
