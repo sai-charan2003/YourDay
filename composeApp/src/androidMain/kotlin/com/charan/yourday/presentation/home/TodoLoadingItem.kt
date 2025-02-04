@@ -16,7 +16,7 @@ fun TodoLoadingItem() {
     Row (modifier = Modifier.fillMaxWidth()){
         Text("Fetching Todo Items")
         Spacer(Modifier.weight(1f))
-        CircularProgressIndicator(modifier = Modifier.size(10.dp), strokeWidth = 2.dp)
+        CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
 
     }
 }

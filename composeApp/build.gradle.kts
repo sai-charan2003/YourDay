@@ -47,6 +47,8 @@ kotlin {
             implementation (libs.accompanist.permissions)
             implementation(libs.androidx.navigation.compose)
             implementation(libs.kotlinx.serialization.json)
+            implementation(libs.multiplatform.markdown.renderer.m3)
+            implementation("com.mohamedrejeb.richeditor:richeditor-compose:1.0.0-rc10")
 
 
 

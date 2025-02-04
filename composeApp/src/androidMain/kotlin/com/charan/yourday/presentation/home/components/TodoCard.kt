@@ -9,14 +9,19 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -34,10 +39,10 @@ fun TodoCard(
     isContentLoading : Boolean,
     showContent : Boolean
 ) {
-    ElevatedCard(modifier = Modifier.padding(top = 20.dp)) {
+    ElevatedCard(modifier = Modifier.padding(top = 20.dp).animateContentSize()) {
         Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.Center) {
             if(!showContent) {
-                Row {
+                Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
                     Image(
                         painter = painterResource(MR.images.Todoist),
                         null,
@@ -45,11 +50,11 @@ fun TodoCard(
                     )
                     Text(text = "Connect to Todoist")
                     Spacer(modifier = Modifier.weight(1f))
-                    Button(
+                    FilledTonalButton (
                         onClick = {
                             onClick()
                         },
-                        contentPadding = PaddingValues(2.dp),
+                        contentPadding = PaddingValues(3.dp),
                         modifier = Modifier.animateContentSize().height(30.dp),
                         enabled = !isAuthenticating
                     ) {
@@ -59,7 +64,10 @@ fun TodoCard(
                                 strokeWidth = 2.dp
                             )
                         }
-                        Text("Connect")
+                        if(isAuthenticating) {
+                            Spacer(Modifier.padding(end = 5.dp))
+                        }
+                        Text("Connect",style = MaterialTheme.typography.labelSmall)
                     }
 
                 }
@@ -67,6 +75,15 @@ fun TodoCard(
                 TodoLoadingItem()
             }
             else {
+                Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
+                    Image(
+                        painter = painterResource(MR.images.Todoist),
+                        null,
+                        modifier = Modifier.padding(end = 10.dp).size(22.dp)
+                    )
+                    Text(text = "Today's tasks")
+
+                }
                     todoContent.forEach {
                         TodoItem(it)
                     }

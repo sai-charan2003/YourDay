@@ -8,11 +8,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.charan.yourday.data.network.responseDTO.TodoistTodayTasksDTO
+import com.mikepenz.markdown.compose.elements.MarkdownText
+import com.mohamedrejeb.richeditor.model.rememberRichTextState
+import com.mohamedrejeb.richeditor.ui.material3.RichText
+import com.mohamedrejeb.richeditor.ui.material3.RichTextEditor
 
 @Composable
 fun TodoItem(todoItem : TodoistTodayTasksDTO) {
-    ElevatedCard(modifier = Modifier.padding(10.dp)) {
-        Text(todoItem.content, style = MaterialTheme.typography.bodySmall)
-    }
+        val richTextState = rememberRichTextState()
+        richTextState.setMarkdown(todoItem.content)
+
+        RichText(richTextState, style = MaterialTheme.typography.bodySmall,modifier = Modifier.padding(top = 20.dp))
+
 
 }
