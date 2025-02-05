@@ -20,8 +20,8 @@ import com.charan.yourday.data.repository.TodoistRepo
 import com.charan.yourday.data.repository.WeatherRepo
 import com.charan.yourday.permission.PermissionManager
 import com.charan.yourday.permission.Permissions
-import com.charan.yourday.utils.AppConstants
 import com.charan.yourday.utils.CommonFlow
+import com.charan.yourday.utils.DataStoreConst
 import com.charan.yourday.utils.PlatformSettings
 import com.charan.yourday.utils.ProcessState
 import com.charan.yourday.utils.asCommonFlow
@@ -31,6 +31,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import org.koin.core.component.getScopeId
 
 class HomeScreenViewModel(
     private val weatherRepo: WeatherRepo,
@@ -49,7 +50,7 @@ class HomeScreenViewModel(
     val calenderEvents = _calenderEvents.asCommonFlow()
     private val _calenderPermission = MutableStateFlow<Boolean>(false)
     val calenderPermission = _calenderPermission.asCommonFlow()
-    private val todoistToken = stringPreferencesKey(AppConstants.TODOIST_ACCESS_TOKEN)
+    private val todoistToken = stringPreferencesKey(DataStoreConst.TODOIST_ACCESS_TOKEN)
     private val _todoistAuthorizationFlow = MutableStateFlow<ProcessState<TodoistTokenDTO>>(ProcessState.NotDetermined)
     val todoistAuthorizationFlow = _todoistAuthorizationFlow.asCommonFlow()
     private val _todoistTasks = MutableStateFlow<ProcessState<List<TodoistTodayTasksDTO>>>(ProcessState.Loading)
@@ -59,8 +60,8 @@ class HomeScreenViewModel(
 
 
     init {
+        checkTokenAndFetchTasks()
         isCalenderPermissionGranted()
-        getToken()
 
     }
 
@@ -129,36 +130,51 @@ class HomeScreenViewModel(
         todoistRepo.requestAuthorization()
     }
 
-    fun getTodoistAccessToken(code : String)  = viewModelScope.launch {
-        todoistRepo.getAccessToken(code).collectLatest {
-            println("Access Token")
-            println(it)
-            _todoistAuthorizationFlow.tryEmit(it)
-        }
-    }
-
-    fun getTodoistTodayTasks(code: String) = viewModelScope.launch {
-        todoistRepo.getTodayTasks(code).collectLatest {
-            _todoistTasks.tryEmit(it)
-        }
-
-
-
-    }
-
     fun saveTodoistToken(token: String) = viewModelScope.launch {
         datastore.edit {
             it[todoistToken] = token
         }
     }
 
-    fun getToken() = viewModelScope.launch {
-
-        datastore.data.collectLatest {
-            _todoistAuthToken.tryEmit(it[todoistToken])
-
+    fun authenticateTodoist(authorizationId: String) {
+        viewModelScope.launch {
+            todoistRepo.getAccessToken(authorizationId).collectLatest { state ->
+                _todoistAuthorizationFlow.value = state
+                if (state is ProcessState.Success) {
+                    state.data.access_token?.let { token ->
+                        saveTodoistToken(token)
+                        fetchTodoistTasks(token)
+                    }
+                }
+            }
         }
     }
+
+
+    private fun fetchTodoistTasks(token: String) {
+        viewModelScope.launch {
+            todoistRepo.getTodayTasks(token).collectLatest { state ->
+                print(state)
+                _todoistTasks.tryEmit(state)
+            }
+        }
+    }
+
+    private fun checkTokenAndFetchTasks()= viewModelScope.launch {
+        datastore.data.collectLatest {
+            val token = it[todoistToken]
+            _todoistAuthToken.tryEmit(token)
+            println(token)
+            if(token !=null){
+                fetchTodoistTasks(token)
+            }
+        }
+
+    }
+
+
+
+
 
 
 

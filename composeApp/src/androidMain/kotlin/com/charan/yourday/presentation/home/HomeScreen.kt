@@ -69,33 +69,7 @@ fun HomeScreen(
     val todoTasks by viewModel.todoistTasks.collectAsState(ProcessState.NotDetermined)
     LaunchedEffect(authorizationId) {
         if(authorizationId!=null){
-            viewModel.getTodoistAccessToken(authorizationId)
-        }
-    }
-    LaunchedEffect(tokenFlow) {
-        if(tokenFlow!=null){
-            Log.d("TAG", "HomeScreen: $tokenFlow")
-            viewModel.getTodoistTodayTasks(tokenFlow!!)
-        }
-    }
-    LaunchedEffect(todoistAuthorizationFlow) {
-        when(todoistAuthorizationFlow){
-            is ProcessState.Error -> {
-                Toast.makeText(context, (todoistAuthorizationFlow as ProcessState.Error).message,Toast.LENGTH_LONG).show()
-
-            }
-            ProcessState.Loading -> {
-
-            }
-            ProcessState.NotDetermined -> {
-
-            }
-            is ProcessState.Success -> {
-                if((todoistAuthorizationFlow as ProcessState.Success<TodoistTokenDTO>).data.access_token!=null) {
-                    viewModel.saveTodoistToken((todoistAuthorizationFlow as ProcessState.Success<TodoistTokenDTO>).data.access_token!!)
-                    viewModel.getToken()
-                }
-            }
+            viewModel.authenticateTodoist(authorizationId)
         }
     }
     LaunchedEffect(locationPermissionState.status) {
