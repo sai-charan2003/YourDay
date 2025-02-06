@@ -154,7 +154,6 @@ class HomeScreenViewModel(
     private fun fetchTodoistTasks(token: String) {
         viewModelScope.launch {
             todoistRepo.getTodayTasks(token).collectLatest { state ->
-                print(state)
                 _todoistTasks.tryEmit(state)
             }
         }
@@ -168,6 +167,18 @@ class HomeScreenViewModel(
             if(token !=null){
                 fetchTodoistTasks(token)
             }
+        }
+
+    }
+
+    fun resetTodoistFlow() {
+        _todoistAuthorizationFlow.tryEmit(ProcessState.NotDetermined)
+    }
+
+    fun clearTodoistToken() = viewModelScope.launch{
+        datastore.edit {preferences ->
+            preferences.remove(todoistToken)
+
         }
 
     }

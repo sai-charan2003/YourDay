@@ -56,7 +56,8 @@ import java.util.Date
 @Composable
 fun HomeScreen(
     navHostController: NavHostController,
-    authorizationId : String? = null
+    authorizationId : String? = null,
+    error : String? = null
 ) {
     val viewModel = koinViewModel<HomeScreenViewModel>()
     val context = LocalContext.current
@@ -67,9 +68,25 @@ fun HomeScreen(
     val todoistAuthorizationFlow by viewModel.todoistAuthorizationFlow.collectAsState(ProcessState.NotDetermined)
     val tokenFlow by viewModel.todoistAuthToken.collectAsState(null)
     val todoTasks by viewModel.todoistTasks.collectAsState(ProcessState.NotDetermined)
+    LaunchedEffect(todoTasks) {
+        when(todoTasks){
+            is ProcessState.Error -> {
+                viewModel.clearTodoistToken()
+                Toast.makeText(context,"Please connect again",Toast.LENGTH_LONG).show()
+            }
+            else -> Unit
+
+        }
+    }
     LaunchedEffect(authorizationId) {
         if(authorizationId!=null){
             viewModel.authenticateTodoist(authorizationId)
+        }
+    }
+    LaunchedEffect(error) {
+        if(error !=null){
+            Toast.makeText(context,"Unable to connect to todoist",Toast.LENGTH_LONG).show()
+            viewModel.resetTodoistFlow()
         }
     }
     LaunchedEffect(locationPermissionState.status) {

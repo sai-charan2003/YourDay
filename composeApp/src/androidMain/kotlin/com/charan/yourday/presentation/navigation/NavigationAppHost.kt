@@ -53,18 +53,13 @@ fun NavigationAppHost(navHostController: NavHostController) {
         composable<HomeScreenNav>(
             deepLinks = listOf(
                 navDeepLink<HomeScreenNav> (
-
                     basePath = "https://sai-charan2003.github.io/"
                     )
             )
         ) {
-            Log.d("TAG", "NavigationAppHost: ${it.arguments}")
+
             val args = it.toRoute<HomeScreenNav>()
-
-
-            Log.d("OAuth", "Authorization Code: ${args.code}")
-
-            HomeScreen(navHostController = navHostController, authorizationId = args.code)
+            HomeScreen(navHostController = navHostController, authorizationId = args.code, error = args.error)
         }
 
 
