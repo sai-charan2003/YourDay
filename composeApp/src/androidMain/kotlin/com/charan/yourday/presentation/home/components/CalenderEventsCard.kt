@@ -42,8 +42,12 @@ fun CalendarCard(
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Medium),
                     modifier = Modifier.padding(bottom = 10.dp)
                 )
-                for (event in calenderEvents) {
-                    EventItem(event)
+                if(calenderEvents.isEmpty()){
+                    NoEventItem()
+                } else {
+                    for (event in calenderEvents) {
+                        EventItem(event)
+                    }
                 }
             }
 

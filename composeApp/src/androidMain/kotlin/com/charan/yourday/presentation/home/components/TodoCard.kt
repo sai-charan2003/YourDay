@@ -84,9 +84,13 @@ fun TodoCard(
                     Text(text = "Today's tasks")
 
                 }
+                if(todoContent.isEmpty()){
+                    NoTodoItem()
+                } else {
                     todoContent.forEach {
                         TodoItem(it)
                     }
+                }
                 }
             }
         }
