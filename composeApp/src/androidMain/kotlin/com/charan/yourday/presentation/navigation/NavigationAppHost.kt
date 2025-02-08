@@ -50,17 +50,17 @@ fun NavigationAppHost(navHostController: NavHostController) {
             )
         },
     ){
-        composable<HomeScreenNav>(
-            deepLinks = listOf(
-                navDeepLink<HomeScreenNav> (
-                    basePath = "https://sai-charan2003.github.io/"
-                    )
-            )
-        ) {
-
-            val args = it.toRoute<HomeScreenNav>()
-            HomeScreen(navHostController = navHostController, authorizationId = args.code, error = args.error)
-        }
+//        composable<HomeScreenNav>(
+//            deepLinks = listOf(
+//                navDeepLink<HomeScreenNav> (
+//                    basePath = "https://sai-charan2003.github.io/"
+//                    )
+//            )
+//        ) {
+//
+//            val args = it.toRoute<HomeScreenNav>()
+//            HomeScreen(navHostController = navHostController, authorizationId = args.code, error = args.error)
+//        }
 
 
 

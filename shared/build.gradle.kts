@@ -51,6 +51,7 @@ kotlin {
             implementation(libs.koin.compose.viewmodel)
             api(libs.datastore.preferences)
             api(libs.datastore)
+            implementation(libs.decompose)
             // put your Multiplatform dependencies here
         }
         androidMain.dependencies {

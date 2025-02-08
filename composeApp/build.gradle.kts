@@ -49,7 +49,8 @@ kotlin {
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.multiplatform.markdown.renderer.m3)
             implementation("com.mohamedrejeb.richeditor:richeditor-compose:1.0.0-rc10")
-
+            implementation(libs.decompose)
+            implementation(libs.decompose.jetbrains)
 
 
         }

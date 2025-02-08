@@ -35,6 +35,7 @@ import com.charan.yourday.presentation.home.components.CalendarCard
 import com.charan.yourday.presentation.home.components.TodoCard
 import com.charan.yourday.presentation.home.components.TopBarTitleContent
 import com.charan.yourday.presentation.home.components.WeatherCard
+import com.charan.yourday.root.HomeScreenComponent
 import com.charan.yourday.utils.ProcessState
 import com.charan.yourday.utils.asCommonFlow
 import com.charan.yourday.viewmodels.HomeScreenViewModel
@@ -55,7 +56,7 @@ import java.util.Date
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun HomeScreen(
-    navHostController: NavHostController,
+    component :HomeScreenComponent,
     authorizationId : String? = null,
     error : String? = null
 ) {

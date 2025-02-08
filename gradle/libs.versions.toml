@@ -33,6 +33,7 @@ navigationCompose = "2.8.6"
 lifecycleViewModel = "2.8.7"
 kotlinxSerializationJson = "1.7.3"
 datastore = "1.1.2"
+decompose = "3.1.0"
 
 
 [libraries]
@@ -79,6 +80,9 @@ lifecycle-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel", versi
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 datastore = { module = "androidx.datastore:datastore", version.ref = "datastore" }
 datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
+decompose = { module = "com.arkivanov.decompose:decompose", version.ref = "decompose" }
+decompose-jetbrains = { module = "com.arkivanov.decompose:extensions-compose", version.ref = "decompose" }
+
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
