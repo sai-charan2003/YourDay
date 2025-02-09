@@ -10,13 +10,13 @@ import SwiftUI
 import Shared
 
 struct CalenderCard : View {
-    @Binding var calenderData : [Shared.CalenderItems]
+    @Binding var calenderData : [Shared.CalenderItems]?
     @Binding var isCalenderPermissionGranted : Bool
     var onGrant : () -> Void
     var body: some View {
         GroupBox{
             VStack(alignment: .leading){
-                if(!isCalenderPermissionGranted && calenderData.isEmpty){
+                if(!isCalenderPermissionGranted){
                     GrantPermissionItem(onGrant: {
                         onGrant()
                     }, title: "Please allow calender permission to fetch calender events")
@@ -27,7 +27,7 @@ struct CalenderCard : View {
                     .font(.title2)
                     .fontWeight(.medium)
                     
-                    ForEach(calenderData,id: \.eventId){ event in
+                    ForEach(calenderData ?? [Shared.CalenderItems](),id: \.eventId){ event in
                         EventItem(calenderEvent: event)
                     }
                 }

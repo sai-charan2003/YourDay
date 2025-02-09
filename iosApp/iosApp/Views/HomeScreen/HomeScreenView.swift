@@ -11,16 +11,18 @@ import Combine
 import EventKit
 
 struct HomeScreenView: View {
-    @State private var viewModel = ProvideComponents().getHomeViewModel()
+    private let component: HomeScreenComponent   
     @State private var uiState: ProcessState<WeatherDTO> = .loading
     @State private var isFetching: Bool = true
     @State private var weatherData: Shared.ProcessState<Shared.WeatherDTO>?
     @State private var calenderEvents : [Shared.CalenderItems]?
     @ObservedObject private var permissionObserver: PermissionObserver = .init()
     @State private var permissionState : PermissionState?
-    init () {
+    init(_ component: HomeScreenComponent) {
+        self.component = component
         permissionState = permissionObserver.locationPermission
     }
+
     
     
     var body: some View {
@@ -44,9 +46,9 @@ struct HomeScreenView: View {
                             
                         })
                     ) {
-                        viewModel.grantLocationPermission(shouldShowRationale: permissionObserver.locationPermission != Shared.PermissionState.notGranted)
+                        component.grantLocationPermission(shouldShowRationale: permissionObserver.locationPermission != Shared.PermissionState.notGranted)
                     }
-                    if let calenderEvents = calenderEvents {
+                    
                         CalenderCard(
                             calenderData: Binding(
                                 get: {calenderEvents},
@@ -60,12 +62,9 @@ struct HomeScreenView: View {
                                 }
                                 )
                         ) {
-                            permissionObserver.checkCalendarPermission()
-                            if(permissionObserver.calendarPermission == PermissionState.notGranted){
-                                viewModel.grantCalenderPermission(shouldShowRationale: false)
-                            }
+                            getCalendarPermission()
                         }
-                    }
+                    
                     
                     
                 }
@@ -80,25 +79,10 @@ struct HomeScreenView: View {
                     switch permissionState{
                     case Shared.PermissionState.granted:
                         print("Getting")
-                        viewModel.getLocation()
+                        component.getLocation()
                         
                     default :
                         print("Not Granted")
-                    
-                        
-                    }
-                    
-                    
-                }
-                .onReceive(permissionObserver.$calendarPermission){ permissionState in
-                    
-                    print(permissionState)
-                    switch permissionState{
-                    case Shared.PermissionState.granted:
-                        viewModel.getCalenderEvents()
-                        
-                    default :
-                        print("Not Granted calender")
                     
                         
                     }
@@ -110,7 +94,7 @@ struct HomeScreenView: View {
     }
 
     private func observeWeatherData() {
-        viewModel.weatherData.watch { (processState: Shared.ProcessState<WeatherDTO>?) in
+        component.weatherData.watch { (processState: Shared.ProcessState<WeatherDTO>?) in
             if let processState = processState {
                 weatherData = processState
             }
@@ -119,11 +103,50 @@ struct HomeScreenView: View {
     }
     
     private func observeCalenderData() {
-        viewModel.calenderEvents.watch { items in
+        component.calenderEvents.watch { items in
             if let calenderEvent = items {
                 calenderEvents = calenderEvent as! [CalenderItems]?
             }
             
+        }
+    }
+    
+    private func getCalendarPermission() {
+        let eventStore = EKEventStore()
+        let status = EKEventStore.authorizationStatus(for: .event)
+        
+        switch status {
+        case .notDetermined:
+            eventStore.requestAccess(to: .event) { granted, error in
+                if let error = error {
+                    print("Error requesting access: \(error.localizedDescription)")
+                    return
+                }
+                if granted {
+                    print("Calendar access granted")
+                    DispatchQueue.main.async {
+                        component.isCalenderPermissionGranted()
+                        component.isPermissionEnabled(permissions: Shared.Permissions.calender)
+                        component.getCalenderEvents()
+                    }
+                } else {
+                    print("Calendar access denied")
+                    DispatchQueue.main.async {
+                        component.openSettings()
+                       
+                    }
+                }
+            }
+            
+        case .authorized:
+            print("Calendar access already authorized")
+            
+        case .denied, .restricted:
+            print("Calendar access denied or restricted")
+            component.openSettings()
+            
+        @unknown default:
+            print("Unknown authorization status")
         }
     }
     

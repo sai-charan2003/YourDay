@@ -1,15 +1,11 @@
-package com.charan.yourday.viewmodels
+package com.charan.yourday.home
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.charan.yourday.Platform
+import androidx.lifecycle.coroutineScope
+import com.arkivanov.decompose.ComponentContext
 import com.charan.yourday.data.model.CalenderItems
 import com.charan.yourday.data.network.responseDTO.TodoistTodayTasksDTO
 import com.charan.yourday.data.network.responseDTO.TodoistTokenDTO
@@ -20,29 +16,32 @@ import com.charan.yourday.data.repository.TodoistRepo
 import com.charan.yourday.data.repository.WeatherRepo
 import com.charan.yourday.permission.PermissionManager
 import com.charan.yourday.permission.Permissions
-import com.charan.yourday.utils.CommonFlow
 import com.charan.yourday.utils.DataStoreConst
-import com.charan.yourday.utils.PlatformSettings
 import com.charan.yourday.utils.ProcessState
 import com.charan.yourday.utils.asCommonFlow
-import dev.icerock.moko.permissions.PermissionsController
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import org.koin.core.component.getScopeId
+import org.koin.compose.koinInject
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.get
 
-class HomeScreenViewModel(
-    private val weatherRepo: WeatherRepo,
-    private val locationServiceRepo: LocationServiceRepo,
-    private val permissionManager: PermissionManager,
-    private val calenderEventsRepo: CalenderEventsRepo,
-    private val todoistRepo: TodoistRepo,
-    private val datastore : DataStore<Preferences>
+class HomeScreenComponent(
+    val authorizationId : String?,
+    val errorCode : String?,
+    componentContext: ComponentContext
+) : KoinComponent, ComponentContext by componentContext {
+    private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
-) : ViewModel() {
-
+    private val weatherRepo: WeatherRepo = get()
+    private val locationServiceRepo: LocationServiceRepo = get()
+    private val permissionManager: PermissionManager = get()
+    private val calenderEventsRepo: CalenderEventsRepo = get()
+    private val todoistRepo: TodoistRepo = get()
+    private val datastore : DataStore<Preferences> = get()
 
     private val _weatherData = MutableStateFlow<ProcessState<WeatherDTO>>(ProcessState.Loading)
     val weatherData = _weatherData.asCommonFlow()
@@ -51,22 +50,34 @@ class HomeScreenViewModel(
     private val _calenderPermission = MutableStateFlow<Boolean>(false)
     val calenderPermission = _calenderPermission.asCommonFlow()
     private val todoistToken = stringPreferencesKey(DataStoreConst.TODOIST_ACCESS_TOKEN)
-    private val _todoistAuthorizationFlow = MutableStateFlow<ProcessState<TodoistTokenDTO>>(ProcessState.NotDetermined)
+    private val _todoistAuthorizationFlow = MutableStateFlow<ProcessState<TodoistTokenDTO>>(
+        ProcessState.NotDetermined)
     val todoistAuthorizationFlow = _todoistAuthorizationFlow.asCommonFlow()
-    private val _todoistTasks = MutableStateFlow<ProcessState<List<TodoistTodayTasksDTO>>>(ProcessState.Loading)
+    private val _todoistTasks = MutableStateFlow<ProcessState<List<TodoistTodayTasksDTO>>>(
+        ProcessState.Loading)
     val todoistTasks = _todoistTasks.asCommonFlow()
     private val _todoistAuthToken = MutableStateFlow<String?>(null)
     val todoistAuthToken = _todoistAuthToken.asCommonFlow()
+    private val _isErrorSent = MutableStateFlow(false)
+    val isErrorSent = _isErrorSent.asCommonFlow()
+
 
 
     init {
-        checkTokenAndFetchTasks()
         isCalenderPermissionGranted()
+        if(authorizationId != null){
+            authenticateTodoist(authorizationId)
+        }
+        if(errorCode !=null){
+            _isErrorSent.tryEmit(true)
+        }
+        checkTokenAndFetchTasks()
+
 
     }
 
 
-    private fun getWeatherForecast(lat: Double, long: Double) = viewModelScope.launch {
+    private fun getWeatherForecast(lat: Double, long: Double) = coroutineScope.launch {
         val weatherData = weatherRepo.getCurrentForecast(lat, long)
         weatherData.collectLatest {
             _weatherData.tryEmit(it)
@@ -74,7 +85,7 @@ class HomeScreenViewModel(
     }
 
 
-    fun getLocation() = viewModelScope.launch {
+    fun getLocation() = coroutineScope.launch {
         val location = locationServiceRepo.getCurrentLocation()
         if (location != null) {
             getWeatherForecast(lat = location.latitude!!, long = location.longitude!!)
@@ -111,33 +122,33 @@ class HomeScreenViewModel(
 
     }
 
-    fun isCalenderPermissionGranted() = viewModelScope.launch{
-       permissionManager.observeCalenderPermission().collectLatest {
-           if(it == true){
-               getCalenderEvents()
-           }
-           _calenderPermission.tryEmit(it)
+    fun isCalenderPermissionGranted() = coroutineScope.launch{
+        permissionManager.observeCalenderPermission().collectLatest {
+            if(it == true){
+                getCalenderEvents()
+            }
+            _calenderPermission.tryEmit(it)
 
-       }
+        }
     }
 
     fun requestLocationCalenderPermission() {
-        permissionManager.requestMultiplePermissions(listOf(Permissions.LOCATION,Permissions.CALENDER))
+        permissionManager.requestMultiplePermissions(listOf(Permissions.LOCATION, Permissions.CALENDER))
     }
 
-    fun requestTodoistAuthentication() =viewModelScope.launch{
+    fun requestTodoistAuthentication() =coroutineScope.launch{
         _todoistAuthorizationFlow.tryEmit(ProcessState.Loading)
         todoistRepo.requestAuthorization()
     }
 
-    fun saveTodoistToken(token: String) = viewModelScope.launch {
+    fun saveTodoistToken(token: String) = coroutineScope.launch {
         datastore.edit {
             it[todoistToken] = token
         }
     }
 
     fun authenticateTodoist(authorizationId: String) {
-        viewModelScope.launch {
+        coroutineScope.launch {
             todoistRepo.getAccessToken(authorizationId).collectLatest { state ->
                 _todoistAuthorizationFlow.value = state
                 if (state is ProcessState.Success) {
@@ -152,14 +163,14 @@ class HomeScreenViewModel(
 
 
     private fun fetchTodoistTasks(token: String) {
-        viewModelScope.launch {
+        coroutineScope.launch {
             todoistRepo.getTodayTasks(token).collectLatest { state ->
                 _todoistTasks.tryEmit(state)
             }
         }
     }
 
-    private fun checkTokenAndFetchTasks()= viewModelScope.launch {
+    private fun checkTokenAndFetchTasks()= coroutineScope.launch {
         datastore.data.collectLatest {
             val token = it[todoistToken]
             _todoistAuthToken.tryEmit(token)
@@ -175,7 +186,7 @@ class HomeScreenViewModel(
         _todoistAuthorizationFlow.tryEmit(ProcessState.NotDetermined)
     }
 
-    fun clearTodoistToken() = viewModelScope.launch{
+    fun clearTodoistToken() = coroutineScope.launch{
         datastore.edit {preferences ->
             preferences.remove(todoistToken)
 
@@ -183,12 +194,9 @@ class HomeScreenViewModel(
 
     }
 
-
-
-
-
-
-
+    fun openSettings(){
+        permissionManager.openAppSettings()
+    }
 
 
 

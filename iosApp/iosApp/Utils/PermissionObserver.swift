@@ -15,7 +15,6 @@ import UIKit
 class PermissionObserver: NSObject, ObservableObject, CLLocationManagerDelegate {
     private var locationManager = CLLocationManager()
     private var eventKit = EKEventStore()
-    private var viewModel = ProvideComponents().getHomeViewModel()
     
     @Published var locationPermission: Shared.PermissionState = Shared.PermissionState.notDetermined
     @Published var calendarPermission: Shared.PermissionState = Shared.PermissionState.notDetermined

@@ -29,6 +29,8 @@ kotlin {
             baseName = "Shared"
             export(libs.resources)
             export(libs.graphics)
+            export(libs.decompose)
+            export(libs.essenty.lifecycle)
         }
     }
     
@@ -51,7 +53,11 @@ kotlin {
             implementation(libs.koin.compose.viewmodel)
             api(libs.datastore.preferences)
             api(libs.datastore)
-            implementation(libs.decompose)
+            api(libs.decompose)
+            implementation(libs.kotlinx.coroutines.core)
+            api(libs.essenty.lifecycle)
+            api(libs.essenty.stateKeeper)
+            api(libs.essenty.instanceKeeper)
             // put your Multiplatform dependencies here
         }
         androidMain.dependencies {
