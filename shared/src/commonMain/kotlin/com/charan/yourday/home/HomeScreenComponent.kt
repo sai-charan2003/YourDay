@@ -34,6 +34,7 @@ class HomeScreenComponent(
     val errorCode : String?,
     componentContext: ComponentContext
 ) : KoinComponent, ComponentContext by componentContext {
+
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     private val weatherRepo: WeatherRepo = get()
@@ -64,6 +65,7 @@ class HomeScreenComponent(
 
 
     init {
+        print(authorizationId)
         isCalenderPermissionGranted()
         if(authorizationId != null){
             authenticateTodoist(authorizationId)

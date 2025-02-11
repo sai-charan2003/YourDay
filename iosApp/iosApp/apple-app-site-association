@@ -1,0 +1,19 @@
+//
+//  apple-app-site-association.swift
+//  iosApp
+//
+//  Created by Sai Charan on 09/02/25.
+//  Copyright © 2025 orgName. All rights reserved.
+//
+
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+    {
+      "appID": "TeamID.BundleID",
+      "paths": ["*"]
+    }
+    ]
+  }
+}

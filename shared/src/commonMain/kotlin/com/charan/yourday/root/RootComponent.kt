@@ -9,8 +9,8 @@ import com.charan.yourday.home.HomeScreenComponent
 import kotlinx.serialization.Serializable
 
 class RootComponent(
-    val authorizationId: String? = null,
-    val errorCode: String? = null,
+    var authorizationId: String? = null,
+    var errorCode: String? = null,
     componentContext: ComponentContext
 ) : ComponentContext by componentContext{
 
