@@ -15,6 +15,8 @@ struct HomeScreenView: View {
     @State private var uiState: ProcessState<WeatherDTO> = .loading
     @State private var isFetching: Bool = true
     @State private var weatherData: Shared.ProcessState<Shared.WeatherDTO>?
+    @State private var todoItems : Shared.ProcessState<Shared.TodoistTodayTasksDTO>?
+
     @State private var calenderEvents : [Shared.CalenderItems]?
     @ObservedObject private var permissionObserver: PermissionObserver = .init()
     @State private var permissionState : PermissionState?
@@ -108,6 +110,15 @@ struct HomeScreenView: View {
                 calenderEvents = calenderEvent as! [CalenderItems]?
             }
             
+        }
+    }
+    
+    private func observeTodoItems() {
+        component.todoistTasks.watch { (processState: Shared.ProcessState<[Shared.TodoistTodayTasksDTO]>) in
+            if let processState = processState {
+                todoItems = processState
+                
+            }
         }
     }
     

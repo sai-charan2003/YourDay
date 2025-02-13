@@ -12,7 +12,7 @@ import EventKit
 import Shared
 import UIKit
 
-class PermissionObserver: NSObject, ObservableObject, CLLocationManagerDelegate {
+class PermissionObserver: NSObject, ObservableObject, CLLocationManagerDelegate{
     private var locationManager = CLLocationManager()
     private var eventKit = EKEventStore()
     
@@ -70,6 +70,7 @@ class PermissionObserver: NSObject, ObservableObject, CLLocationManagerDelegate 
     }
     
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        
         checkLocationPermission()
     }
 

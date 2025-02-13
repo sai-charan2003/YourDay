@@ -36,6 +36,16 @@
                 <data android:scheme="https" />
                 <data android:host="sai-charan2003.github.io" />
             </intent-filter>
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="https" />
+                <data android:host="yourday.vercel.app" />
+                <data android:pathPattern="/authentication" />
+            </intent-filter>
         </activity>
     </application>
 
