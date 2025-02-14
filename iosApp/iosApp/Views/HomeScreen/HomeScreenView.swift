@@ -15,7 +15,10 @@ struct HomeScreenView: View {
     @State private var uiState: ProcessState<WeatherDTO> = .loading
     @State private var isFetching: Bool = true
     @State private var weatherData: Shared.ProcessState<Shared.WeatherDTO>?
-    @State private var todoItems : Shared.ProcessState<Shared.TodoistTodayTasksDTO>?
+    @State private var todoItems: Shared.ProcessState<NSArray>?
+    @State private var todoAuthentication : Shared.ProcessState<Shared.TodoistTokenDTO>?
+    @State private var todoAuthToken: String?
+
 
     @State private var calenderEvents : [Shared.CalenderItems]?
     @ObservedObject private var permissionObserver: PermissionObserver = .init()
@@ -66,6 +69,19 @@ struct HomeScreenView: View {
                         ) {
                             getCalendarPermission()
                         }
+                    TodoistCard(
+                        onConnectClick: {
+                            component.requestTodoistAuthentication()
+                        },
+                        showContent: Binding(get: {self.todoAuthToken != nil}, set: {_ in }),
+                        isLoading: Binding(get: {todoItems?.isLoading() ?? false}, set: {_ in}),
+                        todoItems: Binding(
+                            get: { (todoItems?.extractData() as? [Shared.TodoistTodayTasksDTO]) ?? [] },
+                            set: { _ in }
+                        )
+
+                    )
+
                     
                     
                     
@@ -76,7 +92,17 @@ struct HomeScreenView: View {
                     observeWeatherData()
                     observeCalenderData()
                     
+                    
+                    
                 }
+                .task {
+                    async let tokenTask = observeToken()
+                    async let itemsTask = observeTodoItems()
+                    async let authTask = observeTodoAutheFlow()
+
+                    _ = await (tokenTask, itemsTask, authTask)
+                }
+
                 .onReceive(permissionObserver.$locationPermission){ permissionState in
                     switch permissionState{
                     case Shared.PermissionState.granted:
@@ -113,12 +139,28 @@ struct HomeScreenView: View {
         }
     }
     
-    private func observeTodoItems() {
-        component.todoistTasks.watch { (processState: Shared.ProcessState<[Shared.TodoistTodayTasksDTO]>) in
-            if let processState = processState {
-                todoItems = processState
-                
-            }
+    private func observeTodoItems() async{
+        for await todos in component.todoistTasks{
+            
+            self.todoItems = todos
+            print("todo from the app")
+            print(self.todoItems)
+            
+        }
+    }
+    
+    private func observeTodoAutheFlow() async {
+        for await autheFlow in component.todoistAuthorizationFlow {
+            print(autheFlow)
+            self.todoAuthentication = autheFlow
+        }
+    }
+    
+    private func observeToken() async {
+        for await token in component.todoistAuthToken {
+            self.todoAuthToken = token
+            print("the token is stored in the ios app")
+            print(self.todoAuthToken)
         }
     }
     

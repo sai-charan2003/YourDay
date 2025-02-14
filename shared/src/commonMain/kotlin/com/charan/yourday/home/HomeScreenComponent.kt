@@ -24,6 +24,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
@@ -54,12 +55,12 @@ class HomeScreenComponent(
     private val todoistToken = stringPreferencesKey(DataStoreConst.TODOIST_ACCESS_TOKEN)
     private val _todoistAuthorizationFlow = MutableStateFlow<ProcessState<TodoistTokenDTO>>(
         ProcessState.NotDetermined)
-    val todoistAuthorizationFlow = _todoistAuthorizationFlow.asCommonFlow()
+    val todoistAuthorizationFlow = _todoistAuthorizationFlow.asStateFlow()
     private val _todoistTasks = MutableStateFlow<ProcessState<List<TodoistTodayTasksDTO>>>(
         ProcessState.Loading)
-    val todoistTasks = _todoistTasks.asCommonFlow()
+    val todoistTasks = _todoistTasks.asStateFlow()
     private val _todoistAuthToken = MutableStateFlow<String?>(null)
-    val todoistAuthToken = _todoistAuthToken.asCommonFlow()
+    val todoistAuthToken = _todoistAuthToken.asStateFlow()
     private val _isErrorSent = MutableStateFlow(false)
     val isErrorSent = _isErrorSent.asCommonFlow()
 
@@ -174,9 +175,13 @@ class HomeScreenComponent(
     }
 
     private fun checkTokenAndFetchTasks()= coroutineScope.launch {
+        print("Item from datastore")
+        print(datastore.data)
         datastore.data.collectLatest {
             val token = it[todoistToken]
+
             _todoistAuthToken.tryEmit(token)
+            print("the token for the todoist is ${_todoistAuthToken.value}")
             println(token)
             if(token !=null){
                 fetchTodoistTasks(token)

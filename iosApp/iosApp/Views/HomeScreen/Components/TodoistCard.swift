@@ -11,9 +11,9 @@ import Shared
 
 struct TodoistCard: View {
     var onConnectClick: (() -> Void )
-    @State var showContent : Bool
-    @State var isLoading : Bool
-    @State var todoItems : [TodoistTodayTasksDTO]
+    @Binding var showContent : Bool
+    @Binding var isLoading : Bool
+    @Binding var todoItems : [TodoistTodayTasksDTO]
     var body: some View {
         GroupBox {
             if(!showContent){

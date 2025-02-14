@@ -9,6 +9,7 @@ plugins {
     id("dev.icerock.mobile.multiplatform-resources")
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.buildKonfig)
+    alias(libs.plugins.skie)
 }
 
 kotlin {
