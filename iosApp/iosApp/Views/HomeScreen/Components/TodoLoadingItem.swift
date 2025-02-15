@@ -10,9 +10,11 @@ import SwiftUI
 
 struct TodoLoadingItem: View {
     var body: some View {
-        Text("Fetching tasks")
-        Spacer()
-        ProgressView()
+        HStack {
+            Text("Fetching tasks")
+            Spacer()
+            ProgressView()
+        }
     }
 }
 

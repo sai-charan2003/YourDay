@@ -11,11 +11,13 @@ import SwiftUI
 struct ConnectToTodoist: View {
     var onConnectClick: (() -> Void )
     var body: some View {
-        Text("Connect to todoist")
-        Spacer()
-        Button("Connect") {
-            onConnectClick()
-            
+        VStack {
+            Text("Connect to todoist")
+            Spacer()
+            Button("Connect") {
+                onConnectClick()
+                
+            }
         }
     }
 }

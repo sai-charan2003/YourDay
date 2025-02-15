@@ -26,6 +26,22 @@ struct CalenderCard : View {
                     )
                     .font(.title2)
                     .fontWeight(.medium)
+                    if((calenderData?.isEmpty) != nil){
+                        VStack {
+                            Image(resource: MR.images.shared.calender)
+                                .resizable()
+                                .frame(width: 50,height: 52)
+                                
+                                
+                                .padding(.bottom)
+                            Text("Your calender is clear")
+                                .font(.subheadline)
+                                .fontWeight(.bold)
+                            Text("Enjoy your peaceful day ahead")
+                                .font(.caption2)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .center)
+                    }
                     
                     ForEach(calenderData ?? [Shared.CalenderItems](),id: \.eventId){ event in
                         EventItem(calenderEvent: event)
