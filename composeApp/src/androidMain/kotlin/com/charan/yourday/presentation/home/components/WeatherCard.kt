@@ -14,13 +14,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.charan.yourday.MR
 import com.charan.yourday.data.network.responseDTO.WeatherDTO
+import dev.icerock.moko.resources.ImageResource
 import dev.icerock.moko.resources.compose.painterResource
 import java.security.Permission
 
 
 @Composable
 fun WeatherCard(
-    weatherDTO: WeatherDTO,
+    currentTemperature : String?,
+    minTemperature : String?,
+    maxTemperature : String?,
+    location: String?,
+    icon : ImageResource?,
+    condition : String?,
     isLoading: Boolean,
     isLocationPermissionGranted: Boolean,
     onLocationPermissionAccess : () -> Unit
@@ -44,12 +50,12 @@ fun WeatherCard(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = weatherDTO.getLocation(),
+                        text =location ?: "",
                         style = MaterialTheme.typography.titleMedium
                     )
 
                     Image(
-                        painter = painterResource(weatherDTO.getImageIcon() ?: MR.images.icy),
+                        painter = painterResource(icon ?: MR.images.icy),
                         null,
                         modifier = Modifier.size(24.dp)
                     )
@@ -58,7 +64,7 @@ fun WeatherCard(
 
 
                 Text(
-                    "${weatherDTO.getCurrentTemperatureInC()}°C",
+                    currentTemperature ?: "",
                     style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold)
                 )
                 Row(
@@ -66,16 +72,16 @@ fun WeatherCard(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        "Min: ${weatherDTO.getMinTemperatureInC()}°C",
+                        "Min: ${minTemperature}",
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
-                        "Max: ${weatherDTO.getMaxTemperatureInC()}°C",
+                        "Max: ${maxTemperature}",
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
                 Text(
-                    text = weatherDTO.getCurrentCondition(),
+                    text = condition ?: "",
                     style = MaterialTheme.typography.bodyLarge.copy(color = Color(0xFF00FF00))
                 )
             }

@@ -1,11 +1,5 @@
 package com.charan.yourday.home
 
-import androidx.compose.runtime.MutableState
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.lifecycle.coroutineScope
 import com.arkivanov.decompose.ComponentContext
 import com.charan.yourday.data.model.CalenderItems
 import com.charan.yourday.data.network.responseDTO.TodoistTodayTasksDTO
@@ -17,8 +11,9 @@ import com.charan.yourday.data.repository.TodoistRepo
 import com.charan.yourday.data.repository.WeatherRepo
 import com.charan.yourday.permission.PermissionManager
 import com.charan.yourday.permission.Permissions
-import com.charan.yourday.utils.DataStoreConst
 import com.charan.yourday.utils.ProcessState
+import com.charan.yourday.utils.UserPreferencesStore
+import com.charan.yourday.utils.WeatherUnits
 import com.charan.yourday.utils.asCommonFlow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -34,6 +29,7 @@ import org.koin.core.component.get
 class HomeScreenComponent(
     val authorizationId : String?,
     val errorCode : String?,
+    val onSettingsOpen : () -> Unit,
     componentContext: ComponentContext
 ) : KoinComponent, ComponentContext by componentContext {
 
@@ -44,7 +40,8 @@ class HomeScreenComponent(
     private val permissionManager: PermissionManager = get()
     private val calenderEventsRepo: CalenderEventsRepo = get()
     private val todoistRepo: TodoistRepo = get()
-    private val datastore : DataStore<Preferences> = get()
+    private val userPreferences : UserPreferencesStore = get()
+
 
     private val _weatherData = MutableStateFlow<ProcessState<WeatherDTO>>(ProcessState.Loading)
     val weatherData = _weatherData.asCommonFlow()
@@ -52,7 +49,6 @@ class HomeScreenComponent(
     val calenderEvents = _calenderEvents.asCommonFlow()
     private val _calenderPermission = MutableStateFlow<Boolean>(false)
     val calenderPermission = _calenderPermission.asCommonFlow()
-    private val todoistToken = stringPreferencesKey(DataStoreConst.TODOIST_ACCESS_TOKEN)
     private val _todoistAuthorizationFlow = MutableStateFlow<ProcessState<TodoistTokenDTO>>(
         ProcessState.NotDetermined)
     val todoistAuthorizationFlow = _todoistAuthorizationFlow.asStateFlow()
@@ -63,6 +59,15 @@ class HomeScreenComponent(
     val todoistAuthToken = _todoistAuthToken.asStateFlow()
     private val _isErrorSent = MutableStateFlow(false)
     val isErrorSent = _isErrorSent.asCommonFlow()
+
+    private val _currentTemperature = MutableStateFlow<String?>(null)
+    val currentTemperature= _currentTemperature.asStateFlow()
+
+    private val _maxTemperature = MutableStateFlow<String?>(null)
+    val maxTemperature = _maxTemperature.asStateFlow()
+
+    private val _minTemperature = MutableStateFlow<String?>(null)
+    val minTemperature = _minTemperature.asStateFlow()
 
 
 
@@ -76,7 +81,15 @@ class HomeScreenComponent(
             _isErrorSent.tryEmit(true)
         }
         checkTokenAndFetchTasks()
+        checkUserPreference()
+    }
 
+    private fun checkUserPreference() = coroutineScope.launch{
+        userPreferences.weatherUnits.collect { unit ->
+            println("from user preference $unit")
+            getCurrentTemperature(unit ?: WeatherUnits.C)
+
+        }
 
     }
 
@@ -85,6 +98,38 @@ class HomeScreenComponent(
         val weatherData = weatherRepo.getCurrentForecast(lat, long)
         weatherData.collectLatest {
             _weatherData.tryEmit(it)
+        }
+    }
+
+    private fun getCurrentTemperature(unit : String) = coroutineScope.launch{
+        _weatherData.collectLatest { weatherData ->
+            when (unit) {
+                WeatherUnits.C -> {
+                    _currentTemperature.tryEmit(
+                        weatherData.extractData()?.getCurrentTemperatureInC()
+                    )
+                    _maxTemperature.tryEmit(
+                        weatherData.extractData()?.getMaxTemperatureInC()
+                    )
+                    _minTemperature.tryEmit(
+                        weatherData.extractData()?.getMinTemperatureInC()
+                    )
+
+                }
+
+                WeatherUnits.F -> {
+                    _currentTemperature.tryEmit(
+                        weatherData.extractData()?.getCurrentTemperatureInF()
+                    )
+                    _maxTemperature.tryEmit(
+                        weatherData.extractData()?.getMaxTemperatureInF()
+                    )
+                    _minTemperature.tryEmit(
+                        weatherData.extractData()?.getMinTemperatureInF()
+                    )
+
+                }
+            }
         }
     }
 
@@ -146,9 +191,7 @@ class HomeScreenComponent(
     }
 
     fun saveTodoistToken(token: String) = coroutineScope.launch {
-        datastore.edit {
-            it[todoistToken] = token
-        }
+        userPreferences.setTodoistAccessToken(token)
     }
 
     fun authenticateTodoist(authorizationId: String) {
@@ -175,10 +218,7 @@ class HomeScreenComponent(
     }
 
     private fun checkTokenAndFetchTasks()= coroutineScope.launch {
-        print("Item from datastore")
-        print(datastore.data)
-        datastore.data.collectLatest {
-            val token = it[todoistToken]
+        userPreferences.todoistAccessToken.collectLatest { token ->
 
             _todoistAuthToken.tryEmit(token)
             print("the token for the todoist is ${_todoistAuthToken.value}")
@@ -186,7 +226,9 @@ class HomeScreenComponent(
             if(token !=null){
                 fetchTodoistTasks(token)
             }
+
         }
+
 
     }
 
@@ -195,11 +237,7 @@ class HomeScreenComponent(
     }
 
     fun clearTodoistToken() = coroutineScope.launch{
-        datastore.edit {preferences ->
-            preferences.remove(todoistToken)
-
-        }
-
+        userPreferences.deleteTodoistToken()
     }
 
     fun openSettings(){

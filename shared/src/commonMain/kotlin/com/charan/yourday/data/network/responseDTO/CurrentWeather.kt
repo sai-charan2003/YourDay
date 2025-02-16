@@ -1,46 +1,47 @@
 package com.charan.yourday.data.network.responseDTO
 
+import com.charan.yourday.utils.UserPreferencesStore
 import com.charan.yourday.utils.WeatherIconName
 import dev.icerock.moko.resources.ImageResource
 import kotlinx.serialization.*
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.get
 
 @Serializable
 data class WeatherDTO (
     val location: Location? = null,
     val current: Current? = null,
     val forecast: ForecastClass? = null
-) {
+)  {
     fun getCurrentTemperatureInC() : String{
-        return this.current?.tempC?.toString() ?: "Unable to fetch"
+        return "${this.current?.tempC?.toString() } C°" ?: "Unable to fetch"
     }
 
     fun getCurrentTemperatureInF() : String {
-        return this.current?.tempF?.toString() ?: "Unable to fetch"
+        return "${this.current?.tempF?.toString()} F°" ?: "Unable to fetch"
 
     }
 
     fun getMaxTemperatureInC() : String {
-        val currentTime = this.current?.timeEpoch
-        return this.forecast?.forecastday?.first()?.day?.maxtempC?.toString() ?: "Unable to fetch"
+        return "${this.forecast?.forecastday?.first()?.day?.maxtempC?.toString()} C°" ?: "Unable to fetch"
 
     }
 
     fun getMaxTemperatureInF() : String {
         val currentTime = this.current?.timeEpoch
-        return this.forecast?.forecastday?.first()?.day?.maxtempF?.toString() ?: "Unable to fetch"
+        return "${this.forecast?.forecastday?.first()?.day?.maxtempF?.toString()} F°" ?: "Unable to fetch"
 
     }
 
     fun getMinTemperatureInC() : String {
         val currentTime = this.current?.timeEpoch
-        return this.forecast?.forecastday?.first()?.day?.mintempC?.toString() ?: "Unable to fetch"
+        return "${this.forecast?.forecastday?.first()?.day?.mintempC?.toString()} C°" ?: "Unable to fetch"
 
     }
 
     fun getMinTemperatureInF() : String {
         val currentTime = this.current?.timeEpoch
-        return this.forecast?.forecastday?.first()?.day?.mintempF?.toString() ?: "Unable to fetch"
-
+        return "${this.forecast?.forecastday?.first()?.day?.mintempF?.toString()} F°" ?: "Unable to fetch"
     }
 
     fun getCurrentCondition() : String {

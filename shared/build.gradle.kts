@@ -59,6 +59,7 @@ kotlin {
             api(libs.essenty.lifecycle)
             api(libs.essenty.stateKeeper)
             api(libs.essenty.instanceKeeper)
+
             // put your Multiplatform dependencies here
         }
         androidMain.dependencies {
