@@ -5,7 +5,7 @@ import Shared
 struct StackView<T: AnyObject, Content: View>: View {
     @StateValue
     var stackValue: ChildStack<AnyObject, T>
-    var onBack: (_ toIndex: Int32) -> Void
+    var onBack: () -> Void
     
     @ViewBuilder
     var childContent: (T) -> Content
@@ -18,7 +18,7 @@ struct StackView<T: AnyObject, Content: View>: View {
             NavigationStack(
                 path: Binding(
                     get: { stack.dropFirst() },
-                    set: { updatedPath in onBack(Int32(updatedPath.count)) }
+                    set: { updatedPath in onBack() }
                 )
             ) {
                 childContent(stack.first!.instance!)
@@ -38,7 +38,7 @@ struct StackView<T: AnyObject, Content: View>: View {
 
 private struct StackInteropView<T: AnyObject, Content: View>: UIViewControllerRepresentable {
     var components: [T]
-    var onBack: (_ toIndex: Int32) -> Void
+    var onBack: () -> Void
     var childContent: (T) -> Content
     
     func makeCoordinator() -> Coordinator {
@@ -96,7 +96,7 @@ private struct StackInteropView<T: AnyObject, Content: View>: UIViewControllerRe
     class NavigationItemHostingController: UIHostingController<Content> {
         fileprivate(set) weak var coordinator: Coordinator?
         fileprivate(set) var component: T?
-        fileprivate(set) var onBack: ((_ toIndex: Int32) -> Void)?
+        fileprivate(set) var onBack: (() -> Void)?
         
         override func viewDidAppear(_ animated: Bool) {
             super.viewDidAppear(animated)
@@ -105,7 +105,7 @@ private struct StackInteropView<T: AnyObject, Content: View>: UIViewControllerRe
             guard let index = components.firstIndex(where: { $0 === component }) else { return }
             
             if (index < components.count - 1) {
-                onBack?(Int32(index))
+                onBack?()
             }
         }
     }

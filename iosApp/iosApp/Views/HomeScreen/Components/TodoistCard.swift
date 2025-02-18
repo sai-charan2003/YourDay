@@ -50,7 +50,7 @@ struct TodoistCard: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .center)
                 }
-                ForEach(todoItems ,id:\.self){ todoItem in
+                ForEach(todoItems ,id:\.id){ todoItem in
                     Text(todoItem.content)
                         .font(.body)
                         

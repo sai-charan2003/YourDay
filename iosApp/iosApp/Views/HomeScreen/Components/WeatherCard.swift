@@ -13,6 +13,9 @@ struct WeatherCardView: View {
     @Binding var weatherData: Shared.WeatherDTO?
     @Binding var isFetching: Bool
     @Binding var isPermissionGranted : Bool
+    @Binding  var currentTemperature : String?
+    @Binding  var maxTemperature : String?
+    @Binding  var minTemperature : String?
     var onLocationPermission : (() -> Void)
 
     var body: some View {
@@ -46,18 +49,18 @@ struct WeatherCardView: View {
                     
                     
                     
-                    if let currentTemp = weatherData?.getCurrentTemperatureInC() {
-                        Text("\(String(currentTemp))°C")
+                    if let currentTemp = currentTemperature {
+                        Text("\(String(currentTemp))")
                             .font(.title)
                             .fontWeight(.bold)
                     }
                     
-                    if let minTemp = weatherData?.getMinTemperatureInC(),
-                       let maxTemp = weatherData?.getMaxTemperatureInC() {
+                    if let minTemp = minTemperature,
+                       let maxTemp = maxTemperature {
                         HStack {
-                            Text("Min: \(String(minTemp))°C")
+                            Text("Min: \(String(minTemp))")
                             Spacer()
-                            Text("Max: \(String(maxTemp))°C")
+                            Text("Max: \(String(maxTemp))")
                         }
                         .font(.footnote)
                     }

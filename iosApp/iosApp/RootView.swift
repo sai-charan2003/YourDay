@@ -10,23 +10,39 @@ import SwiftUI
 import Shared
 
 struct RootView: View {
-    @ObservedObject
-    private var childStack: ObservableValue<ChildStack<AnyObject, Shared.RootComponent.Child>>
     
-    init(_ component: Shared.RootComponent) {
-        self.childStack = ObservableValue(component.childStack)
-    }
+    private var root: RootComponent
+        
+        init(_ root: RootComponent) {
+            self.root = root
+        }
     
     var body: some View {
-        let child = self.childStack.value.active.instance
         
-        switch child {
-        case let main as Shared.RootComponent.ChildHomeScreen:
-            HomeScreenView(main.component)
-            
-        default: EmptyView()
-        }
+        StackView(
+            stackValue: StateValue(root.childStack),
+            onBack: root.onBackClicked
+                ) { child in
+                    let _ = print("the child is")
+                    let _ = print(child)
+                    switch child {
+                    case let main as Shared.RootComponent.ChildHomeScreen:
+                        HomeScreenView(main.component)
+                    case let main as Shared.RootComponent.ChildSettingsScreen:
+                        SettingsScreen(component:main.component)
+                    case let main as Shared.RootComponent.ChildWeatherSettingsScreen:
+                        WeatherSettingsScreen(component: main.component)
+                    case let main as Shared.RootComponent.ChildTodoScreenSettings:
+                        TodoSettingsScreen(component: main.component)
+                        
+                        
+                    default: EmptyView()
+                    }
+                }
+            }
+        
+        
     }
-}
+
 
 

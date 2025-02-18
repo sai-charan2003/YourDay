@@ -23,8 +23,6 @@ struct iOSApp: App {
     var body: some Scene {
         WindowGroup {
             RootView(componentHolder.component)
-                .onAppear { LifecycleRegistryExtKt.resume(self.componentHolder.lifecycle) }
-                .onDisappear { LifecycleRegistryExtKt.stop(self.componentHolder.lifecycle) }
                 .onOpenURL { url in
                     let code = url.absoluteString.split(separator: "code=").last.map(String.init)
                     let errorCode = url.absoluteString.split(separator: "error=").last.map(String.init)                    

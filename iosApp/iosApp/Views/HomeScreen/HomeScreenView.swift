@@ -18,6 +18,9 @@ struct HomeScreenView: View {
     @State private var todoItems: Shared.ProcessState<NSArray>?
     @State private var todoAuthentication : Shared.ProcessState<Shared.TodoistTokenDTO>?
     @State private var todoAuthToken: String?
+    @State private var currentTemperature : String?
+    @State private var maxTemperature : String?
+    @State private var minTemperature : String?
 
 
     @State private var calenderEvents : [Shared.CalenderItems]?
@@ -31,7 +34,7 @@ struct HomeScreenView: View {
     
     
     var body: some View {
-        NavigationStack {
+
                 LazyVStack {
                     WeatherCardView(
                         weatherData: Binding(
@@ -49,7 +52,10 @@ struct HomeScreenView: View {
                             permissionObserver.locationPermission == Shared.PermissionState.granted
                         }, set: { _ in
                             
-                        })
+                        }),
+                        currentTemperature: Binding(get: {currentTemperature}, set: {_ in}),
+                        maxTemperature: Binding(get: {maxTemperature}, set: {_ in}),
+                        minTemperature: Binding(get: {minTemperature}, set: {_ in})
                     ) {
                         component.grantLocationPermission(shouldShowRationale: permissionObserver.locationPermission != Shared.PermissionState.notGranted)
                     }
@@ -81,13 +87,23 @@ struct HomeScreenView: View {
                         )
 
                     )
-
+                    
                     
                     
                     
                 }
                 .frame(maxHeight: .infinity, alignment: .top)
                 .navigationTitle(DateUtils().getGreeting())
+                .toolbarRole(.editor)
+                .toolbar{
+                    ToolbarItem{
+                        Menu("more",systemImage: "ellipsis.circle"){
+                            Button("Settings") {
+                                component.onSettingsOpen()
+                            }
+                        }
+                    }
+                }
                 .onAppear {
                     observeWeatherData()
                     observeCalenderData()
@@ -99,8 +115,9 @@ struct HomeScreenView: View {
                     async let tokenTask = observeToken()
                     async let itemsTask = observeTodoItems()
                     async let authTask = observeTodoAutheFlow()
+                     let weather = observeTemp()
 
-                    _ = await (tokenTask, itemsTask, authTask)
+                    _ = await (tokenTask, itemsTask, authTask,weather)
                 }
 
                 .onReceive(permissionObserver.$locationPermission){ permissionState in
@@ -118,7 +135,7 @@ struct HomeScreenView: View {
                     
                 }
                 
-        }
+        
     }
 
     private func observeWeatherData() {
@@ -143,8 +160,6 @@ struct HomeScreenView: View {
         for await todos in component.todoistTasks{
             
             self.todoItems = todos
-            print("todo from the app")
-            print(self.todoItems)
             
         }
     }
@@ -159,10 +174,29 @@ struct HomeScreenView: View {
     private func observeToken() async {
         for await token in component.todoistAuthToken {
             self.todoAuthToken = token
-            print("the token is stored in the ios app")
-            print(self.todoAuthToken)
         }
     }
+    
+    private func observeTemp() {
+        Task {
+            for await currentTemp in component.currentTemperature {
+                currentTemperature = currentTemp
+            }
+        }
+        
+        Task {
+            for await maxTempe in component.maxTemperature {
+                maxTemperature = maxTempe
+            }
+        }
+        
+        Task {
+            for await minTempe in component.minTemperature {
+                minTemperature = minTempe
+            }
+        }
+    }
+
     
     private func getCalendarPermission() {
         let eventStore = EKEventStore()

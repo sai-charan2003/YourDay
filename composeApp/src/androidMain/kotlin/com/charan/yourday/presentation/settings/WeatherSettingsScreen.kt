@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import com.charan.yourday.settings.SettingsEvents
 import com.charan.yourday.settings.SettingsScreenComponent
 import com.charan.yourday.utils.WeatherUnits
+import com.charan.yourday.utils.WeatherUnitsEnums
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -69,10 +70,10 @@ fun WeatherSettingScreen(
                                 DropdownMenu(
                                     expanded = dropDown,
                                     onDismissRequest = {dropDown = false}) {
-                                    WeatherUnitsEnum.entries.forEach {
+                                    WeatherUnitsEnums.entries.forEach {
                                         val item = when(it){
-                                            WeatherUnitsEnum.C -> WeatherUnits.C
-                                            WeatherUnitsEnum.F -> WeatherUnits.F
+                                            WeatherUnitsEnums.C -> WeatherUnits.C
+                                            WeatherUnitsEnums.F -> WeatherUnits.F
                                         }
                                         DropdownMenuItem(
                                             text = {
@@ -98,9 +99,4 @@ fun WeatherSettingScreen(
 
     }
 
-}
-
-enum class WeatherUnitsEnum {
-    C,
-    F,
 }

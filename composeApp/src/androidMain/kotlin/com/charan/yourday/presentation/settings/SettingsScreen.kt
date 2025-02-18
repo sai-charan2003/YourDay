@@ -62,7 +62,7 @@ fun SettingsScreen(
             item { 
                 ListItem(
                     headlineContent = {
-                        Text("Todo Integration")
+                        Text("  Integration")
                     },
                     modifier = Modifier.clickable {
                         component.onEvent(SettingsEvents.OnTodoItem)
