@@ -25,6 +25,7 @@ kotlin {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
 
+
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -48,10 +49,11 @@ kotlin {
             implementation(libs.androidx.navigation.compose)
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.multiplatform.markdown.renderer.m3)
-            implementation("com.mohamedrejeb.richeditor:richeditor-compose:1.0.0-rc10")
+            implementation(libs.richeditor.compose)
             implementation(libs.decompose)
             implementation(libs.decompose.jetbrains)
             implementation(libs.decompose.jetbrains.experiment)
+            implementation(libs.androidx.core.splashscreen)
 
 
         }

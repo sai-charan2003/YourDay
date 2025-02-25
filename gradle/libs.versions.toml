@@ -14,6 +14,7 @@ androidx-lifecycle = "2.8.4"
 androidx-material = "1.12.0"
 androidx-test-junit = "1.2.1"
 compose-multiplatform = "1.7.0"
+coreSplashscreen = "1.0.0"
 junit = "4.13.2"
 kotlin = "2.1.0"
 kotlinGradlePlugin = "1.9.0"
@@ -36,12 +37,15 @@ kotlinxSerializationJson = "1.7.3"
 datastore = "1.1.2"
 decompose = "3.2.0"
 essenty = "2.2.0"
+richeditorCompose = "1.0.0-rc10"
 skie = "0.10.1"
+splashScreen = "1.0.0"
 
 
 [libraries]
 accompanist-markdown = { module = "com.github.jeziellago:compose-markdown", version.ref = "accompanistMarkdown" }
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissions" }
+androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
@@ -92,6 +96,7 @@ essenty-lifecycle = { group = "com.arkivanov.essenty", name = "lifecycle", versi
 essenty-stateKeeper = { group = "com.arkivanov.essenty", name = "state-keeper", version.ref = "essenty" }
 essenty-instanceKeeper = { group = "com.arkivanov.essenty", name = "instance-keeper", version.ref = "essenty" }
 essenty-backHandler = { group = "com.arkivanov.essenty", name = "back-handler", version.ref = "essenty" }
+richeditor-compose = { module = "com.mohamedrejeb.richeditor:richeditor-compose", version.ref = "richeditorCompose" }
 
 
 [plugins]

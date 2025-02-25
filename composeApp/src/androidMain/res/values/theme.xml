@@ -1,6 +1,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- base application theme. -->
-    <style name="Base.Theme.YourDay" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Base.Theme.YourDay" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">@android:color/transparent</item>
         <!-- Customize your dark theme here. -->
         <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
     </style>
