@@ -27,22 +27,23 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.charan.yourday.MR
 import com.charan.yourday.data.network.responseDTO.TodoistTodayTasksDTO
+import com.charan.yourday.home.TodoState
 import com.charan.yourday.presentation.home.TodoLoadingItem
 import dev.icerock.moko.resources.compose.painterResource
 
 
 @Composable
 fun TodoCard(
+    todoState: TodoState,
     onClick : () -> Unit,
-    isAuthenticating : Boolean,
-    todoContent : List<TodoistTodayTasksDTO>,
-    isContentLoading : Boolean,
-    showContent : Boolean
 ) {
     ElevatedCard(modifier = Modifier.padding(top = 20.dp).animateContentSize()) {
         Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.Center) {
-            if(!showContent) {
-                Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
+            if (!todoState.isTodoAuthenticated) {
+                Row(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Image(
                         painter = painterResource(MR.images.Todoist),
                         null,
@@ -50,32 +51,38 @@ fun TodoCard(
                     )
                     Text(text = "Connect to Todoist")
                     Spacer(modifier = Modifier.weight(1f))
-                    FilledTonalButton (
+                    FilledTonalButton(
                         onClick = {
                             onClick()
                         },
                         contentPadding = PaddingValues(3.dp),
                         modifier = Modifier.animateContentSize().height(30.dp),
-                        enabled = !isAuthenticating
+                        enabled = !todoState.isAuthenticating
                     ) {
-                        if (isAuthenticating) {
+                        if (todoState.isAuthenticating) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(15.dp),
                                 strokeWidth = 2.dp
                             )
                         }
-                        if(isAuthenticating) {
+                        if (todoState.isAuthenticating) {
                             Spacer(Modifier.padding(end = 5.dp))
                         }
-                        Text("Connect",style = MaterialTheme.typography.labelSmall)
+                        Text("Connect", style = MaterialTheme.typography.labelSmall)
                     }
 
                 }
-            } else if(isContentLoading) {
-                TodoLoadingItem()
+                return@ElevatedCard
             }
-            else {
-                Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
+            if (todoState.isLoading) {
+                TodoLoadingItem()
+                return@ElevatedCard
+            }
+            if (todoState.todoData.isNullOrEmpty().not()) {
+                Row(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Image(
                         painter = painterResource(MR.images.Todoist),
                         null,
@@ -84,15 +91,22 @@ fun TodoCard(
                     Text(text = "Today's tasks")
 
                 }
-                if(todoContent.isEmpty()){
-                    NoTodoItem()
-                } else {
-                    todoContent.forEach {
-                        TodoItem(it)
-                    }
+                todoState.todoData!!.forEach {
+                    TodoItem(it)
                 }
-                }
+                return@ElevatedCard
             }
-        }
+            if(todoState.error!=null){
+                ErrorCard()
+                return@ElevatedCard
+            }
+            if(todoState.todoData.isNullOrEmpty()){
+                NoTodoItem()
+                return@ElevatedCard
+            }
 
+        }
     }
+}
+
+

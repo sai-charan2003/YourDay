@@ -13,12 +13,12 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.charan.yourday.data.model.CalenderItems
+import com.charan.yourday.home.CalenderState
 
 @Composable
 fun CalendarCard(
-    calenderEvents : List<CalenderItems>
+    calenderState : CalenderState
     ,modifier: Modifier= Modifier,
-    isPermissionGranted : Boolean,
     grantPermission : () -> Unit) {
     ElevatedCard(
         modifier = Modifier.fillMaxWidth().then(modifier).animateContentSize(),
@@ -33,43 +33,37 @@ fun CalendarCard(
                 )
                 .fillMaxWidth()
         ) {
-            if(!isPermissionGranted) GrantPermissionContent("Please Grant Permission to access calender") {
-                grantPermission()
+            if (!calenderState.isCalenderPermissionGranted) {
+                GrantPermissionContent("Please Grant Permission to access calender") {
+                    grantPermission()
 
-            } else {
+                }
+                return@ElevatedCard
+            }
+            if (calenderState.calenderData.isNullOrEmpty().not()) {
                 Text(
                     text = "Today's Events",
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Medium),
                     modifier = Modifier.padding(bottom = 10.dp)
                 )
-                if(calenderEvents.isEmpty()){
-                    NoEventItem()
-                } else {
-                    for (event in calenderEvents) {
-                        EventItem(event)
-                    }
+
+                for (event in calenderState.calenderData!!) {
+                    EventItem(event)
                 }
+                return@ElevatedCard
+
+            }
+            if(calenderState.error !=null){
+                ErrorCard()
+                return@ElevatedCard
+            }
+            if(calenderState.calenderData.isNullOrEmpty()){
+                NoEventItem()
+                return@ElevatedCard
             }
 
-
-
         }
+
+
     }
 }
-
-//@Composable
-//@Preview()
-//fun CalendarCardPreview() {
-//    val calenderItem = CalenderItems(
-//        title = "Team Meeting",
-//        stateTime = 1738144788145,
-//        endTime = 1738161000000,
-//        calenderColor = "-6299161"
-//    )
-//
-//    MaterialTheme {
-//        Surface {
-//            CalendarCard(listOf(calenderItem,calenderItem))
-//        }
-//    }
-//}

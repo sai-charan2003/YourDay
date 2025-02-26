@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.charan.yourday.data.network.responseDTO.WeatherDTO
+import com.charan.yourday.home.HomeEvent
 import com.charan.yourday.presentation.home.components.CalendarCard
 import com.charan.yourday.presentation.home.components.TodoCard
 import com.charan.yourday.presentation.home.components.TopBarTitleContent
@@ -49,41 +50,24 @@ fun HomeScreen(
     component : HomeScreenComponent,
 ) {
     val context = LocalContext.current
-    val weatherStatus = component.weatherData.collectAsState(ProcessState.Loading)
-    val calenderEvents = component.calenderEvents.collectAsState(emptyList())
+
+
     val locationPermissionState = rememberPermissionState(Manifest.permission.ACCESS_FINE_LOCATION)
     val calenderPermissionState = rememberPermissionState(Manifest.permission.READ_CALENDAR)
-    val todoistAuthorizationFlow by component.todoistAuthorizationFlow.collectAsState(ProcessState.NotDetermined)
-    val tokenFlow by component.todoistAuthToken.collectAsState(null)
-    val todoTasks by component.todoistTasks.collectAsState(ProcessState.NotDetermined)
-    val errorCode by component.isErrorSent.collectAsState(false)
+
     var showDropDown by remember { mutableStateOf(false) }
-    val temperature by component.currentTemperature.collectAsState()
-    val maxTemperature by component.maxTemperature.collectAsState()
-    val minTemperature by component.minTemperature.collectAsState()
-    LaunchedEffect(component.isErrorSent) {
-        if (errorCode) {
-            Toast.makeText(context, "Unable to authenticate", Toast.LENGTH_LONG).show()
-
-        }
-
-    }
-    LaunchedEffect(todoTasks) {
-        when (todoTasks) {
-            is ProcessState.Error -> {
-                component.clearTodoistToken()
-                Toast.makeText(context, "Please connect again", Toast.LENGTH_LONG).show()
-            }
-
-            else -> Unit
-
+    val homeState by component.state.collectAsState()
+    LaunchedEffect(homeState.toastMessageContent) {
+        if(homeState.toastMessageContent !=null){
+            Toast.makeText(context,homeState.toastMessageContent,Toast.LENGTH_LONG).show()
+            component.onEvent(HomeEvent.ClearToast)
         }
     }
     LaunchedEffect(locationPermissionState.status) {
         when (locationPermissionState.status) {
             is PermissionStatus.Denied -> {}
             PermissionStatus.Granted -> {
-                component.getLocation()
+                component.onEvent(HomeEvent.FetchWeather)
             }
         }
     }
@@ -91,7 +75,8 @@ fun HomeScreen(
         when (calenderPermissionState.status) {
             is PermissionStatus.Denied -> {}
             PermissionStatus.Granted -> {
-                component.getCalenderEvents()
+                component.onEvent(HomeEvent.FetchCalendarEvents)
+
             }
         }
     }
@@ -123,7 +108,7 @@ fun HomeScreen(
                         DropdownMenuItem(
                             onClick = {
                                 showDropDown = false
-                                component.onSettingsOpen()
+                                component.onEvent(HomeEvent.OpenSettingsPage)
                             },
                             text = {
                                 Text("Settings")
@@ -143,36 +128,27 @@ fun HomeScreen(
         ) {
             item {
                 WeatherCard(
-                    currentTemperature = temperature,
-                    minTemperature = minTemperature,
-                    maxTemperature = maxTemperature,
-                    condition = weatherStatus.value.extractData()?.getCurrentCondition(),
-                    icon = weatherStatus.value.extractData()?.getImageIcon(),
-                    isLoading = weatherStatus.value.isLoading(),
-                    isLocationPermissionGranted = locationPermissionState.status.isGranted,
+                    weatherState = homeState.weatherState,
                     onLocationPermissionAccess = {
-                        component.grantLocationPermission(locationPermissionState.status.shouldShowRationale)
+                        component.onEvent(HomeEvent.RequestLocationPermission(calenderPermissionState.status.shouldShowRationale))
                     },
-                    location = weatherStatus.value.extractData()?.getLocation(),
                 )
                 CalendarCard(
-                    calenderEvents = calenderEvents.value,
+                    calenderState = homeState.calenderData,
                     modifier = Modifier.padding(top = 20.dp),
                     grantPermission = {
-                        component.grantCalenderPermission(calenderPermissionState.status.shouldShowRationale)
+                        component.onEvent(HomeEvent.RequestCalendarPermission(calenderPermissionState.status.shouldShowRationale))
 
                     },
-                    isPermissionGranted = calenderPermissionState.status.isGranted
+
                 )
 
                 TodoCard(
-                    isAuthenticating = todoistAuthorizationFlow.isLoading(),
+                    todoState = homeState.todoState,
                     onClick = {
-                        component.requestTodoistAuthentication()
+                        component.onEvent(HomeEvent.ConnectTodoist)
                     },
-                    todoContent = todoTasks.extractData() ?: emptyList(),
-                    isContentLoading = todoTasks.isLoading(),
-                    showContent = tokenFlow.isNullOrEmpty().not()
+
                 )
 
             }

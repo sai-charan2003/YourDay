@@ -64,7 +64,7 @@ class ApiService (val client : HttpClient) {
                 append("client_id", BuildKonfig.TODOIST_CLIENT_ID)
                 append("client_secret", BuildKonfig.TODOIST_CLIENT_SECRET)
                 append("code", code)
-                append("redirect_uri", "https://sai-charan2003.github.io/")
+                append("redirect_uri", "https://yourday.vercel.app/authentication")
             }))
 
         }.body<TodoistTokenDTO>()

@@ -13,49 +13,50 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.charan.yourday.MR
-import com.charan.yourday.data.network.responseDTO.WeatherDTO
+import com.charan.yourday.home.WeatherState
 import dev.icerock.moko.resources.ImageResource
 import dev.icerock.moko.resources.compose.painterResource
-import java.security.Permission
+
 
 
 @Composable
 fun WeatherCard(
-    currentTemperature : String?,
-    minTemperature : String?,
-    maxTemperature : String?,
-    location: String?,
-    icon : ImageResource?,
-    condition : String?,
-    isLoading: Boolean,
-    isLocationPermissionGranted: Boolean,
+    weatherState: WeatherState?,
     onLocationPermissionAccess : () -> Unit
 ) {
+
     ElevatedCard(
-        modifier = Modifier.fillMaxWidth().animateContentSize()
+        modifier = Modifier
+            .fillMaxWidth()
+            .animateContentSize()
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            if(!isLocationPermissionGranted) GrantPermissionContent("Please Enable location permission to fetch weather data") {
-                onLocationPermissionAccess()
-
+            if(weatherState?.isLocationPermissionGranted == false) {
+                GrantPermissionContent("Please Enable location permission to fetch weather data") {
+                    onLocationPermissionAccess()
+                }
+                return@ElevatedCard
             }
-            else if (isLoading) FetchingDataContent()
-            else {
+            if (weatherState?.isLoading == true) {
+                FetchingDataContent()
+                return@ElevatedCard
+            }
+            if(weatherState?.weatherData !=null) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text =location ?: "",
+                        text =weatherState?.weatherData?.location ?: "",
                         style = MaterialTheme.typography.titleMedium
                     )
 
                     Image(
-                        painter = painterResource(icon ?: MR.images.icy),
+                        painter = painterResource(weatherState?.weatherData?.temperatureIcon ?: MR.images.icy),
                         null,
                         modifier = Modifier.size(24.dp)
                     )
@@ -64,7 +65,7 @@ fun WeatherCard(
 
 
                 Text(
-                    currentTemperature ?: "",
+                    weatherState?.weatherData?.currentTemperature ?: "",
                     style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold)
                 )
                 Row(
@@ -72,18 +73,22 @@ fun WeatherCard(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        "Min: ${minTemperature}",
+                        "Min: ${weatherState?.weatherData?.minTemperature}",
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
-                        "Max: ${maxTemperature}",
+                        "Max: ${weatherState?.weatherData?.maxTemperature}",
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
                 Text(
-                    text = condition ?: "",
+                    text = weatherState?.weatherData?.currentCondition ?: "",
                     style = MaterialTheme.typography.bodyLarge.copy(color = Color(0xFF00FF00))
                 )
+                return@ElevatedCard
+            }
+            if(weatherState?.error!=null){
+                ErrorCard()
             }
         }
 
