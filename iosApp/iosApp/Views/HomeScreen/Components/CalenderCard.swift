@@ -9,42 +9,35 @@
 import SwiftUI
 import Shared
 
-struct CalenderCard : View {
-    @Binding var calenderData : [Shared.CalenderItems]?
-    @Binding var isCalenderPermissionGranted : Bool
-    var onGrant : () -> Void
+struct CalenderCard: View {
+    @Binding var calenderState: Shared.CalenderState?
+    var onGrant: () -> Void
+
     var body: some View {
-        GroupBox{
-            VStack(alignment: .leading){
-                if(!isCalenderPermissionGranted){
-                    GrantPermissionItem(onGrant: {
-                        onGrant()
-                    }, title: "Please allow calender permission to fetch calender events")
-                } else {
-                    Text(
-                        "Today's Event"
-                    )
-                    .font(.title2)
-                    .fontWeight(.medium)
-                    if((calenderData?.isEmpty) != nil){
-                        VStack {
-                            Image(resource: MR.images.shared.calender)
-                                .resizable()
-                                .frame(width: 50,height: 52)
-                                
-                                
-                                .padding(.bottom)
-                            Text("Your calender is clear")
-                                .font(.subheadline)
-                                .fontWeight(.bold)
-                            Text("Enjoy your peaceful day ahead")
-                                .font(.caption2)
+        GroupBox {
+            VStack(alignment: .leading) {
+                if let calenderState = calenderState {
+                    if !calenderState.isCalenderPermissionGranted {
+                        GrantPermissionItem(
+                            onGrant: onGrant,
+                            title: "Please allow calendar permission to fetch events"
+                        )
+                    } else if calenderState.isLoading {
+                        LoadingItem()
+                    } else if let error = calenderState.error {
+                        Text("Error: \(error)")
+                            .foregroundColor(.red)
+                            .font(.footnote)
+                    } else if let events = calenderState.calenderData, !events.isEmpty {
+                        Text("Today's Events")
+                            .font(.title2)
+                            .fontWeight(.medium)
+                        
+                        ForEach(events, id: \.eventId) { event in
+                            EventItem(calenderEvent: event)
                         }
-                        .frame(maxWidth: .infinity, alignment: .center)
-                    }
-                    
-                    ForEach(calenderData ?? [Shared.CalenderItems](),id: \.eventId){ event in
-                        EventItem(calenderEvent: event)
+                    } else {
+                        EmptyCalendarView()
                     }
                 }
                 
@@ -52,9 +45,26 @@ struct CalenderCard : View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(.horizontal)
-        .padding(.vertical,8)
-        
-        
-        
+        .padding(.vertical, 8)
     }
 }
+
+struct EmptyCalendarView: View {
+    var body: some View {
+        VStack {
+            Image(resource: MR.images.shared.calender)
+                .resizable()
+                .frame(width: 50, height: 52)
+                .padding(.bottom)
+            
+            Text("Your calendar is clear")
+                .font(.subheadline)
+                .fontWeight(.bold)
+            
+            Text("Enjoy your peaceful day ahead")
+                .font(.caption2)
+        }
+        .frame(maxWidth: .infinity, alignment: .center)
+    }
+}
+

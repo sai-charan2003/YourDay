@@ -10,78 +10,69 @@ import SwiftUI
 import Shared
 
 struct WeatherCardView: View {
-    @Binding var weatherData: Shared.WeatherDTO?
-    @Binding var isFetching: Bool
-    @Binding var isPermissionGranted : Bool
-    @Binding  var currentTemperature : String?
-    @Binding  var maxTemperature : String?
-    @Binding  var minTemperature : String?
-    var onLocationPermission : (() -> Void)
+    
+    @Binding var weatherState: Shared.WeatherState?
+    var onLocationPermission: (() -> Void)
 
     var body: some View {
         GroupBox {
             VStack(alignment: .leading) {
-                if(!isPermissionGranted){
-                    GrantPermissionItem(
-                        onGrant: {
-                            onLocationPermission()
-                        },
-                        title: "Please allow location permission to fetch weather data")
-                }
-                else if(isFetching)
-                {
-                    LoadingItem()
-                } else{
-                    HStack {
-                        Text( weatherData?.getLocation() ?? "Unknown Location")
-                            .font(.headline)
-                        
-                        Spacer()                   
-                        
-                        if let iconName = weatherData?.getImageIcon() {
-                            Image(resource: iconName)
-                                .resizable()
-                                .frame(width: 24, height: 24)
+                
+                if let state = weatherState {
+                    if !state.isLocationPermissionGranted {
+                        GrantPermissionItem(
+                            onGrant: { onLocationPermission() },
+                            title: "Please allow location permission to fetch weather data"
+                        )
+                    } else if state.isLoading {
+                        LoadingItem()
+                    } else if let error = state.error {
+                        Text("Error: \(error)")
+                            .foregroundColor(.red)
+                            .font(.footnote)
+                    } else if let weatherData = state.weatherData {
+                        HStack {
+                            Text(weatherData.location ?? "Unknown Location")
+                                .font(.headline)
+                            
+                            Spacer()
+                            
+                            if let iconName = weatherData.temperatureIcon {
+                                Image(resource: iconName)
+                                    .resizable()
+                                    .frame(width: 24, height: 24)
+                            }
                         }
                         
-                    }
-                    
-                    
-                    
-                    
-                    if let currentTemp = currentTemperature {
-                        Text("\(String(currentTemp))")
+                        Text("\(weatherData.currentTemperature?.description ?? "--")°")
                             .font(.title)
                             .fontWeight(.bold)
-                    }
-                    
-                    if let minTemp = minTemperature,
-                       let maxTemp = maxTemperature {
+                        
                         HStack {
-                            Text("Min: \(String(minTemp))")
+                            Text("Min: \(weatherData.minTemperature?.description ?? "--")°")
                             Spacer()
-                            Text("Max: \(String(maxTemp))")
+                            Text("Max: \(weatherData.maxTemperature?.description ?? "--")°")
                         }
                         .font(.footnote)
-                    }
-                    
-                    if let condition = weatherData?.getCurrentCondition() {
-                        Text(condition)
+                        
+                        Text(weatherData.currentCondition ?? "Unknown Condition")
                             .font(.headline)
                             .foregroundColor(.green)
+                        
+                    } else {
+                        Text("No weather data available")
+                            .foregroundColor(.gray)
+                            .font(.footnote)
                     }
-                    
+                } else {
+                    Text("Weather data unavailable")
+                        .foregroundColor(.gray)
+                        .font(.footnote)
                 }
+                
             }
-            
             .frame(maxWidth: .infinity, alignment: .leading)
-            
         }
         .padding(.horizontal)
-        
-        
     }
 }
-
-
-

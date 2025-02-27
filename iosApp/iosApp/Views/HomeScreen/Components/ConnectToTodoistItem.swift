@@ -11,7 +11,7 @@ import SwiftUI
 struct ConnectToTodoist: View {
     var onConnectClick: (() -> Void )
     var body: some View {
-        VStack {
+        HStack {
             Text("Connect to todoist")
             Spacer()
             Button("Connect") {

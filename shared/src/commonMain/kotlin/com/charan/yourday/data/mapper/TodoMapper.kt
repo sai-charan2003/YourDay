@@ -9,6 +9,7 @@ fun List<TodoistTodayTasksDTO>.toTodoData() : List<TodoData>{
     this.forEach {
         todoList.add(
             TodoData(
+                id = it.id,
                 tasks = it.content
             )
         )

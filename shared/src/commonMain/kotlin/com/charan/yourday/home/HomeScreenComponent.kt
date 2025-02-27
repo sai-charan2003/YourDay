@@ -69,6 +69,8 @@
                 HomeEvent.OpenSettingsPage -> onSettingsOpen()
                 HomeEvent.ClearToast -> _state.update { it.copy(toastMessageContent = null) }
                 is HomeEvent.ShowToast -> _state.update {it.copy(toastMessageContent = intent.content)}
+                HomeEvent.ResetCalenderPermission -> _state.update {it.copy(requestCalenderPermission = false)}
+                HomeEvent.ResetLocationPermission -> _state.update {it.copy(requestLocationPermission =  false)}
             }
         }
 
@@ -165,16 +167,25 @@
 
 
         private fun handleLocationPermission(shouldShowRationale: Boolean) {
-            if (shouldShowRationale) {
-                permissionManager.requestPermission(Permissions.LOCATION)
+            if (!shouldShowRationale) {
+                _state.update {
+                    it.copy(
+                        requestLocationPermission = true
+                    )
+                }
+
             } else {
                 permissionManager.openAppSettings()
             }
         }
 
         private fun handleCalendarPermission(shouldShowRationale: Boolean) {
-            if (shouldShowRationale) {
-                permissionManager.requestPermission(Permissions.CALENDER)
+            if (!shouldShowRationale) {
+                _state.update {
+                    it.copy(
+                        requestCalenderPermission = true
+                    )
+                }
             } else {
                 permissionManager.openAppSettings()
             }

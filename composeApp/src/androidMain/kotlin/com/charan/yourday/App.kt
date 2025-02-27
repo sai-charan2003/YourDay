@@ -48,21 +48,6 @@ fun App(root: RootComponent) {
     KoinContext  {
         val permissionsController: PermissionsController = koinInject()
         BindEffect(permissionsController = permissionsController)
-        val multiplePermissionRequest = rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.RequestMultiplePermissions()
-        ) { permissions ->
-            permissions.keys.forEach {
-
-            }
-        }
-        LaunchedEffect(Unit) {
-            multiplePermissionRequest.launch(
-                arrayOf(
-                    Manifest.permission.READ_CALENDAR,
-                    Manifest.permission.ACCESS_FINE_LOCATION
-                )
-            )
-        }
 
         AppTheme {
             Surface {

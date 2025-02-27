@@ -1,5 +1,6 @@
 package com.charan.yourday.data.model
 
 data class TodoData(
-    val tasks : String?= null
+    val id : String,
+    val tasks : String?= null,
 )

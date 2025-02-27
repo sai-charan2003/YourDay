@@ -57,6 +57,19 @@ fun HomeScreen(
 
     var showDropDown by remember { mutableStateOf(false) }
     val homeState by component.state.collectAsState()
+    LaunchedEffect(homeState.requestLocationPermission) {
+        if(homeState.requestLocationPermission){
+            locationPermissionState.launchPermissionRequest()
+            component.onEvent(HomeEvent.ResetLocationPermission)
+
+        }
+    }
+    LaunchedEffect(homeState.requestCalenderPermission) {
+        if(homeState.requestCalenderPermission){
+            calenderPermissionState.launchPermissionRequest()
+            component.onEvent(HomeEvent.ResetCalenderPermission)
+        }
+    }
     LaunchedEffect(homeState.toastMessageContent) {
         if(homeState.toastMessageContent !=null){
             Toast.makeText(context,homeState.toastMessageContent,Toast.LENGTH_LONG).show()
@@ -130,7 +143,8 @@ fun HomeScreen(
                 WeatherCard(
                     weatherState = homeState.weatherState,
                     onLocationPermissionAccess = {
-                        component.onEvent(HomeEvent.RequestLocationPermission(calenderPermissionState.status.shouldShowRationale))
+                        component.onEvent(HomeEvent.RequestLocationPermission(locationPermissionState.status.shouldShowRationale))
+
                     },
                 )
                 CalendarCard(
