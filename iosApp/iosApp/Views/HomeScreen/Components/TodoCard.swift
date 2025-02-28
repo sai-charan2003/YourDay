@@ -9,35 +9,33 @@
 import SwiftUI
 import Shared
 
-struct TodoistCard: View {
+struct TodoCard: View {
     var onConnectClick: (() -> Void)
     @Binding var todoState: Shared.TodoState?
 
     var body: some View {
         GroupBox {
             VStack(alignment: .leading) {
-                HStack {
-                    Image(resource: MR.images.shared.Todoist)
-                    Text("Todoist Tasks")
-                        .font(.title3)
-                        .fontWeight(.medium)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.bottom, 10)
-
                 if let state = todoState {
                     if !state.isTodoAuthenticated {
-                        ConnectToTodoist(onConnectClick: onConnectClick)
+                        TodoConnectItem(onConnectClick: onConnectClick)
                     } else if state.isLoading {
-                        TodoLoadingItem()
+                        LoadingItem(text: "Fetching Tasks")
                     } else if let error = state.error {
-                        Text("Error: \(error)")
-                            .foregroundColor(.red)
-                            .font(.footnote)
-                    } else if let todoItems = state.todoData, !todoItems.isEmpty {
+                        ErrorItem()
+                    }
+                    else if let todoItems = state.todoData, !todoItems.isEmpty {
+                        HStack {
+                            Image(resource: MR.images.shared.Todoist)
+                            Text("Todoist Tasks")
+                                .font(.title3)
+                                .fontWeight(.medium)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.bottom, 10)
+                        
                         ForEach(todoItems, id: \.id) { todoItem in
-                            Text(todoItem.tasks ?? "Unnamed Task")
-                                .font(.body)
+                            TodoDetailsItem(task: todoItem.tasks ?? "")
                         }
                     } else {
                         EmptyTodoView()

@@ -9,7 +9,7 @@
 import SwiftUI
 import Shared
 
-struct EventItem
+struct CalenderEventItem
 : View {
     @State var calenderEvent : Shared.CalenderItems
     var body: some View {

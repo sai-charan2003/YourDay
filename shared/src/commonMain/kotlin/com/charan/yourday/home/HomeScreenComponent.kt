@@ -12,6 +12,7 @@
     import com.charan.yourday.permission.Permissions
     import com.charan.yourday.utils.ErrorCodes
     import com.charan.yourday.utils.ProcessState
+    import kotlinx.coroutines.flow.MutableSharedFlow
     import com.charan.yourday.utils.UserPreferencesStore
     import com.charan.yourday.utils.WeatherUnits
     import kotlinx.coroutines.CoroutineScope
@@ -19,6 +20,7 @@
     import kotlinx.coroutines.SupervisorJob
     import kotlinx.coroutines.flow.MutableStateFlow
     import kotlinx.coroutines.flow.StateFlow
+    import kotlinx.coroutines.flow.asSharedFlow
     import kotlinx.coroutines.flow.asStateFlow
     import kotlinx.coroutines.flow.collectLatest
     import kotlinx.coroutines.flow.update
@@ -37,8 +39,12 @@
         private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
 
+
         private val _state = MutableStateFlow(HomeState())
         val state: StateFlow<HomeState> = _state.asStateFlow()
+
+        private val _effects = MutableSharedFlow<HomeViewEffect>()
+        val effects = _effects.asSharedFlow()
 
 
         private val weatherRepo: WeatherRepo = get()
@@ -53,7 +59,9 @@
                 getTodoistAuthToken(authorizationId)
             }
             if(errorCode !=null){
-                onEvent(HomeEvent.ShowToast("Unable to Authenticate"))
+                coroutineScope.launch {
+                    _effects.emit(HomeViewEffect.ShowToast("Unable to authenticate"))
+                }
             }
             checkTokenAndFetchTasks()
         }
@@ -67,10 +75,7 @@
                 HomeEvent.FetchCalendarEvents -> fetchCalendarEvents()
                 HomeEvent.DisconnectTodoist -> clearTodoistToken()
                 HomeEvent.OpenSettingsPage -> onSettingsOpen()
-                HomeEvent.ClearToast -> _state.update { it.copy(toastMessageContent = null) }
-                is HomeEvent.ShowToast -> _state.update {it.copy(toastMessageContent = intent.content)}
-                HomeEvent.ResetCalenderPermission -> _state.update {it.copy(requestCalenderPermission = false)}
-                HomeEvent.ResetLocationPermission -> _state.update {it.copy(requestLocationPermission =  false)}
+
             }
         }
 
@@ -166,26 +171,18 @@
         }
 
 
-        private fun handleLocationPermission(shouldShowRationale: Boolean) {
+        private fun handleLocationPermission(shouldShowRationale: Boolean) = coroutineScope.launch{
             if (!shouldShowRationale) {
-                _state.update {
-                    it.copy(
-                        requestLocationPermission = true
-                    )
-                }
+                _effects.emit(HomeViewEffect.RequestLocationPermission)
 
             } else {
                 permissionManager.openAppSettings()
             }
         }
 
-        private fun handleCalendarPermission(shouldShowRationale: Boolean) {
+        private fun handleCalendarPermission(shouldShowRationale: Boolean) = coroutineScope.launch{
             if (!shouldShowRationale) {
-                _state.update {
-                    it.copy(
-                        requestCalenderPermission = true
-                    )
-                }
+                _effects.emit(HomeViewEffect.RequestCalenderPermission)
             } else {
                 permissionManager.openAppSettings()
             }

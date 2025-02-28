@@ -23,18 +23,16 @@ struct CalenderCard: View {
                             title: "Please allow calendar permission to fetch events"
                         )
                     } else if calenderState.isLoading {
-                        LoadingItem()
+                        LoadingItem(text: "Fetching events")
                     } else if let error = calenderState.error {
-                        Text("Error: \(error)")
-                            .foregroundColor(.red)
-                            .font(.footnote)
+                        ErrorItem()
                     } else if let events = calenderState.calenderData, !events.isEmpty {
                         Text("Today's Events")
                             .font(.title2)
                             .fontWeight(.medium)
                         
                         ForEach(events, id: \.eventId) { event in
-                            EventItem(calenderEvent: event)
+                            CalenderEventItem(calenderEvent: event)
                         }
                     } else {
                         EmptyCalendarView()

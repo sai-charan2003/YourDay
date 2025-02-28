@@ -37,12 +37,14 @@ import com.charan.yourday.presentation.home.components.TodoCard
 import com.charan.yourday.presentation.home.components.TopBarTitleContent
 import com.charan.yourday.presentation.home.components.WeatherCard
 import com.charan.yourday.home.HomeScreenComponent
+import com.charan.yourday.home.HomeViewEffect
 import com.charan.yourday.utils.ProcessState
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
+import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
@@ -57,23 +59,19 @@ fun HomeScreen(
 
     var showDropDown by remember { mutableStateOf(false) }
     val homeState by component.state.collectAsState()
-    LaunchedEffect(homeState.requestLocationPermission) {
-        if(homeState.requestLocationPermission){
-            locationPermissionState.launchPermissionRequest()
-            component.onEvent(HomeEvent.ResetLocationPermission)
-
-        }
-    }
-    LaunchedEffect(homeState.requestCalenderPermission) {
-        if(homeState.requestCalenderPermission){
-            calenderPermissionState.launchPermissionRequest()
-            component.onEvent(HomeEvent.ResetCalenderPermission)
-        }
-    }
-    LaunchedEffect(homeState.toastMessageContent) {
-        if(homeState.toastMessageContent !=null){
-            Toast.makeText(context,homeState.toastMessageContent,Toast.LENGTH_LONG).show()
-            component.onEvent(HomeEvent.ClearToast)
+    LaunchedEffect(component.effects) {
+        component.effects.collectLatest {
+            when(it){
+                is HomeViewEffect.ShowToast -> {
+                    Toast.makeText(context,it.message,Toast.LENGTH_LONG).show()
+                }
+                HomeViewEffect.RequestCalenderPermission -> {
+                    calenderPermissionState.launchPermissionRequest()
+                }
+                HomeViewEffect.RequestLocationPermission -> {
+                    locationPermissionState.launchPermissionRequest()
+                }
+            }
         }
     }
     LaunchedEffect(locationPermissionState.status) {

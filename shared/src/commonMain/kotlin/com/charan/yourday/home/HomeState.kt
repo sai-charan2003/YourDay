@@ -11,9 +11,6 @@ data class HomeState(
     val weatherState: WeatherState = WeatherState(),
     val todoState: TodoState = TodoState(),
     val calenderData: CalenderState = CalenderState(),
-    val toastMessageContent : String? = null,
-    val requestLocationPermission : Boolean = false,
-    val requestCalenderPermission : Boolean = false
 )
 
 data class WeatherState(

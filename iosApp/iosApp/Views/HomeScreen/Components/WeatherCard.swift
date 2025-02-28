@@ -9,7 +9,7 @@
 import SwiftUI
 import Shared
 
-struct WeatherCardView: View {
+struct WeatherCard: View {
     
     @Binding var weatherState: Shared.WeatherState?
     var onLocationPermission: (() -> Void)
@@ -25,40 +25,11 @@ struct WeatherCardView: View {
                             title: "Please allow location permission to fetch weather data"
                         )
                     } else if state.isLoading {
-                        LoadingItem()
+                        WeatherLoadingItem()
                     } else if let error = state.error {
-                        Text("Error: \(error)")
-                            .foregroundColor(.red)
-                            .font(.footnote)
+                        ErrorItem()
                     } else if let weatherData = state.weatherData {
-                        HStack {
-                            Text(weatherData.location ?? "Unknown Location")
-                                .font(.headline)
-                            
-                            Spacer()
-                            
-                            if let iconName = weatherData.temperatureIcon {
-                                Image(resource: iconName)
-                                    .resizable()
-                                    .frame(width: 24, height: 24)
-                            }
-                        }
-                        
-                        Text("\(weatherData.currentTemperature?.description ?? "--")°")
-                            .font(.title)
-                            .fontWeight(.bold)
-                        
-                        HStack {
-                            Text("Min: \(weatherData.minTemperature?.description ?? "--")°")
-                            Spacer()
-                            Text("Max: \(weatherData.maxTemperature?.description ?? "--")°")
-                        }
-                        .font(.footnote)
-                        
-                        Text(weatherData.currentCondition ?? "Unknown Condition")
-                            .font(.headline)
-                            .foregroundColor(.green)
-                        
+                        WeatherDetailView(weatherData: weatherData)                        
                     } else {
                         Text("No weather data available")
                             .foregroundColor(.gray)
