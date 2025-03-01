@@ -1,7 +1,7 @@
 package com.charan.yourday.utils
 
 object TodoProviders {
-    const val TODOIST = "todoist"
+    const val TODOIST = "Todoist"
     const val TICK_TICK = "tick_tick"
 }
 

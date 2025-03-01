@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.charan.yourday.MR
 import com.charan.yourday.data.network.responseDTO.TodoistTodayTasksDTO
@@ -78,28 +79,19 @@ fun TodoCard(
                 TodoLoadingItem()
                 return@ElevatedCard
             }
+            if(todoState.error!=null){
+                ErrorCard()
+                return@ElevatedCard
+            }
             if (todoState.todoData.isNullOrEmpty().not()) {
-                Row(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Image(
-                        painter = painterResource(MR.images.Todoist),
-                        null,
-                        modifier = Modifier.padding(end = 10.dp).size(22.dp)
-                    )
-                    Text(text = "Today's tasks")
-
-                }
+                Text(text = "Today's tasks",style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Medium),
+                    modifier = Modifier.padding(bottom = 20.dp))
                 todoState.todoData!!.forEach {
                     TodoItem(it)
                 }
                 return@ElevatedCard
             }
-            if(todoState.error!=null){
-                ErrorCard()
-                return@ElevatedCard
-            }
+
             if(todoState.todoData.isNullOrEmpty()){
                 NoTodoItem()
                 return@ElevatedCard

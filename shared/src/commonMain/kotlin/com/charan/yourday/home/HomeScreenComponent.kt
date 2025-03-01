@@ -1,6 +1,7 @@
     package com.charan.yourday.home
 
     import com.arkivanov.decompose.ComponentContext
+    import com.charan.yourday.data.model.TodoData
     import com.charan.yourday.data.model.WeatherData
     import com.charan.yourday.data.network.responseDTO.TodoistTokenDTO
     import com.charan.yourday.data.network.responseDTO.WeatherDTO
@@ -55,15 +56,11 @@
         private val userPreferences: UserPreferencesStore = get()
 
         init {
-            if (authorizationId != null) {
-                getTodoistAuthToken(authorizationId)
+            coroutineScope.launch {
+                authorizationId?.let { getTodoistAuthToken(it) }
+                errorCode?.let { showToastEvent("Unable to authenticate") }
+                checkTokenAndFetchTasks()
             }
-            if(errorCode !=null){
-                coroutineScope.launch {
-                    _effects.emit(HomeViewEffect.ShowToast("Unable to authenticate"))
-                }
-            }
-            checkTokenAndFetchTasks()
         }
 
         fun onEvent(intent: HomeEvent) {
@@ -82,53 +79,21 @@
 
 
         private fun getLocation() = coroutineScope.launch {
-            val location = locationServiceRepo.getCurrentLocation()
-            if (location != null) {
-                _state.update { currentState ->
-                    currentState.copy(
-                        weatherState = currentState.weatherState.copy(
-                            isLoading = true,
-                            isLocationPermissionGranted = true
-                        )
-                    )
-                }
-                fetchWeatherData(lat = location.latitude!!, long = location.longitude!!)
-            }
+            updateWeatherState(isLoading = true)
+            locationServiceRepo.getCurrentLocation()?.let {
+                fetchWeatherData(it.latitude!!, it.longitude!!)
+            } ?: showToastEvent("Unable to fetch the location")
         }
 
         private fun fetchWeatherData(lat: Double, long: Double) = coroutineScope.launch {
             weatherRepo.getCurrentForecast(lat, long).collectLatest { processState ->
                 when (processState) {
                     is ProcessState.Error -> {
-                        _state.update {
-                            it.copy(
-                                weatherState = it.weatherState.copy(
-                                    isLoading = false,
-                                    error = processState.message,
-                                    isLocationPermissionGranted = isPermissionEnabled(Permissions.LOCATION)
-                                )
-                            )
-                        }
+                        updateWeatherState(error = processState.message)
+                        showToastEvent(processState.message)
                     }
-                    ProcessState.Loading -> {
-                        _state.update {
-                            it.copy(
-                                weatherState = it.weatherState.copy(
-                                    isLoading = true,
-                                    isLocationPermissionGranted = isPermissionEnabled(Permissions.LOCATION)
-                                )
-                            )
-                        }
-                    }
-                    ProcessState.NotDetermined -> {
-                        _state.update {
-                            it.copy(
-                                weatherState = it.weatherState.copy(
-                                    isLoading = false
-                                )
-                            )
-                        }
-                    }
+                    ProcessState.Loading -> updateWeatherState(isLoading = true)
+                    ProcessState.NotDetermined -> updateWeatherState()
                     is ProcessState.Success -> handleWeatherSuccess(processState.data)
                 }
             }
@@ -157,16 +122,9 @@
                         WeatherData()
                     }
                 }
+                updateWeatherState(weatherData = weatherData)
 
-                _state.update {
-                    it.copy(
-                        weatherState = it.weatherState.copy(
-                            isLoading = false,
-                            isLocationPermissionGranted = isPermissionEnabled(Permissions.LOCATION),
-                            weatherData = weatherData
-                        )
-                    )
-                }
+
             }
         }
 
@@ -206,65 +164,29 @@
 
 
         private fun requestTodoistAuthentication() = coroutineScope.launch {
-            _state.update {
-                it.copy(
-                    todoState = it.todoState.copy(
-                        isAuthenticating = true
-                    )
-                )
-            }
+            updateTodoState(isAuthenticating = true)
             todoistRepo.requestAuthorization()
         }
 
-        private fun getTodoistAuthToken(authorizationId: String) {
-            coroutineScope.launch {
-                todoistRepo.getAccessToken(authorizationId).collectLatest { state ->
-                    when (state) {
-                        is ProcessState.Error -> handleTodoistAuthError(state.message)
-                        ProcessState.Loading -> {
-                            _state.update {
-                                it.copy(
-                                    todoState = it.todoState.copy(
-                                        isLoading = true
-                                    )
-                                )
-                            }
-                        }
-                        ProcessState.NotDetermined -> { /* No action needed */ }
-                        is ProcessState.Success -> handleTodoistAuthSuccess(state.data)
-                    }
+        private fun getTodoistAuthToken(authorizationId: String) = coroutineScope.launch {
+            todoistRepo.getAccessToken(authorizationId).collectLatest { processState ->
+                when (processState) {
+                    is ProcessState.Error -> handleTodoistAuthError(processState.message)
+                    ProcessState.Loading -> updateTodoState(isLoading = true)
+                    ProcessState.NotDetermined -> { /* No action needed */ }
+                    is ProcessState.Success -> handleTodoistAuthSuccess(processState.data)
                 }
             }
         }
 
         private fun handleTodoistAuthError(message: String) {
-            if (message == ErrorCodes.UNAUTHORIZED.name) {
-                clearTodoistToken()
-            }
-
-            _state.update {
-                it.copy(
-                    todoState = it.todoState.copy(
-                        isLoading = false,
-                        isAuthenticating = false,
-                        isTodoAuthenticated = false
-                    )
-                )
-            }
+            if (message == ErrorCodes.UNAUTHORIZED.name) clearTodoistToken()
+            updateTodoState(isTodoAuthenticated = false)
         }
 
         private fun handleTodoistAuthSuccess(data: TodoistTokenDTO) {
-            _state.update {
-                it.copy(
-                    todoState = it.todoState.copy(
-                        isLoading = false,
-                        isAuthenticating = false,
-                        isTodoAuthenticated = true
-                    )
-                )
-            }
-
             data.access_token?.let { token ->
+                updateTodoState(isTodoAuthenticated = true, isAuthenticating = false)
                 saveTodoistToken(token)
                 fetchTodoistTasks(token)
             }
@@ -274,62 +196,81 @@
             userPreferences.setTodoistAccessToken(token)
         }
 
-        private fun fetchTodoistTasks(token: String) {
-            coroutineScope.launch {
-                todoistRepo.getTodayTasks(token).collectLatest { state ->
-                    when (state) {
-                        is ProcessState.Error -> {
-                            _state.update {
-                                it.copy(
-                                    todoState = TodoState(
-                                        isLoading = false,
-                                        error = state.message
-                                    )
-                                )
-                            }
-                        }
-                        ProcessState.Loading -> {  }
-                        ProcessState.NotDetermined -> {  }
-                        is ProcessState.Success -> {
-                            _state.update {
-                                it.copy(
-                                    todoState = TodoState(
-                                        isTodoAuthenticated = true,
-                                        isAuthenticating = false,
-                                        isLoading = false,
-                                        todoData = state.data
-                                    )
-                                )
-                            }
-                        }
-                    }
+        private fun fetchTodoistTasks(token: String) = coroutineScope.launch {
+            todoistRepo.getTodayTasks(token).collectLatest { processState ->
+                when (processState) {
+                    is ProcessState.Error -> handleTodoistTasksError(processState.message)
+                    ProcessState.Loading -> updateTodoState(isLoading = true)
+                    ProcessState.NotDetermined -> { /* No action needed */ }
+                    is ProcessState.Success -> updateTodoState(todoData = processState.data)
                 }
             }
         }
 
+        private fun handleTodoistTasksError(message: String) {
+            if (message == ErrorCodes.UNAUTHORIZED.name) {
+                clearTodoistToken()
+            }
+            showToastEvent("Please connect again")
+            _state.update {
+                it.copy(
+                    todoState =  it.todoState.copy(
+                        isTodoAuthenticated =  false,
+                        isAuthenticating = false,
+                        isLoading = false
+                    )
+                )
+            }
+
+        }
+
         private fun checkTokenAndFetchTasks() = coroutineScope.launch {
             userPreferences.todoistAccessToken.collectLatest { token ->
-                if (token != null) {
-                    _state.update {
-                        it.copy(
-                            todoState = TodoState(
-                                isTodoAuthenticated = true
-                            )
-                        )
-                    }
-                    fetchTodoistTasks(token)
+                token?.let {
+                    fetchTodoistTasks(it)
+                    updateTodoState(isTodoAuthenticated = true)
                 }
             }
         }
 
         private fun clearTodoistToken() = coroutineScope.launch {
             userPreferences.deleteTodoistToken()
+            updateTodoState(isTodoAuthenticated = false)
+        }
+
+        private fun showToastEvent(e : String) = coroutineScope.launch {
+            _effects.emit(HomeViewEffect.ShowToast(e))
+        }
+        private fun updateWeatherState(
+            isLoading: Boolean = false,
+            error: String? = null,
+            weatherData: WeatherData? = null
+        ) {
             _state.update {
                 it.copy(
-                    todoState = TodoState(
-                        isTodoAuthenticated = false,
-                        isAuthenticating = false,
-                        isLoading = false
+                    weatherState = it.weatherState.copy(
+                        isLoading = isLoading,
+                        error = error,
+                        isLocationPermissionGranted = isPermissionEnabled(Permissions.LOCATION),
+                        weatherData = weatherData
+                    )
+                )
+            }
+        }
+
+        private fun updateTodoState(
+            isLoading: Boolean = false,
+            isAuthenticating: Boolean = false,
+            isTodoAuthenticated: Boolean? = null,
+            todoData: List<TodoData>? = null
+        ) {
+            _state.update {
+                it.copy(
+                    todoState = it.todoState.copy(
+                        isLoading = isLoading,
+                        isAuthenticating = isAuthenticating,
+                        isTodoAuthenticated = isTodoAuthenticated ?: it.todoState.isTodoAuthenticated,
+                        todoData = todoData ?: it.todoState.todoData
                     )
                 )
             }

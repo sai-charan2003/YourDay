@@ -1,7 +1,9 @@
 package com.charan.yourday.data.mapper
 
+import com.charan.yourday.MR
 import com.charan.yourday.data.model.TodoData
 import com.charan.yourday.data.network.responseDTO.TodoistTodayTasksDTO
+import com.charan.yourday.utils.TodoProviders
 
 
 fun List<TodoistTodayTasksDTO>.toTodoData() : List<TodoData>{
@@ -10,7 +12,11 @@ fun List<TodoistTodayTasksDTO>.toTodoData() : List<TodoData>{
         todoList.add(
             TodoData(
                 id = it.id,
-                tasks = it.content
+                tasks = it.content,
+                todoProvider = TodoProviders.TODOIST,
+                todoProviderLogo = MR.images.Todoist,
+                dueDate = it.due.date,
+                dueTime = it.due.datetime
             )
         )
 

@@ -4,6 +4,7 @@ package com.charan.yourday.utils
 import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
@@ -62,5 +63,47 @@ object DateUtils {
         val amPm = if (localDateTime.hour < 12) "AM" else "PM"
 
         return "${adjustedHour.toString().padStart(2, '0')}:${localDateTime.minute.toString().padStart(2, '0')}$amPm"
+    }
+
+    fun String.convertToMMMDYYYY(): String {
+        val parsedDate = LocalDate.parse(this)
+
+        val monthNames = listOf(
+            "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+        )
+
+        val month = monthNames[parsedDate.month.ordinal]
+        val day = parsedDate.dayOfMonth
+        val year = parsedDate.year
+
+        return "$month $day, $year"
+    }
+    fun String.convertToMMMDYYYYWithTime(): String {
+        val localDateTime: LocalDateTime = try {
+
+            val instant = Instant.parse(this)
+            instant.toLocalDateTime(TimeZone.currentSystemDefault())
+        } catch (e: Exception) {
+
+            LocalDateTime.parse(this)
+        }
+
+        val monthNames = listOf(
+            "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+        )
+
+        val month = monthNames[localDateTime.month.ordinal]
+        val day = localDateTime.dayOfMonth
+        val year = localDateTime.year
+        val hour = localDateTime.hour
+        val minute = localDateTime.minute
+
+        // Format hours into 12-hour format with AM/PM
+        val amPm = if (hour < 12) "AM" else "PM"
+        val formattedHour = if (hour % 12 == 0) 12 else hour % 12
+
+        return "$month $day, $year, $formattedHour:${minute.toString().padStart(2, '0')} $amPm"
     }
 }

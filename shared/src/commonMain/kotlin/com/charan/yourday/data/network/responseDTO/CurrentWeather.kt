@@ -293,3 +293,15 @@ data class Location (
     val localtime: String? = null
 )
 
+@Serializable
+data class WeatherError (
+    val error: ErrorClass? = null
+)
+
+@Serializable
+data class ErrorClass (
+    val code: Long? = null,
+    val message: String? = null
+)
+
+

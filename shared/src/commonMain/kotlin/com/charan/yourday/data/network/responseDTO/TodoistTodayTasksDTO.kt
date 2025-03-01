@@ -53,6 +53,7 @@ data class Due (
     val date: String,
     val string: String,
     val lang: String,
+    val datetime : String? = null,
 
     @SerialName("is_recurring")
     val isRecurring: Boolean
