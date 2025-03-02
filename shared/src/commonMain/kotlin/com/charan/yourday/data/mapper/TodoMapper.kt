@@ -16,7 +16,9 @@ fun List<TodoistTodayTasksDTO>.toTodoData() : List<TodoData>{
                 todoProvider = TodoProviders.TODOIST,
                 todoProviderLogo = MR.images.Todoist,
                 dueDate = it.due.date,
-                dueTime = it.due.datetime
+                dueTime = it.due.datetime,
+                taskLink = it.url
+
             )
         )
 

@@ -1,6 +1,5 @@
-package com.charan.yourday.presentation.home
+package com.charan.yourday.presentation.home.components
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,7 +15,7 @@ fun TodoLoadingItem() {
     Row (modifier = Modifier.fillMaxWidth()){
         Text("Fetching Todo Items")
         Spacer(Modifier.weight(1f))
-        CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+        CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
 
     }
 }

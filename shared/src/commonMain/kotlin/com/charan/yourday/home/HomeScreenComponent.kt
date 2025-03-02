@@ -12,6 +12,7 @@
     import com.charan.yourday.permission.PermissionManager
     import com.charan.yourday.permission.Permissions
     import com.charan.yourday.utils.ErrorCodes
+    import com.charan.yourday.utils.OpenURL
     import com.charan.yourday.utils.ProcessState
     import kotlinx.coroutines.flow.MutableSharedFlow
     import com.charan.yourday.utils.UserPreferencesStore
@@ -72,7 +73,7 @@
                 HomeEvent.FetchCalendarEvents -> fetchCalendarEvents()
                 HomeEvent.DisconnectTodoist -> clearTodoistToken()
                 HomeEvent.OpenSettingsPage -> onSettingsOpen()
-
+                is HomeEvent.OnOpenLink -> openURL(intent.url)
             }
         }
 
@@ -83,6 +84,10 @@
             locationServiceRepo.getCurrentLocation()?.let {
                 fetchWeatherData(it.latitude!!, it.longitude!!)
             } ?: showToastEvent("Unable to fetch the location")
+        }
+
+        private fun openURL(url : String) {
+            OpenURL.openURL(url)
         }
 
         private fun fetchWeatherData(lat: Double, long: Double) = coroutineScope.launch {

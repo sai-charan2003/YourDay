@@ -5,7 +5,7 @@ import platform.Foundation.NSURL
 import platform.UIKit.UIApplication
 
 
-actual object openURL : KoinComponent {
+actual object OpenURL : KoinComponent {
 
     actual fun openURL(url: String) {
         val nsURL = NSURL(string = url)

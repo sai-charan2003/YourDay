@@ -9,7 +9,7 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
 
-actual object openURL : KoinComponent {
+actual object OpenURL : KoinComponent {
     private val context: Context by inject()
     actual fun openURL(url: String) {
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {

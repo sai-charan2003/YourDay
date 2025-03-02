@@ -2,6 +2,7 @@ package com.charan.yourday.presentation.home.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -43,13 +44,22 @@ import dev.icerock.moko.resources.compose.painterResource
 import org.jetbrains.compose.resources.imageResource
 
 @Composable
-fun TodoItem(todoItem: TodoData) {
+fun TodoItem(
+        todoItem: TodoData,
+        onOpenTodo: (url : String) -> Unit
+) {
         val richTextState = rememberRichTextState()
         richTextState.setMarkdown(todoItem.tasks ?: "")
 
         Column(
                 modifier = Modifier
                         .fillMaxWidth()
+                        .clip(RoundedCornerShape(10.dp))
+                        .clickable {
+                                todoItem.taskLink?.let { onOpenTodo(it) }
+                        }
+
+
         ) {
                 RichText(
                         state = richTextState,
@@ -95,21 +105,7 @@ fun TodoItem(todoItem: TodoData) {
                                 )
 
                 }
-                HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp))
+
         }
 }
 
-
-@Composable
-@Preview
-fun TodoItemPreview(){
-        TodoItem(
-                TodoData(
-                id = "1",
-                tasks = "test",
-                        todoProviderLogo = MR.images.Todoist
-                )
-
-
-        )
-}

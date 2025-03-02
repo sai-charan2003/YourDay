@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -160,6 +161,7 @@ fun HomeScreen(
 
                     },
                 )
+                Spacer(Modifier.padding(vertical = 10.dp))
                 CalendarCard(
                     calenderState = homeState.calenderData,
                     modifier = Modifier.padding(top = 20.dp),
@@ -169,12 +171,16 @@ fun HomeScreen(
                     },
 
                 )
+                Spacer(Modifier.padding(vertical = 10.dp))
 
                 TodoCard(
                     todoState = homeState.todoState,
-                    onClick = {
+                    onConnect = {
                         component.onEvent(HomeEvent.ConnectTodoist)
                     },
+                    onTodoOpen = { link ->
+                        component.onEvent(HomeEvent.OnOpenLink(link))
+                    }
 
                 )
 

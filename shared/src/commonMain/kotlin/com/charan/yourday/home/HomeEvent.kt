@@ -8,4 +8,5 @@ sealed interface HomeEvent {
     object FetchCalendarEvents : HomeEvent
     object DisconnectTodoist : HomeEvent
     object OpenSettingsPage : HomeEvent
+    data class OnOpenLink(val url : String) : HomeEvent
 }

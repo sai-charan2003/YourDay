@@ -7,22 +7,19 @@ import com.charan.yourday.data.network.Ktor.ApiService
 import com.charan.yourday.data.network.Ktor.todoist_base_url
 import com.charan.yourday.data.network.responseDTO.TodoistTodayTasksDTO
 import com.charan.yourday.data.network.responseDTO.TodoistTokenDTO
-import com.charan.yourday.data.network.responseDTO.WeatherDTO
 import com.charan.yourday.data.repository.TodoistRepo
 import com.charan.yourday.utils.ErrorCodes
 import com.charan.yourday.utils.ProcessState
-import com.charan.yourday.utils.openURL
+import com.charan.yourday.utils.OpenURL
 import io.ktor.client.call.body
-import io.ktor.client.plugins.ClientRequestException
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
 
 
 class TodoistImp(private val apiService: ApiService) : TodoistRepo {
     override suspend fun requestAuthorization() {
-        openURL.openURL("https://"+todoist_base_url + "/oauth/authorize?client_id=${BuildKonfig.TODOIST_CLIENT_ID}&scope=data:read&state=secretstring")
+        OpenURL.openURL("https://"+todoist_base_url + "/oauth/authorize?client_id=${BuildKonfig.TODOIST_CLIENT_ID}&scope=data:read&state=secretstring")
 
     }
 

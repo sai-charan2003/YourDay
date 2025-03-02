@@ -10,5 +10,6 @@ data class TodoData(
     val todoProvider : String? = null,
     val dueDate : String? = null,
     val todoProviderLogo : ImageResource? = null,
-    val dueTime : String? = null
+    val dueTime : String? = null,
+    val taskLink : String? = null
 )

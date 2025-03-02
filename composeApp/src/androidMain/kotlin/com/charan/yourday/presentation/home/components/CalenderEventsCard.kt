@@ -17,28 +17,17 @@ import com.charan.yourday.home.CalenderState
 
 @Composable
 fun CalendarCard(
-    calenderState : CalenderState
-    ,modifier: Modifier= Modifier,
+    calenderState : CalenderState,
     grantPermission : () -> Unit) {
-    ElevatedCard(
-        modifier = Modifier.fillMaxWidth().then(modifier).animateContentSize(),
-    ) {
-        Column(
-            modifier = Modifier
-                .padding(
-                    top = 15.dp,
-                    start = 10.dp,
-                    end = 10.dp,
-                    bottom = 15.dp
-                )
-                .fillMaxWidth()
+
+        ContentElevatedCard(
         ) {
             if (!calenderState.isCalenderPermissionGranted) {
                 GrantPermissionContent("Please Grant Permission to access calender") {
                     grantPermission()
 
                 }
-                return@ElevatedCard
+                return@ContentElevatedCard
             }
             if (calenderState.calenderData.isNullOrEmpty().not()) {
                 Text(
@@ -50,20 +39,20 @@ fun CalendarCard(
                 for (event in calenderState.calenderData!!) {
                     EventItem(event)
                 }
-                return@ElevatedCard
+                return@ContentElevatedCard
 
             }
             if(calenderState.error !=null){
                 ErrorCard()
-                return@ElevatedCard
+                return@ContentElevatedCard
             }
             if(calenderState.calenderData.isNullOrEmpty()){
                 NoEventItem()
-                return@ElevatedCard
+                return@ContentElevatedCard
             }
 
         }
 
 
-    }
+
 }

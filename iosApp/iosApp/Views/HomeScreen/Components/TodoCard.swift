@@ -12,6 +12,7 @@ import Shared
 struct TodoCard: View {
     var onConnectClick: (() -> Void)
     @Binding var todoState: Shared.TodoState?
+    var onTodoOpen: ((_ url : String) -> Void )
 
     var body: some View {
         GroupBox {
@@ -25,17 +26,16 @@ struct TodoCard: View {
                         ErrorItem()
                     }
                     else if let todoItems = state.todoData, !todoItems.isEmpty {
-                        HStack {
-                            Image(resource: MR.images.shared.Todoist)
-                            Text("Todoist Tasks")
+                            Text("Today's tasks")
                                 .font(.title3)
                                 .fontWeight(.medium)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.bottom, 10)
+                        
                         
                         ForEach(todoItems, id: \.id) { todoItem in
-                            TodoDetailsItem(task: todoItem.tasks ?? "")
+                            TodoDetailsItem(todoData: todoItem){ link in
+                                onTodoOpen(link)
+                                
+                            }
                         }
                     } else {
                         EmptyTodoView()
@@ -51,21 +51,4 @@ struct TodoCard: View {
     }
 }
 
-struct EmptyTodoView: View {
-    var body: some View {
-        VStack {
-            Image(resource: MR.images.shared.notasks)
-                .resizable()
-                .frame(width: 50, height: 55)
-                .padding(.bottom)
 
-            Text("No tasks today")
-                .font(.subheadline)
-                .fontWeight(.bold)
-
-            Text("Enjoy your free day")
-                .font(.caption2)
-        }
-        .frame(maxWidth: .infinity, alignment: .center)
-    }
-}

@@ -77,6 +77,7 @@ struct HomeScreenView: View {
                                 )
                             )
                         }
+                        .padding(.vertical,8)
                         
                         TodoCard(
                             onConnectClick: {
@@ -85,7 +86,11 @@ struct HomeScreenView: View {
                             todoState: Binding(
                                 get: { homeState?.todoState },
                                 set: { _ in }
-                            )
+                            ),
+                            onTodoOpen: { link in
+                                component.onEvent(intent: Shared.HomeEventOnOpenLink(url: link))
+                                
+                            }
                         )
                     }
                 }
