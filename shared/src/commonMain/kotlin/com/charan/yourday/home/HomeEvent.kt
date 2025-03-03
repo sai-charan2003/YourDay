@@ -6,7 +6,9 @@ sealed interface HomeEvent {
     object ConnectTodoist : HomeEvent
     object FetchWeather : HomeEvent
     object FetchCalendarEvents : HomeEvent
+    object FetchTodo : HomeEvent
     object DisconnectTodoist : HomeEvent
     object OpenSettingsPage : HomeEvent
     data class OnOpenLink(val url : String) : HomeEvent
+    object RefreshData : HomeEvent
 }

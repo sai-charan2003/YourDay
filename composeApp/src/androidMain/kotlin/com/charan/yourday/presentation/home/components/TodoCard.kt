@@ -1,5 +1,6 @@
 package com.charan.yourday.presentation.home.components
 
+import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -34,72 +35,69 @@ fun TodoCard(
     onTodoOpen : (link : String) -> Unit
 ) {
 
-    ContentElevatedCard() {
-        if (!todoState.isTodoAuthenticated) {
-            Row(
-                modifier = Modifier.fillMaxSize(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Image(
-                    painter = painterResource(MR.images.Todoist),
-                    null,
-                    modifier = Modifier.padding(end = 10.dp).size(24.dp)
-                )
-                Text(text = "Connect to Todoist")
-                Spacer(modifier = Modifier.weight(1f))
-                FilledTonalButton(
-                    onClick = {
-                        onConnect()
-                    },
-                    contentPadding = PaddingValues(3.dp),
-                    modifier = Modifier.animateContentSize().height(30.dp),
-                    enabled = !todoState.isAuthenticating
+    ContentElevatedCard(
+        title = "Today's Tasks",
+        isLoading = todoState.isLoading,
+        hasError = todoState.error,
+        hasContent = todoState.todoData !=null,
+        content = {
+
+            if (!todoState.isTodoAuthenticated) {
+                Row(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    if (todoState.isAuthenticating) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(15.dp),
-                            strokeWidth = 2.dp
-                        )
+                    Image(
+                        painter = painterResource(MR.images.Todoist),
+                        null,
+                        modifier = Modifier
+                            .padding(end = 10.dp)
+                            .size(24.dp)
+                    )
+                    Text(text = "Connect to Todoist")
+                    Spacer(modifier = Modifier.weight(1f))
+                    FilledTonalButton(
+                        onClick = {
+                            onConnect()
+                        },
+                        contentPadding = PaddingValues(3.dp),
+                        modifier = Modifier
+                            .animateContentSize()
+                            .height(30.dp),
+                        enabled = !todoState.isAuthenticating
+                    ) {
+                        if (todoState.isAuthenticating) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(15.dp),
+                                strokeWidth = 2.dp
+                            )
+                        }
+                        if (todoState.isAuthenticating) {
+                            Spacer(Modifier.padding(end = 5.dp))
+                        }
+                        Text("Connect", style = MaterialTheme.typography.labelSmall)
                     }
-                    if (todoState.isAuthenticating) {
-                        Spacer(Modifier.padding(end = 5.dp))
-                    }
-                    Text("Connect", style = MaterialTheme.typography.labelSmall)
+
                 }
-
+                return@ContentElevatedCard
             }
-            return@ContentElevatedCard
-        }
-        if (todoState.isLoading) {
-            TodoLoadingItem()
-            return@ContentElevatedCard
-        }
-        if (todoState.error != null) {
-            ErrorCard()
-            return@ContentElevatedCard
-        }
-        if (todoState.todoData.isNullOrEmpty().not()) {
-            Text(
-                text = "Today's tasks",
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Medium),
-                modifier = Modifier.padding(bottom = 20.dp)
-            )
-            todoState.todoData!!.forEach {
-                TodoItem(todoItem = it, onOpenTodo = { link ->
-                    onTodoOpen(link)
-
-                })
-                HorizontalDivider()
+            if (todoState.todoData.isNullOrEmpty().not()) {
+                todoState.todoData!!.forEach {
+                    TodoItem(todoItem = it, onOpenTodo = { link ->
+                        onTodoOpen(link)
+                    })
+                    HorizontalDivider()
+                }
+                return@ContentElevatedCard
             }
-            return@ContentElevatedCard
-        }
 
-        if (todoState.todoData.isNullOrEmpty()) {
-            NoTodoItem()
-            return@ContentElevatedCard
-        }
+            if (todoState.todoData?.isEmpty()==true) {
+                NoTodoItem()
+                return@ContentElevatedCard
+            }
 
-    }
+        }
+    )
 }
 
 

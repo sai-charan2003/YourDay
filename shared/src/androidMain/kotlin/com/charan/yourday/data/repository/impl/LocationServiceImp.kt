@@ -20,8 +20,7 @@ class LocationServiceImp(private val context : Context): LocationServiceRepo{
         LocationServices.getFusedLocationProviderClient(context)
     @SuppressLint("MissingPermission")
     override suspend fun getCurrentLocation(): Location? = suspendCoroutine{ continuation ->
-        val cancellationTokenSource = CancellationTokenSource()
-            fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, cancellationTokenSource.token).addOnSuccessListener { location ->
+            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                 Log.d("TAG", "getCurrentLocation: $location")
                 location?.let {
                     continuation.resume(Location(it.latitude,it.longitude))

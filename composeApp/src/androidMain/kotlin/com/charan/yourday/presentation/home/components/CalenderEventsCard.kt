@@ -20,8 +20,12 @@ fun CalendarCard(
     calenderState : CalenderState,
     grantPermission : () -> Unit) {
 
-        ContentElevatedCard(
-        ) {
+    ContentElevatedCard(
+        title = "Today's Events",
+        isLoading = calenderState.isLoading,
+        hasError = calenderState.error,
+        hasContent = calenderState.calenderData != null,
+        content = {
             if (!calenderState.isCalenderPermissionGranted) {
                 GrantPermissionContent("Please Grant Permission to access calender") {
                     grantPermission()
@@ -30,29 +34,19 @@ fun CalendarCard(
                 return@ContentElevatedCard
             }
             if (calenderState.calenderData.isNullOrEmpty().not()) {
-                Text(
-                    text = "Today's Events",
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Medium),
-                    modifier = Modifier.padding(bottom = 10.dp)
-                )
-
                 for (event in calenderState.calenderData!!) {
                     EventItem(event)
                 }
                 return@ContentElevatedCard
 
             }
-            if(calenderState.error !=null){
-                ErrorCard()
-                return@ContentElevatedCard
-            }
-            if(calenderState.calenderData.isNullOrEmpty()){
+            if (calenderState.calenderData.isNullOrEmpty()) {
                 NoEventItem()
                 return@ContentElevatedCard
             }
 
         }
-
+    )
 
 
 }

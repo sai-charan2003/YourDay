@@ -11,13 +11,15 @@ data class HomeState(
     val weatherState: WeatherState = WeatherState(),
     val todoState: TodoState = TodoState(),
     val calenderData: CalenderState = CalenderState(),
+    val isRefreshing : Boolean = false
 )
 
 data class WeatherState(
     val isLoading : Boolean = true,
     val weatherData : WeatherData? = null,
     val error : String? = null,
-    val isLocationPermissionGranted : Boolean = false
+    val isLocationPermissionGranted : Boolean = false,
+    val lastSycned: String? = null
 )
 
 data class TodoState(
@@ -26,14 +28,16 @@ data class TodoState(
     val todoData : List<TodoData>? = null,
     val error : String? = null,
     val isTodoAuthenticated: Boolean = false,
-    val todoToken : String? = null
+    val todoToken : String? = null,
+    val lastSycned : String? = null
 )
 
 data class CalenderState(
     val calenderData : List<CalenderItems>? = null,
     val isLoading: Boolean = false,
     val isCalenderPermissionGranted : Boolean = false,
-    val error : String? = null
+    val error : String? = null,
+    val lastSycned: String? = null
 )
 
 

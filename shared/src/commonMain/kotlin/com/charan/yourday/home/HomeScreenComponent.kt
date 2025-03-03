@@ -11,6 +11,7 @@
     import com.charan.yourday.data.repository.WeatherRepo
     import com.charan.yourday.permission.PermissionManager
     import com.charan.yourday.permission.Permissions
+    import com.charan.yourday.utils.DateUtils
     import com.charan.yourday.utils.ErrorCodes
     import com.charan.yourday.utils.OpenURL
     import com.charan.yourday.utils.ProcessState
@@ -74,7 +75,24 @@
                 HomeEvent.DisconnectTodoist -> clearTodoistToken()
                 HomeEvent.OpenSettingsPage -> onSettingsOpen()
                 is HomeEvent.OnOpenLink -> openURL(intent.url)
+                HomeEvent.FetchTodo -> checkTokenAndFetchTasks()
+                HomeEvent.RefreshData -> refreshData()
             }
+        }
+
+        private fun refreshData() {
+            _state.update { it.copy(isRefreshing = true) }
+            coroutineScope.launch {
+                val job1 = launch { getLocation() }
+                val job2 = launch { fetchCalendarEvents() }
+                val job3 = launch { checkTokenAndFetchTasks() }
+                job1.join()
+                job2.join()
+                job3.join()
+                _state.update { it.copy(isRefreshing = false) }
+            }
+
+
         }
 
 
@@ -127,7 +145,7 @@
                         WeatherData()
                     }
                 }
-                updateWeatherState(weatherData = weatherData)
+                updateWeatherState(weatherData = weatherData, lastSycned = DateUtils.getCurrentTimeInMillis().toString())
 
 
             }
@@ -207,7 +225,7 @@
                     is ProcessState.Error -> handleTodoistTasksError(processState.message)
                     ProcessState.Loading -> updateTodoState(isLoading = true)
                     ProcessState.NotDetermined -> { /* No action needed */ }
-                    is ProcessState.Success -> updateTodoState(todoData = processState.data)
+                    is ProcessState.Success -> updateTodoState(todoData = processState.data, lastSycned = DateUtils.getCurrentTimeInMillis().toString())
                 }
             }
         }
@@ -231,6 +249,10 @@
 
         private fun checkTokenAndFetchTasks() = coroutineScope.launch {
             userPreferences.todoistAccessToken.collectLatest { token ->
+                if(token == null){
+                    updateTodoState(isLoading = false, isTodoAuthenticated = false)
+                    return@collectLatest
+                }
                 token?.let {
                     fetchTodoistTasks(it)
                     updateTodoState(isTodoAuthenticated = true)
@@ -249,16 +271,18 @@
         private fun updateWeatherState(
             isLoading: Boolean = false,
             error: String? = null,
-            weatherData: WeatherData? = null
+            weatherData: WeatherData? = null,
+            lastSycned: String? = null
         ) {
             _state.update {
                 it.copy(
                     weatherState = it.weatherState.copy(
                         isLoading = isLoading,
-                        error = error,
+                        error = if(error.isNullOrEmpty().not()) error else it.weatherState.error,
                         isLocationPermissionGranted = isPermissionEnabled(Permissions.LOCATION),
-                        weatherData = weatherData
-                    )
+                        weatherData = weatherData ?: it.weatherState.weatherData,
+                        lastSycned = lastSycned
+                    ),
                 )
             }
         }
@@ -267,7 +291,8 @@
             isLoading: Boolean = false,
             isAuthenticating: Boolean = false,
             isTodoAuthenticated: Boolean? = null,
-            todoData: List<TodoData>? = null
+            todoData: List<TodoData>? = null,
+            lastSycned : String? = null
         ) {
             _state.update {
                 it.copy(
@@ -275,8 +300,9 @@
                         isLoading = isLoading,
                         isAuthenticating = isAuthenticating,
                         isTodoAuthenticated = isTodoAuthenticated ?: it.todoState.isTodoAuthenticated,
-                        todoData = todoData ?: it.todoState.todoData
-                    )
+                        todoData = todoData ?: it.todoState.todoData,
+                        lastSycned = lastSycned
+                    ),
                 )
             }
         }
