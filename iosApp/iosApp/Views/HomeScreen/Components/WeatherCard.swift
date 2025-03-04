@@ -15,35 +15,35 @@ struct WeatherCard: View {
     var onLocationPermission: (() -> Void)
 
     var body: some View {
-        GroupBox {
-            VStack(alignment: .leading) {
-                
-                if let state = weatherState {
-                    if !state.isLocationPermissionGranted {
-                        GrantPermissionItem(
-                            onGrant: { onLocationPermission() },
-                            title: "Please allow location permission to fetch weather data"
-                        )
-                    } else if state.isLoading {
-                        WeatherLoadingItem()
-                    } else if let error = state.error {
-                        ErrorItem()
-                    } else if let weatherData = state.weatherData {
-                        WeatherDetailView(weatherData: weatherData)                        
+        ContentCard(
+            title: "Today's Weather",
+            isLoading: Binding(get: {weatherState?.isLoading == true}, set: {_ in}),
+            hasError: Binding(get: {weatherState?.error != nil}, set: {_ in}),
+            content: {
+                VStack(alignment: .leading) {
+                    if let state = weatherState {
+                        if !state.isLocationPermissionGranted {
+                            GrantPermissionItem(
+                                onGrant: { onLocationPermission() },
+                                title: "Please allow location permission to fetch weather data"
+                            )
+                        }else if let weatherData = state.weatherData {
+                            WeatherDetailView(weatherData: weatherData)
+                        } else {
+                            Text("No weather data available")
+                                .foregroundColor(.gray)
+                                .font(.footnote)
+                        }
                     } else {
-                        Text("No weather data available")
+                        Text("Weather data unavailable")
                             .foregroundColor(.gray)
                             .font(.footnote)
                     }
-                } else {
-                    Text("Weather data unavailable")
-                        .foregroundColor(.gray)
-                        .font(.footnote)
+                    
                 }
+
                 
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .padding(.horizontal)
+        )
     }
 }

@@ -23,80 +23,79 @@ struct HomeScreenView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack {
-                VStack(alignment: .leading) {
-                    Text(DateUtils().getGreeting())
-                        .font(.title3)
-                        .bold()
-                    Text(DateUtils().getDateInDDMMYYYY())
-                        .bold()
-                }
-                Spacer()
-                Menu {
-                    Button("Settings") {
-                        component.onEvent(
-                            intent: Shared.HomeEventOpenSettingsPage.shared
-                        )
-                    }
-                    
-                } label: {
-                    Image(systemName: "ellipsis.circle")
-                    
-                }
-
-            }
-            .padding(.horizontal)
-            .background(Color(UIColor.systemBackground))
-        }
+        NavigationView {
+            
             ScrollView {
                 LazyVStack() {
-
-                        WeatherCard(
-                            weatherState: Binding(
-                                get: { homeState?.weatherState },
-                                set: { _ in }
+                    VStack(alignment: .leading) {
+                        Text(DateUtils().getGreeting())
+                            .font(.title2)
+                            .bold()
+                        Text(DateUtils().getDateInDDMMYYYY())
+                            .bold()
+                    }
+                    .frame(maxWidth: .infinity,alignment: .leading)
+                    .padding()
+                    
+                    WeatherCard(
+                        weatherState: Binding(
+                            get: { homeState?.weatherState },
+                            set: { _ in }
+                        )
+                    ) {
+                        component.onEvent(
+                            intent: HomeEventRequestLocationPermission(
+                                showRationale: permissionObserver.locationPermission == .notGranted
                             )
-                        ) {
-                            component.onEvent(
-                                intent: HomeEventRequestLocationPermission(
-                                    showRationale: permissionObserver.locationPermission == .notGranted
-                                )
-                            )
-                        }
-                        
-                        CalenderCard(
-                            calenderState: Binding(
-                                get: { homeState?.calenderData },
-                                set: { _ in }
-                            )
-                        ) {
-                            component.onEvent(
-                                intent: HomeEventRequestCalendarPermission(
-                                    showRationale: permissionObserver.calendarPermission == .notGranted
-                                )
-                            )
-                        }
-                        .padding(.vertical,8)
-                        
-                        TodoCard(
-                            onConnectClick: {
-                                component.onEvent(intent: HomeEventConnectTodoist.shared)
-                            },
-                            todoState: Binding(
-                                get: { homeState?.todoState },
-                                set: { _ in }
-                            ),
-                            onTodoOpen: { link in
-                                component.onEvent(intent: Shared.HomeEventOnOpenLink(url: link))
-                                
-                            }
                         )
                     }
+                    
+                    CalenderCard(
+                        calenderState: Binding(
+                            get: { homeState?.calenderData },
+                            set: { _ in }
+                        )
+                    ) {
+                        component.onEvent(
+                            intent: HomeEventRequestCalendarPermission(
+                                showRationale: permissionObserver.calendarPermission == .notGranted
+                            )
+                        )
+                    }
+                    .padding(.vertical,8)
+                    
+                    TodoCard(
+                        onConnectClick: {
+                            component.onEvent(intent: HomeEventConnectTodoist.shared)
+                        },
+                        todoState: Binding(
+                            get: { homeState?.todoState },
+                            set: { _ in }
+                        ),
+                        onTodoOpen: { link in
+                            component.onEvent(intent: Shared.HomeEventOnOpenLink(url: link))
+                            
+                        }
+                    )
                 }
+            }
+        }
+            .toolbar{
+                ToolbarItem{
+                    Menu("more",systemImage: "ellipsis.circle"){
+                        Button("Settings") {
+                            component.onEvent(intent: Shared.HomeEventOpenSettingsPage.shared)
+                        }
+                        
+                    }
+                }
+            }
+            .refreshable {
+                component.onEvent(intent: HomeEventRefreshData.shared)
+            }
+
+
             
-            .navigationBarHidden(true)
-            .ignoresSafeArea()
         
         .onAppear {
             observeState()
@@ -119,6 +118,7 @@ struct HomeScreenView: View {
             }
         }
     }
+    
     
     private func observePermissionRequest() {
         Task {

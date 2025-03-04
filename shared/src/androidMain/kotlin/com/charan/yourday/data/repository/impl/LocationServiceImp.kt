@@ -22,9 +22,12 @@ class LocationServiceImp(private val context : Context): LocationServiceRepo{
     override suspend fun getCurrentLocation(): Location? = suspendCoroutine{ continuation ->
             fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                 Log.d("TAG", "getCurrentLocation: $location")
-                location?.let {
-                    continuation.resume(Location(it.latitude,it.longitude))
+                if(location != null) {
+                    continuation.resume(Location(location.latitude, location.longitude))
+                } else {
+                    continuation.resume(null)
                 }
+
             }.addOnFailureListener { e ->
                 Log.d("TAG", "getCurrentLocation: ${e.message}")
                 continuation.resumeWithException(e)

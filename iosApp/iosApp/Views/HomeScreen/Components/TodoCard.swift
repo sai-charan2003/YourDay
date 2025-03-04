@@ -15,39 +15,37 @@ struct TodoCard: View {
     var onTodoOpen: ((_ url : String) -> Void )
 
     var body: some View {
-        GroupBox {
-            VStack(alignment: .leading) {
-                if let state = todoState {
-                    if !state.isTodoAuthenticated {
-                        TodoConnectItem(onConnectClick: onConnectClick)
-                    } else if state.isLoading {
-                        LoadingItem(text: "Fetching Tasks")
-                    } else if let error = state.error {
-                        ErrorItem()
-                    }
-                    else if let todoItems = state.todoData, !todoItems.isEmpty {
-                            Text("Today's tasks")
-                                .font(.title3)
-                                .fontWeight(.medium)
-                        
-                        
-                        ForEach(todoItems, id: \.id) { todoItem in
-                            TodoDetailsItem(todoData: todoItem){ link in
-                                onTodoOpen(link)
-                                
+        ContentCard(
+            title: "Today's Tasks",
+            isLoading: Binding(get: {todoState?.isLoading == true}, set: {_ in}),
+            hasError: Binding(get: {todoState?.error != nil}, set: {_ in}),
+            content: {
+                VStack{
+                    if let state = todoState {
+                        if !state.isTodoAuthenticated {
+                            TodoConnectItem(onConnectClick: onConnectClick)
+                        }
+                        else if let todoItems = state.todoData, !todoItems.isEmpty {
+                            
+                            ForEach(todoItems, id: \.id) { todoItem in
+                                TodoDetailsItem(todoData: todoItem){ link in
+                                    onTodoOpen(link)
+                                    
+                                }
                             }
+                        } else if todoState?.todoData != nil {
+                            EmptyTodoView()
                         }
                     } else {
-                        EmptyTodoView()
+                        Text("No Todoist data available")
+                            .foregroundColor(.gray)
+                            .font(.footnote)
                     }
-                } else {
-                    Text("No Todoist data available")
-                        .foregroundColor(.gray)
-                        .font(.footnote)
                 }
+
+                
             }
-        }
-        .padding(.horizontal)
+        )
     }
 }
 

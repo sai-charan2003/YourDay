@@ -8,11 +8,16 @@ Coming soon to android and ios
 
 - [ ] Integrate Tick Tick
 - [ ] Add forecast in weather card
+- [ ] Add Overdue tasks in todo card
+- [ ] Add logo for todoist console
 - [ ] Improve settings page UI
     - [ ] Add licences page
     - [ ] Add version number
 
 ## In-Progress
 
-- [ ] Pull to refresh
 
+
+## Done
+
+- [x] Pull to refresh

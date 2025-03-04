@@ -81,16 +81,9 @@
         }
 
         private fun refreshData() {
-            _state.update { it.copy(isRefreshing = true) }
-            coroutineScope.launch {
-                val job1 = launch { getLocation() }
-                val job2 = launch { fetchCalendarEvents() }
-                val job3 = launch { checkTokenAndFetchTasks() }
-                job1.join()
-                job2.join()
-                job3.join()
-                _state.update { it.copy(isRefreshing = false) }
-            }
+            getLocation()
+            fetchCalendarEvents()
+            checkTokenAndFetchTasks()
 
 
         }
@@ -99,9 +92,16 @@
 
         private fun getLocation() = coroutineScope.launch {
             updateWeatherState(isLoading = true)
-            locationServiceRepo.getCurrentLocation()?.let {
-                fetchWeatherData(it.latitude!!, it.longitude!!)
-            } ?: showToastEvent("Unable to fetch the location")
+            val location = locationServiceRepo.getCurrentLocation()
+            if(location != null){
+                fetchWeatherData(location.latitude!!, location.longitude!!)
+            } else {
+                showToastEvent("Unable to fetch the location")
+                updateWeatherState(
+                    isLoading = false,
+                    error = "Unable to fetch the location"
+                )
+            }
         }
 
         private fun openURL(url : String) {
@@ -233,15 +233,16 @@
         private fun handleTodoistTasksError(message: String) {
             if (message == ErrorCodes.UNAUTHORIZED.name) {
                 clearTodoistToken()
-            }
-            showToastEvent("Please connect again")
-            _state.update {
-                it.copy(
-                    todoState =  it.todoState.copy(
-                        isTodoAuthenticated =  false,
-                        isAuthenticating = false,
-                        isLoading = false
-                    )
+                showToastEvent("Please connect again")
+                updateTodoState(
+                    isTodoAuthenticated = false,
+                    isAuthenticating = false,
+                    isLoading = false
+                )
+            } else {
+                updateTodoState(
+                    isLoading =  false,
+                    error = message
                 )
             }
 
@@ -292,16 +293,20 @@
             isAuthenticating: Boolean = false,
             isTodoAuthenticated: Boolean? = null,
             todoData: List<TodoData>? = null,
-            lastSycned : String? = null
+            lastSycned : String? = null,
+            error: String? = null
         ) {
+
             _state.update {
+                print(it.todoState.isTodoAuthenticated)
                 it.copy(
                     todoState = it.todoState.copy(
                         isLoading = isLoading,
                         isAuthenticating = isAuthenticating,
                         isTodoAuthenticated = isTodoAuthenticated ?: it.todoState.isTodoAuthenticated,
                         todoData = todoData ?: it.todoState.todoData,
-                        lastSycned = lastSycned
+                        lastSycned = lastSycned,
+                        error = error
                     ),
                 )
             }
