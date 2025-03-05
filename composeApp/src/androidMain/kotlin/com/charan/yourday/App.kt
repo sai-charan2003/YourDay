@@ -25,9 +25,8 @@ import com.arkivanov.decompose.extensions.compose.stack.animation.predictiveback
 import com.arkivanov.decompose.extensions.compose.stack.animation.scale
 import com.arkivanov.decompose.extensions.compose.stack.animation.slide
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
+import com.charan.yourday.presentation.settings.LicenseScreen
 import com.charan.yourday.presentation.settings.SettingsScreen
-import com.charan.yourday.presentation.settings.TodoSettingsScreen
-import com.charan.yourday.presentation.settings.WeatherSettingScreen
 import com.charan.yourday.ui.theme.slideAndFade
 import dev.icerock.moko.permissions.PermissionsController
 import dev.icerock.moko.permissions.compose.BindEffect
@@ -65,8 +64,7 @@ fun App(root: RootComponent) {
                     when (val instance = child.instance) {
                         is RootComponent.Child.HomeScreen -> HomeScreen(instance.component)
                         is RootComponent.Child.SettingsScreen -> SettingsScreen(instance.component)
-                        is RootComponent.Child.WeatherSettingsScreen -> WeatherSettingScreen(instance.component)
-                        is RootComponent.Child.TodoScreenSettings -> TodoSettingsScreen(instance.component)
+                        is RootComponent.Child.LicenseScreen -> LicenseScreen(instance.component)
                     }
 
                 }

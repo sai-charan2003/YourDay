@@ -54,6 +54,8 @@ kotlin {
             implementation(libs.decompose.jetbrains)
             implementation(libs.decompose.jetbrains.experiment)
             implementation(libs.androidx.core.splashscreen)
+            implementation (libs.aboutlibraries.core)
+            implementation(libs.aboutlibraries.compose.m3)
 
 
         }
@@ -84,6 +86,9 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+    }
+    buildFeatures {
+        buildConfig = true
     }
 }
 

@@ -49,40 +49,17 @@ class RootComponent(
             Configuration.SettingsScreen -> Child.SettingsScreen(
                 SettingsScreenComponent(
                     componentContext = context,
-                    onWeatherScreenOpen = {
-                        navigation.pushNew(Configuration.WeatherScreenSettings)
-                    },
-                    onTodoSettingsOpen = {
-                        navigation.pushNew(Configuration.TodoIntegrationScreenSettings)
-                    },
                     onBackClick = {
                         onBackClicked()
+                    },
+                    onLicenseClick = {
+                        navigation.pushNew(Configuration.LicenseScreen)
                     }
                 ))
 
-            Configuration.WeatherScreenSettings -> Child.WeatherSettingsScreen(
+            Configuration.LicenseScreen -> Child.LicenseScreen(
                 SettingsScreenComponent(
                 componentContext = context,
-                onWeatherScreenOpen = {
-
-                },
-                    onTodoSettingsOpen = {
-
-                    },
-                    onBackClick = {
-                        onBackClicked()
-                    }
-            ))
-
-            Configuration.TodoIntegrationScreenSettings -> Child.TodoScreenSettings(
-                SettingsScreenComponent(
-                    componentContext = context,
-                    onWeatherScreenOpen = {
-
-                    },
-                    onTodoSettingsOpen = {
-
-                    },
                     onBackClick = {
                         onBackClicked()
                     }
@@ -95,8 +72,7 @@ class RootComponent(
     sealed class Child {
         data class HomeScreen(val component: HomeScreenComponent) : Child()
         data class SettingsScreen(val component : SettingsScreenComponent) : Child()
-        data class WeatherSettingsScreen(val component: SettingsScreenComponent) : Child()
-        data class TodoScreenSettings(val component: SettingsScreenComponent) : Child()
+        data class LicenseScreen(val component : SettingsScreenComponent) : Child()
     }
     @Serializable
     sealed class  Configuration {
@@ -105,9 +81,7 @@ class RootComponent(
         @Serializable
         object SettingsScreen : Configuration()
         @Serializable
-        object WeatherScreenSettings : Configuration()
-        @Serializable
-        object TodoIntegrationScreenSettings : Configuration()
+        object LicenseScreen : Configuration()
     }
 
 

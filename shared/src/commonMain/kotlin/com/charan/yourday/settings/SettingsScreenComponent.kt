@@ -8,12 +8,15 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.arkivanov.decompose.ComponentContext
+import com.charan.yourday.BuildKonfig
 import com.charan.yourday.data.network.responseDTO.WeatherDTO
 import com.charan.yourday.data.repository.TodoistRepo
 import com.charan.yourday.utils.ProcessState
 import com.charan.yourday.utils.UserPreferencesStore
 import com.charan.yourday.utils.WeatherUnits
+import com.charan.yourday.utils.appVersion
 import com.charan.yourday.utils.asCommonFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -26,27 +29,34 @@ import org.koin.core.component.get
 
 class SettingsScreenComponent (
     componentContext: ComponentContext,
-    val onWeatherScreenOpen : () -> Unit ,
-    val onTodoSettingsOpen : () -> Unit,
-    val onBackClick : () -> Unit
+    val onBackClick : () -> Unit,
+    val onLicenseClick : () -> Unit ={},
 
 ) : KoinComponent, ComponentContext by componentContext{
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private val userPreferences : UserPreferencesStore = get()
     private val todoistRepo: TodoistRepo = get()
-    private val _weatherUnits = MutableStateFlow<String?>(null)
-    private val _todoToken = MutableStateFlow<String?>(null)
-    val todoToken = _todoToken.asStateFlow()
-    val weatherUnits = _weatherUnits.asStateFlow()
+
+    private val _settingsState = MutableStateFlow(SettingsState())
+    val settingsState = _settingsState.asStateFlow()
     init {
         getSetTemperatureUnits()
         isTodoConnected()
+        getAppVersion()
     }
 
     private fun getSetTemperatureUnits() = coroutineScope.launch{
         userPreferences.weatherUnits.collectLatest {
-            _weatherUnits.value = it
+            updateSettingsState(
+                weatherUnits = it
+            )
         }
+    }
+
+    private fun getAppVersion() {
+        updateSettingsState(
+            appVersion = appVersion()
+        )
     }
     private fun setTemperature(weatherUnits : String) = coroutineScope.launch {
        userPreferences.setWeatherUnits(weatherUnits)
@@ -56,10 +66,19 @@ class SettingsScreenComponent (
     }
     private fun isTodoConnected() = coroutineScope.launch {
         userPreferences.todoistAccessToken.collectLatest {
-            _todoToken.value = it
+            if(it !=null){
+                updateSettingsState(
+                    isTodoistConnected = true
+                )
+            } else {
+                updateSettingsState(
+                    isTodoistConnected = false
+                )
+            }
         }
 
     }
+
 
     fun onEvent(event : SettingsEvents) = coroutineScope.launch{
         when(event){
@@ -67,25 +86,37 @@ class SettingsScreenComponent (
                 setTemperature(event.weatherUnit)
             }
 
-            SettingsEvents.OnWeatherItem -> {
-                onWeatherScreenOpen()
-            }
-
             SettingsEvents.TodoConnect -> {
-                if(_todoToken.value.isNullOrEmpty()){
+                if(_settingsState.value.isTodoistConnected==false){
                     todoistRepo.requestAuthorization()
                 } else{
                     deleteTodoistToken()
                 }
             }
 
-            SettingsEvents.OnTodoItem -> {
-                onTodoSettingsOpen()
-            }
-
             SettingsEvents.onBack -> {
                 onBackClick()
             }
+
+            SettingsEvents.OnLicenseNavigate -> {
+                onLicenseClick()
+
+            }
+        }
+    }
+
+    private fun updateSettingsState(
+        weatherUnits: String? =null,
+        isTodoistConnected : Boolean? =null,
+        appVersion : String?=null
+    ) {
+        _settingsState.update {
+            it.copy(
+                weatherUnits = weatherUnits ?: it.weatherUnits,
+                isTodoistConnected =  isTodoistConnected ?: it.isTodoistConnected,
+                appVersion = appVersion ?: it.appVersion
+            )
+
         }
     }
 }

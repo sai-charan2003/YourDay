@@ -10,6 +10,7 @@ plugins {
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.buildKonfig)
     alias(libs.plugins.skie)
+    alias(libs.plugins.mikepenz.aboutlibrary)
 }
 
 kotlin {
@@ -85,6 +86,10 @@ android {
     }
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()
+
+    }
+    buildFeatures {
+        buildConfig=true
     }
 }
 multiplatformResources {
