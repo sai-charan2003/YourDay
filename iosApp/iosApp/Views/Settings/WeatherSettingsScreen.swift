@@ -34,17 +34,8 @@ struct WeatherSettingsScreen: View {
             }
         }
         .navigationTitle("Weather Settings")
-        .task {
-            await observeWeatherUnits()
-        }
     }
 
-    private func observeWeatherUnits() async {
-        for await newUnits in component.weatherUnits {
-
-            self.weatherUnits = newUnits
-        }
-    }
 }
 
 

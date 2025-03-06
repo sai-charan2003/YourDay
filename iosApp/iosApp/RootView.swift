@@ -30,10 +30,8 @@ struct RootView: View {
                         HomeScreenView(main.component)
                     case let main as Shared.RootComponent.ChildSettingsScreen:
                         SettingsScreen(component:main.component)
-                    case let main as Shared.RootComponent.ChildWeatherSettingsScreen:
+                    case let main as Shared.RootComponent.ChildLicenseScreen:
                         WeatherSettingsScreen(component: main.component)
-                    case let main as Shared.RootComponent.ChildTodoScreenSettings:
-                        TodoSettingsScreen(component: main.component)
                         
                         
                     default: EmptyView()

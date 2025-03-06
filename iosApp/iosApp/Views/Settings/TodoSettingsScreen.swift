@@ -27,15 +27,7 @@ struct TodoSettingsScreen: View {
         }
 
         .navigationTitle("Todo Integration")
-        .task {
-            await observeTodoToken()
-        }
     }
     
-    private func observeTodoToken() async{
-        for await token in component.todoToken{
-            todoToken = token
-        }
-    }
 }
 
