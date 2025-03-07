@@ -1,5 +1,6 @@
 package com.charan.yourday.presentation.home.components
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -61,11 +62,27 @@ fun TodoItem(
 
 
         ) {
-                RichText(
-                        state = richTextState,
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.padding(bottom = 12.dp)
-                )
+                Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                        RichText(
+                                state = richTextState,
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.padding(bottom = 12.dp)
+                                        .weight(1f)
+                                        .padding(end = 5.dp)
+                        )
+                        AnimatedVisibility(
+                                visible = todoItem.isOverDue == true
+                        ) {
+                                RoundedChip(
+                                        title = "OverDue",
+                                        modifier = Modifier.background(MaterialTheme.colorScheme.errorContainer)
+                                                .padding(4.dp)
+                                )
+                        }
+                }
 
                 Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -82,9 +99,7 @@ fun TodoItem(
                                         modifier = Modifier
                                                 .size(20.dp)
                                                 .clip(CircleShape),
-
-
-                                        )
+                                )
 
 
 
@@ -96,8 +111,7 @@ fun TodoItem(
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                         }
-
-
+                        Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                         text = todoItem.dueTime?.convertToMMMDYYYYWithTime() ?: todoItem.dueDate?.convertToMMMDYYYY() ?: "",
                                         style = MaterialTheme.typography.bodySmall,

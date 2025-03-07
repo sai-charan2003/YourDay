@@ -15,29 +15,37 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
-class LocationServiceImp(private val context : Context): LocationServiceRepo{
-    private val fusedLocationClient : FusedLocationProviderClient =
+class LocationServiceImp(private val context: Context): LocationServiceRepo {
+    private val fusedLocationClient: FusedLocationProviderClient =
         LocationServices.getFusedLocationProviderClient(context)
+
     @SuppressLint("MissingPermission")
-    override suspend fun getCurrentLocation(): Location? = suspendCoroutine{ continuation ->
-            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-                Log.d("TAG", "getCurrentLocation: $location")
-                if(location != null) {
-                    continuation.resume(Location(location.latitude, location.longitude))
-                } else {
-                    continuation.resume(null)
+    override suspend fun getCurrentLocation(): Location? = suspendCoroutine { continuation ->
+        fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+            Log.d("location", "getCurrentLocation: $location")
+            if (location != null) {
+                continuation.resume(Location(location.latitude, location.longitude))
+            } else {
+
+                val cancellationTokenSource = CancellationTokenSource()
+                fusedLocationClient.getCurrentLocation(
+                    Priority.PRIORITY_BALANCED_POWER_ACCURACY,
+                    cancellationTokenSource.token
+                ).addOnSuccessListener { newLocation ->
+                    if (newLocation != null) {
+                        continuation.resume(Location(newLocation.latitude, newLocation.longitude))
+                    } else {
+                        continuation.resume(null)
+                    }
+                }.addOnFailureListener { e ->
+                    Log.d("location", "getCurrentLocation fresh attempt: ${e.message}")
+                    continuation.resumeWithException(e)
                 }
-
-            }.addOnFailureListener { e ->
-                Log.d("TAG", "getCurrentLocation: ${e.message}")
-                continuation.resumeWithException(e)
             }
-
-
+        }.addOnFailureListener { e ->
+            Log.d("location", "getCurrentLocation: ${e.message}")
+            continuation.resumeWithException(e)
+        }
     }
-
-
-
-
-
 }
+

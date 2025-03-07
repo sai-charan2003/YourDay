@@ -106,4 +106,8 @@ object DateUtils {
 
         return "$month $day, $year, $formattedHour:${minute.toString().padStart(2, '0')} $amPm"
     }
+
+    fun String.isOverDue() : Boolean {
+        return LocalDate.parse(this) < Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+    }
 }
