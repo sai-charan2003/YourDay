@@ -1,6 +1,7 @@
     package com.charan.yourday.home
 
     import com.arkivanov.decompose.ComponentContext
+    import com.charan.yourday.data.mapper.mapToWeatherData
     import com.charan.yourday.data.model.TodoData
     import com.charan.yourday.data.model.WeatherData
     import com.charan.yourday.data.network.responseDTO.TodoistTokenDTO
@@ -124,29 +125,8 @@
 
         private suspend fun handleWeatherSuccess(data: WeatherDTO) {
             userPreferences.weatherUnits.collectLatest { units ->
-                val weatherData = when (units) {
-                    WeatherUnits.C -> WeatherData(
-                        currentTemperature = data.getCurrentTemperatureInC(),
-                        maxTemperature = data.getMaxTemperatureInC(),
-                        minTemperature = data.getMinTemperatureInC(),
-                        currentCondition = data.getCurrentCondition(),
-                        temperatureIcon = data.getImageIcon(),
-                        location = data.getLocation()
-                    )
-                    WeatherUnits.F -> WeatherData(
-                        currentTemperature = data.getCurrentTemperatureInF(),
-                        maxTemperature = data.getMaxTemperatureInF(),
-                        minTemperature = data.getMinTemperatureInF(),
-                        currentCondition = data.getCurrentCondition(),
-                        temperatureIcon = data.getImageIcon(),
-                        location = data.getLocation()
-                    )
-                    else -> {
-                        WeatherData()
-                    }
-                }
+                val weatherData = units?.let { data.mapToWeatherData(it) }
                 updateWeatherState(weatherData = weatherData, lastSycned = DateUtils.getCurrentTimeInMillis().toString())
-
 
             }
         }
@@ -279,7 +259,7 @@
                 it.copy(
                     weatherState = it.weatherState.copy(
                         isLoading = isLoading,
-                        error = if(error.isNullOrEmpty().not()) error else it.weatherState.error,
+                        error = error,
                         isLocationPermissionGranted = isPermissionEnabled(Permissions.LOCATION),
                         weatherData = weatherData ?: it.weatherState.weatherData,
                         lastSycned = lastSycned

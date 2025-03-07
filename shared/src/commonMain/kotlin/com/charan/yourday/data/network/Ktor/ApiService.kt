@@ -78,7 +78,7 @@ class ApiService (val client : HttpClient) {
                     append("Accept", "application/json")
                 }
                 path("rest/v2/tasks")
-                parameters.append("filter","today")
+                parameters.append("filter","today|overdue")
             }
             println(url)
         }

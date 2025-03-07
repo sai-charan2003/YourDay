@@ -16,22 +16,40 @@ struct TodoDetailsItem: View {
     var onTodoOpen: ((_ url : String) -> Void )
 
     var body: some View {
-        VStack(alignment: .leading) {
-            if let attributedString = try? AttributedString(markdown: todoData.tasks ?? "") {
-                        Text(attributedString)
-            } else {
-                Text(todoData.tasks ?? "")
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment : .firstTextBaseline) {
+                
+                if let attributedString = try? AttributedString(markdown: todoData.tasks ?? "") {
+                    Text(attributedString)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                } else {
+                    Text(todoData.tasks ?? "")
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                
+                if todoData.isOverDue == true {
+                    RoundedChip(title: "OverDue")
+
+                }
             }
+
             HStack {
                 if let logo = todoData.todoProviderLogo {
                     Image(resource: logo)
+                        .resizable()
+                        .frame(width: 20, height: 20)
+                        .clipShape(Circle())
                 } else {
                     Image(systemName: "questionmark.circle")
+                        .resizable()
+                        .frame(width: 20, height: 20)
+                        .foregroundColor(.gray)
                 }
 
                 Text(todoData.todoProvider ?? "Unknown Provider")
                     .font(.caption)
                     .foregroundColor(.secondary)
+                
                 Spacer()
 
                 Text(formattedDate)
@@ -44,8 +62,6 @@ struct TodoDetailsItem: View {
             if let link = todoData.taskLink {
                 onTodoOpen(link)
             }
-            
-            
         }
         Divider()
     }
@@ -60,5 +76,3 @@ struct TodoDetailsItem: View {
         }
     }
 }
-
-
