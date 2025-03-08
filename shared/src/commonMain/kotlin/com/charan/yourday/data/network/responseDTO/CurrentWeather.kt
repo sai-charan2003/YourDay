@@ -62,6 +62,8 @@ data class WeatherDTO (
 
         return WeatherIconName.weatherIcon(getWeatherIconCode(),getIfIsDay())
     }
+
+
 }
 
 @Serializable
@@ -152,7 +154,7 @@ data class Current (
     val airQuality: Map<String, Double>? = null,
 
     @SerialName("time_epoch")
-    val timeEpoch: Double? = null,
+    val timeEpoch: Long? = null,
 
     val time: String? = null,
 

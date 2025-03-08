@@ -62,7 +62,7 @@ object DateUtils {
         val adjustedHour = if (hour == 0) 12 else hour
         val amPm = if (localDateTime.hour < 12) "AM" else "PM"
 
-        return "${adjustedHour.toString().padStart(2, '0')}:${localDateTime.minute.toString().padStart(2, '0')}$amPm"
+        return "${adjustedHour.toString().padStart(2, '0')}:${localDateTime.minute.toString().padStart(2, '0')} $amPm"
     }
 
     fun String.convertToMMMDYYYY(): String {
@@ -99,8 +99,6 @@ object DateUtils {
         val year = localDateTime.year
         val hour = localDateTime.hour
         val minute = localDateTime.minute
-
-        // Format hours into 12-hour format with AM/PM
         val amPm = if (hour < 12) "AM" else "PM"
         val formattedHour = if (hour % 12 == 0) 12 else hour % 12
 

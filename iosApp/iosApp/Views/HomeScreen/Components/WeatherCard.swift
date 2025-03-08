@@ -29,6 +29,9 @@ struct WeatherCard: View {
                             )
                         }else if let weatherData = state.weatherData {
                             WeatherDetailView(weatherData: weatherData)
+                            if let forecast = state.weatherData?.forecast{
+                                WeatherForecastItem(forecastData: forecast)
+                            }
                         } else {
                             Text("No weather data available")
                                 .foregroundColor(.gray)
