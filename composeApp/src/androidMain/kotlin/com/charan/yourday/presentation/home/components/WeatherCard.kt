@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.charan.yourday.MR
+import com.charan.yourday.data.model.WeatherData
 import com.charan.yourday.home.WeatherState
 import dev.icerock.moko.resources.compose.painterResource
 
@@ -47,48 +48,8 @@ fun WeatherCard(
                 return@ContentElevatedCard
             }
             if (weatherState?.weatherData != null) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = weatherState?.weatherData?.location ?: "",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-
-                    Image(
-                        painter = painterResource(
-                            weatherState?.weatherData?.temperatureIcon ?: MR.images.icy
-                        ),
-                        null,
-                        modifier = Modifier.size(24.dp)
-                    )
-
-                }
-
-
-                Text(
-                    weatherState?.weatherData?.currentTemperature ?: "",
-                    style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold)
-                )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        "Min: ${weatherState?.weatherData?.minTemperature}",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        "Max: ${weatherState?.weatherData?.maxTemperature}",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-                Text(
-                    text = weatherState?.weatherData?.currentCondition ?: "",
-                    style = MaterialTheme.typography.bodyLarge.copy(color = Color(0xFF00FF00))
-                )
+                WeatherDataItem(weatherData = weatherState.weatherData ?: WeatherData())
+                WeatherForecastItem(forecastData = weatherState.weatherData?.forecast ?: emptyList())
                 return@ContentElevatedCard
             }
 

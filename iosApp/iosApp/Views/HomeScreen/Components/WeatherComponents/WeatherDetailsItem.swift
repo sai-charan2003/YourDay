@@ -31,16 +31,7 @@ struct WeatherDetailView: View {
                 .font(.title)
                 .fontWeight(.bold)
             
-            HStack {
-                Text("Min: \(weatherData.minTemperature?.description ?? "--")")
-                Spacer()
-                Text("Max: \(weatherData.maxTemperature?.description ?? "--")")
-            }
-            .font(.footnote)
             
-            Text(weatherData.currentCondition ?? "Unknown Condition")
-                .font(.headline)
-                .foregroundColor(.green)
         }
     }
 }

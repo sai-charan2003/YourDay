@@ -12,7 +12,7 @@ fun SectionHeader(title: String) {
     Text(
         text = title,
         style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.onPrimaryContainer,
+        color = MaterialTheme.colorScheme.secondaryContainer,
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
     )
 }

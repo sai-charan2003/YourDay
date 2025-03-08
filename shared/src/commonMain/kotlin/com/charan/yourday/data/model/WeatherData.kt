@@ -8,5 +8,7 @@ data class WeatherData(
     val minTemperature : String? = null,
     val currentCondition : String? = null,
     val temperatureIcon : ImageResource? = null,
-    val location : String? = null
+    val time : String? = null,
+    val location : String? = null,
+    val forecast : List<WeatherData>? = null
 )
