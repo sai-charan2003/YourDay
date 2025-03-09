@@ -15,6 +15,7 @@ androidx-material = "1.12.0"
 androidx-test-junit = "1.2.1"
 compose-multiplatform = "1.7.0"
 coreSplashscreen = "1.0.1"
+graphicsShapes = "1.0.1"
 junit = "4.13.2"
 kotlin = "2.1.0"
 kotlinGradlePlugin = "1.9.0"
@@ -47,6 +48,7 @@ aboutlibrariesCore = "11.2.3"
 accompanist-markdown = { module = "com.github.jeziellago:compose-markdown", version.ref = "accompanistMarkdown" }
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissions" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
+androidx-graphics-shapes = { module = "androidx.graphics:graphics-shapes", version.ref = "graphicsShapes" }
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }

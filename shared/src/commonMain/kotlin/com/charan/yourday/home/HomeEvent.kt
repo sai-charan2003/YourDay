@@ -11,4 +11,5 @@ sealed interface HomeEvent {
     object OpenSettingsPage : HomeEvent
     data class OnOpenLink(val url : String) : HomeEvent
     object RefreshData : HomeEvent
+    object OnBoardingFinish : HomeEvent
 }
