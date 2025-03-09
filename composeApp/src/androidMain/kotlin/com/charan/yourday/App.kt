@@ -1,6 +1,7 @@
 package com.charan.yourday
 
 import android.Manifest
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.tween
@@ -25,6 +26,7 @@ import com.arkivanov.decompose.extensions.compose.stack.animation.predictiveback
 import com.arkivanov.decompose.extensions.compose.stack.animation.scale
 import com.arkivanov.decompose.extensions.compose.stack.animation.slide
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
+import com.charan.yourday.presentation.onboarding.OnBoardingScreen
 import com.charan.yourday.presentation.settings.LicenseScreen
 import com.charan.yourday.presentation.settings.SettingsScreen
 import com.charan.yourday.ui.theme.slideAndFade
@@ -61,10 +63,13 @@ fun App(root: RootComponent) {
                         onBack = root::onBackClicked,
                     ),
                 ) { child ->
+
                     when (val instance = child.instance) {
+
                         is RootComponent.Child.HomeScreen -> HomeScreen(instance.component)
                         is RootComponent.Child.SettingsScreen -> SettingsScreen(instance.component)
                         is RootComponent.Child.LicenseScreen -> LicenseScreen(instance.component)
+                        is RootComponent.Child.OnBoardingScreen -> OnBoardingScreen(instance.component)
                     }
 
                 }
