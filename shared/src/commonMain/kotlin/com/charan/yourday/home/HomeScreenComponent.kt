@@ -160,13 +160,15 @@ class HomeScreenComponent(
 
 
     private fun fetchCalendarEvents() {
-        _state.update {
-            it.copy(
-                calenderData = it.calenderData.copy(
-                    isCalenderPermissionGranted = isPermissionEnabled(Permissions.CALENDER),
-                    calenderData = calendarEventsRepo.getCalenderEvents()
+        if(isPermissionEnabled(Permissions.CALENDER)) {
+            _state.update {
+                it.copy(
+                    calenderData = it.calenderData.copy(
+                        isCalenderPermissionGranted = isPermissionEnabled(Permissions.CALENDER),
+                        calenderData = calendarEventsRepo.getCalenderEvents()
+                    )
                 )
-            )
+            }
         }
     }
 
