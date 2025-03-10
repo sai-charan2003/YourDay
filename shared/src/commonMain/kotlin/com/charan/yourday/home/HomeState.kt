@@ -15,7 +15,7 @@ data class HomeState(
 )
 
 data class WeatherState(
-    val isLoading : Boolean = true,
+    val isLoading : Boolean = false,
     val weatherData : WeatherData? = null,
     val error : String? = null,
     val isLocationPermissionGranted : Boolean = false,

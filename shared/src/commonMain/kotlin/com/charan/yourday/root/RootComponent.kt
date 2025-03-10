@@ -10,6 +10,7 @@ import com.arkivanov.decompose.router.stack.push
 import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.router.stack.pushToFront
 import com.arkivanov.decompose.router.stack.replaceAll
+import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.Value
 import com.charan.yourday.home.HomeScreenComponent
 import com.charan.yourday.onBoarding.OnBoardingScreenComponent
@@ -34,11 +35,8 @@ class RootComponent(
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     init {
         CoroutineScope(Dispatchers.Main).launch {
-            userPreferences.shouldShowOnboarding.collectLatest {
-                if(it){
-                    navigation.replaceAll(Configuration.OnBoardingScreen(authorizationId,errorCode))
-                }
-            }
+            val shouldShowOnBoarding = userPreferences.shouldShowOnboarding.first()
+            if(shouldShowOnBoarding) navigation.replaceCurrent(Configuration.OnBoardingScreen(authorizationId,errorCode))
         }
     }
 
