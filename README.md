@@ -8,7 +8,7 @@ Coming soon to android and ios
 
 - [ ] Integrate Tick Tick
 
-- [ ] Add logo for todoist console
+
 
 
 
@@ -17,6 +17,7 @@ Coming soon to android and ios
 ## In-Progress
 
 - [ ] Onboarding screen
+  - [ ] Add option in settings page to view onboarding screen
 
 
 
@@ -28,3 +29,4 @@ Coming soon to android and ios
     - [x] Add version number
 - [x] Add Overdue tasks in todo card
 - [x] Add forecast in weather card
+- [x] Add logo for todoist console
