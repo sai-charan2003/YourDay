@@ -30,3 +30,4 @@ Coming soon to android and ios
 - [x] Add Overdue tasks in todo card
 - [x] Add forecast in weather card
 - [x] Add logo for todoist console
+- [x] Add Release and Debug builds in android 
