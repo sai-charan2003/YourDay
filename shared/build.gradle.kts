@@ -106,6 +106,18 @@ buildkonfig {
         buildConfigField(FieldSpec.Type.STRING, "TODOIST_CLIENT_ID", todoistClientID)
         val todoistClientSecret: String = gradleLocalProperties(rootDir, providers).getProperty("TODOIST_CLIENT_SECRET")
         buildConfigField(FieldSpec.Type.STRING, "TODOIST_CLIENT_SECRET", todoistClientSecret)
+        val keyStorePassword: String = gradleLocalProperties(rootDir, providers).getProperty("KEY_STORE_PASSWORD")
+        buildConfigField(FieldSpec.Type.STRING, "KEY_STORE_PASSWORD", keyStorePassword)
+        val keyPassword: String = gradleLocalProperties(rootDir, providers).getProperty("KEY_PASSWORD")
+        buildConfigField(FieldSpec.Type.STRING, "KEY_PASSWORD", keyPassword)
+        val keyAlias: String = gradleLocalProperties(rootDir, providers).getProperty("KEY_ALIAS")
+        buildConfigField(FieldSpec.Type.STRING, "KEY_ALIAS", keyAlias)
+        val keyLocation: String = gradleLocalProperties(rootDir, providers).getProperty("KEY_LOCATION")
+        buildConfigField(FieldSpec.Type.STRING, "KEY_LOCATION", keyLocation)
+
+
+
+
     }
 }
 
