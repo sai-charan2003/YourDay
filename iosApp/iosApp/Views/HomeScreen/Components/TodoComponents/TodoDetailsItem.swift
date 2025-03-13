@@ -8,11 +8,9 @@
 
 import SwiftUI
 import Shared
-import RichTextKit
 
 struct TodoDetailsItem: View {
     @State var todoData: Shared.TodoData
-    @State private var richTextContext = RichTextContext()
     var onTodoOpen: ((_ url : String) -> Void )
 
     var body: some View {
