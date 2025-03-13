@@ -206,7 +206,9 @@ fun WelcomeScreen(onClick: () -> Unit) {
             modifier = Modifier.align(Alignment.BottomEnd)
         ) {
             FilledTonalButton(
-                onClick = onClick,
+                onClick = {
+                    onClick
+                },
                 modifier = Modifier
                     .padding(20.dp)
                     ,

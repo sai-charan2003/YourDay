@@ -17,4 +17,6 @@ captures
 !*.xcworkspace/contents.xcworkspacedata
 **/xcshareddata/WorkspaceSettings.xcsettings
 /composeApp/release/
-/composeApp/Keystore
+/composeApp/src/release/
+/composeApp/src/debug/
+iosApp/iosApp/GoogleService-Info.plist

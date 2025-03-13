@@ -42,6 +42,9 @@ essenty = "2.2.0"
 richeditorCompose = "1.0.0-rc10"
 skie = "0.10.1"
 aboutlibrariesCore = "11.2.3"
+firebaseCrashlytics = "19.4.1"
+googleGmsGoogleServices = "4.4.2"
+googleFirebaseCrashlytics = "3.0.3"
 
 
 [libraries]
@@ -103,6 +106,7 @@ essenty-backHandler = { group = "com.arkivanov.essenty", name = "back-handler", 
 richeditor-compose = { module = "com.mohamedrejeb.richeditor:richeditor-compose", version.ref = "richeditorCompose" }
 aboutlibraries-compose-m3 = { module = "com.mikepenz:aboutlibraries-compose-m3", version.ref = "aboutlibrariesCore" }
 aboutlibraries-core = { module = "com.mikepenz:aboutlibraries-core", version.ref = "aboutlibrariesCore" }
+firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics", version.ref = "firebaseCrashlytics" }
 
 
 [plugins]
@@ -116,3 +120,5 @@ kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", versio
 buildKonfig = { id = "com.codingfeline.buildkonfig", version.ref = "buildKonfig" }
 skie = {id = "co.touchlab.skie", version.ref = "skie"}
 mikepenz-aboutlibrary = {id = "com.mikepenz.aboutlibraries.plugin",version.ref = "aboutlibrariesCore"}
+google-gms-google-services = { id = "com.google.gms.google-services", version.ref = "googleGmsGoogleServices" }
+google-firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "googleFirebaseCrashlytics" }

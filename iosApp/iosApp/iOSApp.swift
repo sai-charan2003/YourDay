@@ -1,4 +1,5 @@
 import SwiftUI
+import Firebase
 import Shared
 
 @main
@@ -9,6 +10,7 @@ struct iOSApp: App {
     @State private var errorCode : String? = nil
 
     init() {
+        FirebaseApp.configure()
         KointInitHelper().doInitKoin()
         
         _componentHolder = State(initialValue: ComponentHolder {context in

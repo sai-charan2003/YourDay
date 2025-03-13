@@ -9,6 +9,8 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.google.gms.google.services)
+    alias(libs.plugins.google.firebase.crashlytics)
 
 }
 
@@ -106,6 +108,7 @@ android {
         debug {
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
+
         }
 
         release {
@@ -121,6 +124,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.firebase.crashlytics)
     debugImplementation(compose.uiTooling)
 
 
