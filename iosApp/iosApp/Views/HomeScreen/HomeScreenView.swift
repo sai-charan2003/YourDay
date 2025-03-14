@@ -100,6 +100,7 @@ struct HomeScreenView: View {
         .onAppear {
             observeState()
             observePermissionRequest()
+            
         }
         .onReceive(permissionObserver.$locationPermission) { permissionState in
             switch permissionState {
@@ -110,6 +111,7 @@ struct HomeScreenView: View {
             }
         }
         .onReceive(permissionObserver.$calendarPermission) { permissionState in
+            print(permissionState)
             switch permissionState {
             case .granted:
                 component.onEvent(intent: HomeEventFetchCalendarEvents.shared)
@@ -145,6 +147,8 @@ struct HomeScreenView: View {
             }
         }
     }
+    
+    
     
     private func getCalendarPermission() {
         let eventStore = EKEventStore()
