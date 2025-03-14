@@ -16,7 +16,7 @@ Coming soon to android and ios
 
 ## In-Progress
 
-- [ ] Onboarding screen
+- [x] Onboarding screen
   - [ ] Add option in settings page to view onboarding screen
 
 
