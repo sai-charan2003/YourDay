@@ -32,6 +32,8 @@ struct RootView: View {
                         SettingsScreen(component:main.component)
                     case let main as Shared.RootComponent.ChildLicenseScreen:
                         WeatherSettingsScreen(component: main.component)
+                    case let main as Shared.RootComponent.ChildOnBoardingScreen:
+                        OnBoardingScreen(main.component)
                         
                         
                     default: EmptyView()

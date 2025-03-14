@@ -160,6 +160,8 @@ class HomeScreenComponent(
 
 
     private fun fetchCalendarEvents() {
+        println("Fetching calender events....")
+        println(isPermissionEnabled(Permissions.CALENDER))
         if(isPermissionEnabled(Permissions.CALENDER)) {
             _state.update {
                 it.copy(
@@ -212,7 +214,7 @@ class HomeScreenComponent(
                 is ProcessState.Error -> handleTodoistTasksError(processState.message)
                 ProcessState.Loading -> updateTodoState(isLoading = true)
                 ProcessState.NotDetermined -> { /* No action needed */ }
-                is ProcessState.Success -> updateTodoState(todoData = processState.data, lastSycned = DateUtils.getCurrentTimeInMillis().toString())
+                is ProcessState.Success -> updateTodoState(todoData = processState.data, lastSycned = DateUtils.getCurrentTimeInMillis().toString(), isTodoAuthenticated = true)
             }
         }
     }
@@ -242,8 +244,9 @@ class HomeScreenComponent(
                 return@collectLatest
             }
             token?.let {
-                fetchTodoistTasks(it)
                 updateTodoState(isTodoAuthenticated = true)
+                fetchTodoistTasks(it)
+
             }
         }
     }

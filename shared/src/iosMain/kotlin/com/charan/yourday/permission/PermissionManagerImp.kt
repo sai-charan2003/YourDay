@@ -8,7 +8,9 @@ import platform.CoreLocation.CLLocationManager
 import platform.CoreLocation.kCLAuthorizationStatusAuthorized
 import platform.CoreLocation.kCLAuthorizationStatusDenied
 import platform.CoreLocation.kCLAuthorizationStatusNotDetermined
+import platform.EventKit.EKAuthorizationStatus
 import platform.EventKit.EKAuthorizationStatusAuthorized
+import platform.EventKit.EKAuthorizationStatusFullAccess
 import platform.EventKit.EKEntityType
 import platform.EventKit.EKEventStore
 import platform.Foundation.NSURL
@@ -23,11 +25,11 @@ class PermissionManagerImp : PermissionManager {
     override fun isPermissionGranted(permissions: Permissions): Boolean {
         return when (permissions) {
             Permissions.CALENDER -> {
-                val isGranted = EKEventStore.authorizationStatusForEntityType(EKEntityType.EKEntityTypeEvent) ==
-                        EKAuthorizationStatusAuthorized
-                calenderPermission.tryEmit(isGranted)
+                val status = EKEventStore.authorizationStatusForEntityType(EKEntityType.EKEntityTypeEvent)
+                val isGranted = status == EKAuthorizationStatusAuthorized || status == EKAuthorizationStatusFullAccess
                 isGranted
             }
+
             Permissions.LOCATION -> {
                 location.locationServicesEnabled()
             }
