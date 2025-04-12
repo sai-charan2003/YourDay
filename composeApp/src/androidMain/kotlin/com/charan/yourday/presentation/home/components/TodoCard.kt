@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.charan.yourday.MR
+import com.charan.yourday.data.model.todoProvider
 import com.charan.yourday.home.TodoState
 import dev.icerock.moko.resources.compose.painterResource
 
@@ -31,54 +32,58 @@ import dev.icerock.moko.resources.compose.painterResource
 @Composable
 fun TodoCard(
     todoState: TodoState,
-    onConnect : () -> Unit,
+    onConnect : (todoProvider : String) -> Unit,
     onTodoOpen : (link : String) -> Unit
 ) {
 
     ContentElevatedCard(
         title = "Today's Tasks",
         isLoading = todoState.isLoading,
-        hasError = todoState.error,
+        hasError = todoState.todoProviderState.any { it.value.error.isNullOrEmpty().not() },
         hasContent = todoState.todoData !=null,
         content = {
 
-            if (!todoState.isTodoAuthenticated) {
-                Row(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Image(
-                        painter = painterResource(MR.images.Todoist),
-                        null,
-                        modifier = Modifier
-                            .padding(end = 10.dp)
-                            .size(24.dp)
-                    )
-                    Text(text = "Connect to Todoist")
-                    Spacer(modifier = Modifier.weight(1f))
-                    FilledTonalButton(
-                        onClick = {
-                            onConnect()
-                        },
-                        contentPadding = PaddingValues(3.dp),
-                        modifier = Modifier
-                            .animateContentSize()
-                            .height(30.dp),
-                        enabled = !todoState.isAuthenticating
+            if (!todoState.isAnyTodoAuthenticated) {
+                todoProvider.forEach {
+                    Row(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        if (todoState.isAuthenticating) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(15.dp),
-                                strokeWidth = 2.dp
-                            )
+                        Image(
+                            painter = painterResource(it.providerLogo),
+                            null,
+                            modifier = Modifier
+                                .padding(end = 10.dp)
+                                .size(24.dp)
+                        )
+                        Text(text = "Connect to ${it.providerName}")
+                        Spacer(modifier = Modifier.weight(1f))
+                        FilledTonalButton(
+                            onClick = {
+                                onConnect(it.providerName)
+                            },
+                            contentPadding = PaddingValues(3.dp),
+                            modifier = Modifier
+                                .animateContentSize()
+                                .height(30.dp),
+                            enabled = todoState.todoProviderState[it.providerName]?.isAuthenticating == false
+                        ) {
+                            if (todoState.todoProviderState[it.providerName]?.isAuthenticating == true) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(15.dp),
+                                    strokeWidth = 2.dp
+                                )
+                            }
+                            if (todoState.todoProviderState[it.providerName]?.isAuthenticating == true) {
+                                Spacer(Modifier.padding(end = 5.dp))
+                            }
+                            Text("Connect", style = MaterialTheme.typography.labelSmall)
                         }
-                        if (todoState.isAuthenticating) {
-                            Spacer(Modifier.padding(end = 5.dp))
-                        }
-                        Text("Connect", style = MaterialTheme.typography.labelSmall)
+
                     }
 
                 }
+
                 return@ContentElevatedCard
             }
             if (todoState.todoData.isNullOrEmpty().not()) {

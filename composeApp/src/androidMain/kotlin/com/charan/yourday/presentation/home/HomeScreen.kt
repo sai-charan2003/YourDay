@@ -248,7 +248,7 @@ fun HomeScreen(
                     TodoCard(
                         todoState = homeState.todoState,
                         onConnect = {
-                            component.onEvent(HomeEvent.ConnectTodoist)
+                            component.onEvent(HomeEvent.ConnectTodoist(it))
                         },
                         onTodoOpen = { link ->
                             component.onEvent(HomeEvent.OnOpenLink(link))

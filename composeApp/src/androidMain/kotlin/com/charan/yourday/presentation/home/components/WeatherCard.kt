@@ -37,7 +37,7 @@ fun WeatherCard(
     ContentElevatedCard(
         title = "Today's Weather",
         isLoading = weatherState?.isLoading == true,
-        hasError = weatherState?.error,
+        hasError = weatherState?.error.isNullOrEmpty().not(),
         hasContent = weatherState?.weatherData != null,
         content = {
 

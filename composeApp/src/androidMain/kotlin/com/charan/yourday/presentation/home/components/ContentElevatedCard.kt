@@ -29,7 +29,7 @@ fun ContentElevatedCard(
     content: @Composable ColumnScope.() -> Unit,
     title : String? = null,
     isLoading : Boolean = false,
-    hasError : String? = null,
+    hasError : Boolean? = null,
     hasContent : Boolean = true
     ) {
     ElevatedCard(
@@ -64,7 +64,7 @@ fun ContentElevatedCard(
                         )
                     }
                     AnimatedVisibility(
-                        visible = hasError != null
+                        visible = hasError == true
                     ) {
                         Icon(
                             imageVector = Icons.Default.Warning,

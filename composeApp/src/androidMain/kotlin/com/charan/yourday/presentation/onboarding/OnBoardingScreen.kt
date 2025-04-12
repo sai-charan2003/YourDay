@@ -30,17 +30,21 @@ import androidx.compose.ui.unit.dp
 import dev.icerock.moko.resources.compose.painterResource
 import kotlinx.coroutines.launch
 import com.charan.yourday.MR
+import com.charan.yourday.data.model.todoProvider
 import com.charan.yourday.home.HomeEvent
 import com.charan.yourday.home.HomeScreenComponent
 import com.charan.yourday.home.HomeState
 import com.charan.yourday.home.HomeViewEffect
+import com.charan.yourday.home.TodoProviderState
 import com.charan.yourday.onBoarding.OnBoardingEvent
 import com.charan.yourday.onBoarding.OnBoardingScreenComponent
+import com.charan.yourday.utils.TodoProvidersEnums
 import com.example.compose.AppTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
+import dev.icerock.moko.resources.ImageResource
 import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalPermissionsApi::class)
@@ -119,8 +123,8 @@ fun OnBoardingScreen(
                                     locationPermissionState.status.shouldShowRationale))
                             },
                             homeState = state,
-                            onTodoistConnect = {
-                                component.onEvent(HomeEvent.ConnectTodoist)
+                            onTodoConnect = {
+                                component.onEvent(HomeEvent.ConnectTodoist(it))
                             },
                             locationPermissionStatus = locationPermissionState.status,
                             calendarPermissionStatus = calendarPermissionState.status,
@@ -231,7 +235,7 @@ fun WelcomeScreen(onClick: () -> Unit) {
 fun PermissionsScreen(
     onLocationAccess: () -> Unit,
     onCalendarAccess: () -> Unit,
-    onTodoistConnect: () -> Unit,
+    onTodoConnect: (todoProvider : String ) -> Unit,
     homeState: HomeState,
     locationPermissionStatus: PermissionStatus,
     calendarPermissionStatus: PermissionStatus,
@@ -319,9 +323,12 @@ fun PermissionsScreen(
                 )
             ) {
                 TodoFeatureSection(
-                    onTodoistConnect = onTodoistConnect,
-                    isTodoConnected = homeState.todoState.isTodoAuthenticated
+                    onTodoistConnect = {onTodoConnect(it)},
+                    todoProviderState = homeState.todoState.todoProviderState
+
                 )
+
+
             }
 
             Spacer(Modifier.height(24.dp))
@@ -429,15 +436,15 @@ fun CalendarFeatureSection(
 
 @Composable
 fun TodoFeatureSection(
-    onTodoistConnect: () -> Unit,
-    isTodoConnected: Boolean
+    onTodoistConnect: (todoProvider : String) -> Unit,
+    todoProviderState : Map<String, TodoProviderState>
 ) {
     FeatureSection(
         icon = Icons.Filled.DoneAll,
         title = "Manage Your Tasks Effortlessly",
         description = "Integrate with your favorite to-do apps and see all your daily tasks in one place."
     ) {
-        if (isTodoConnected) {
+        todoProvider.forEach {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
@@ -445,44 +452,30 @@ fun TodoFeatureSection(
                     .padding(vertical = 8.dp)
             ) {
                 Image(
-                    painter = painterResource(MR.images.Todoist),
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    "Connected to Todoist",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Spacer(Modifier.weight(1f))
-                Icon(
-                    Icons.Default.CheckCircle,
-                    contentDescription = null,
-                    tint = Color.Green,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-        } else {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp)
-            ) {
-                Image(
-                    painter = painterResource(MR.images.Todoist),
+                    painter = painterResource(it.providerLogo),
                     contentDescription = null,
                     modifier = Modifier.size(24.dp)
                 )
                 Spacer(Modifier.width(10.dp))
-                Text("Connect to Todoist")
+                Text("Connect to ${it.providerName}")
                 Spacer(Modifier.weight(1f))
-                TextButton(
-                    onClick = onTodoistConnect
-                ) {
-                    Text("Connect")
+                if(todoProviderState[it.providerName]?.isAuthenticated == true){
+                    Icon(
+                        Icons.Default.CheckCircle,
+                        contentDescription = null,
+                        tint = Color.Green,
+                        modifier = Modifier.size(24.dp)
+                    )
+
+                } else {
+                    TextButton(
+                        onClick = { onTodoistConnect(it.providerName) }
+                    ) {
+                        Text("Connect")
+                    }
                 }
             }
+
         }
     }
 }

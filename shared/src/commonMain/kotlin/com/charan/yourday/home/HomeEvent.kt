@@ -3,7 +3,7 @@ package com.charan.yourday.home
 sealed interface HomeEvent {
     data class RequestLocationPermission(val showRationale: Boolean) : HomeEvent
     data class RequestCalendarPermission(val showRationale: Boolean) : HomeEvent
-    object ConnectTodoist : HomeEvent
+    data class ConnectTodoist (val todoProvider : String): HomeEvent
     object FetchWeather : HomeEvent
     object FetchCalendarEvents : HomeEvent
     object FetchTodo : HomeEvent

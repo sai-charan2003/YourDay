@@ -15,6 +15,7 @@ import com.arkivanov.decompose.value.Value
 import com.charan.yourday.home.HomeScreenComponent
 import com.charan.yourday.onBoarding.OnBoardingScreenComponent
 import com.charan.yourday.settings.SettingsScreenComponent
+import com.charan.yourday.utils.TodoProvidersEnums
 import com.charan.yourday.utils.UserPreferencesStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -29,6 +30,7 @@ import org.koin.core.component.get
 class RootComponent(
     var authorizationId: String? = null,
     var errorCode: String? = null,
+    var todoProvider : TodoProvidersEnums? = null,
     componentContext: ComponentContext
 ) : ComponentContext by componentContext, KoinComponent{
     private val userPreferences: UserPreferencesStore = get()
@@ -36,7 +38,7 @@ class RootComponent(
     init {
         CoroutineScope(Dispatchers.Main).launch {
             val shouldShowOnBoarding = userPreferences.shouldShowOnboarding.first()
-            if(shouldShowOnBoarding) navigation.replaceCurrent(Configuration.OnBoardingScreen(authorizationId,errorCode))
+            if(shouldShowOnBoarding) navigation.replaceCurrent(Configuration.OnBoardingScreen(authorizationId,errorCode,todoProvider))
         }
     }
 
@@ -45,7 +47,7 @@ class RootComponent(
         source = navigation,
         serializer = Configuration.serializer(),
         initialConfiguration =
-             Configuration.HomeScreen(authorizationId, errorCode),
+             Configuration.HomeScreen(authorizationId, errorCode,todoProvider),
         handleBackButton = true,
         childFactory = ::createChild,
 
@@ -66,7 +68,8 @@ class RootComponent(
                     errorCode = config.errorCode,
                     onSettingsOpen = {
                         navigation.pushNew(Configuration.SettingsScreen)
-                    }
+                    },
+                    todoProvider = config.todoProvider
                 )
             )
             Configuration.SettingsScreen -> Child.SettingsScreen(
@@ -96,7 +99,8 @@ class RootComponent(
                     errorCode = config.error,
                     onBoardFinish = {
                         finishOnBoard()
-                    }
+                    },
+                    todoProvider = config.todoProvider
 
                 )
             )
@@ -106,7 +110,7 @@ class RootComponent(
 
     private fun finishOnBoard() = coroutineScope.launch {
         userPreferences.setShouldShowOnboarding(false)
-        navigation.replaceAll(Configuration.HomeScreen(authorizationId,errorCode))
+        navigation.replaceAll(Configuration.HomeScreen(authorizationId,errorCode,todoProvider))
     }
 
     sealed class Child {
@@ -118,13 +122,13 @@ class RootComponent(
     @Serializable
     sealed class  Configuration {
         @Serializable
-        data class HomeScreen(val authorizationId : String?,val errorCode : String?) : Configuration()
+        data class HomeScreen(val authorizationId : String?,val errorCode : String?,val todoProvider : TodoProvidersEnums?) : Configuration()
         @Serializable
         object SettingsScreen : Configuration()
         @Serializable
         object LicenseScreen : Configuration()
         @Serializable
-        data class OnBoardingScreen(val authorizationId: String?,val error : String ?) : Configuration()
+        data class OnBoardingScreen(val authorizationId: String?,val error : String ?, val todoProvider : TodoProvidersEnums?) : Configuration()
     }
 
 

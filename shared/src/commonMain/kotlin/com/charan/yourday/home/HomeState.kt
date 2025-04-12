@@ -23,13 +23,10 @@ data class WeatherState(
 )
 
 data class TodoState(
-    val isAuthenticating : Boolean = false,
-    val isLoading : Boolean = true,
+    val isAnyTodoAuthenticated : Boolean = false,
+    val isLoading : Boolean = false,
+    val todoProviderState : Map<String, TodoProviderState> = emptyMap(),
     val todoData : List<TodoData>? = null,
-    val error : String? = null,
-    val isTodoAuthenticated: Boolean = false,
-    val todoToken : String? = null,
-    val lastSycned : String? = null
 )
 
 data class CalenderState(
@@ -38,6 +35,15 @@ data class CalenderState(
     val isCalenderPermissionGranted : Boolean = false,
     val error : String? = null,
     val lastSycned: String? = null
+)
+
+data class TodoProviderState(
+    val isAuthenticating: Boolean = false,
+    val isAuthenticated: Boolean = false,
+    val error : String? = null,
+    val lastSycned : String? = null,
+    val todoToken: String? = null
+
 )
 
 

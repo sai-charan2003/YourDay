@@ -19,6 +19,7 @@ import com.arkivanov.decompose.retainedComponent
 import com.charan.yourday.di.androidModule
 import com.charan.yourday.di.initKoin
 import com.charan.yourday.root.RootComponent
+import com.charan.yourday.utils.TodoProvidersEnums
 
 class MainActivity : ComponentActivity() {
 
@@ -37,12 +38,24 @@ class MainActivity : ComponentActivity() {
                         discardSavedState = authenticationCode != null,
                     ),
                     authorizationId = authenticationCode,
-                    errorCode = error
+                    errorCode = error,
+                    todoProvider = uri?.getTodoProvider()
                 )
             } ?: return
         setContent {
             App(root)
         }
+    }
+
+    private fun Uri.getTodoProvider() : TodoProvidersEnums{
+        val path =  this.path.toString()
+        if(path.contains("todoist")){
+            return TodoProvidersEnums.TODOIST
+        }
+        if(path.contains("tick_tick")){
+            return TodoProvidersEnums.TICK_TICK
+        }
+        return TodoProvidersEnums.UNKNOWN
     }
     private fun Uri.extractTodoistAuthentication(): String? {
         val code = this.getQueryParameter("code")

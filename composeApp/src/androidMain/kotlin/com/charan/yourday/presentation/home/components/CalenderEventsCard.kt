@@ -23,7 +23,7 @@ fun CalendarCard(
     ContentElevatedCard(
         title = "Today's Events",
         isLoading = calenderState.isLoading,
-        hasError = calenderState.error,
+        hasError = calenderState.error.isNullOrEmpty().not(),
         hasContent = calenderState.calenderData != null,
         content = {
             if (!calenderState.isCalenderPermissionGranted) {

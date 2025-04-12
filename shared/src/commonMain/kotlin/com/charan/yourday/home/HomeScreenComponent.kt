@@ -16,9 +16,9 @@ import com.charan.yourday.utils.DateUtils
 import com.charan.yourday.utils.ErrorCodes
 import com.charan.yourday.utils.OpenURL
 import com.charan.yourday.utils.ProcessState
+import com.charan.yourday.utils.TodoProvidersEnums
 import kotlinx.coroutines.flow.MutableSharedFlow
 import com.charan.yourday.utils.UserPreferencesStore
-import com.charan.yourday.utils.WeatherUnits
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -36,6 +36,7 @@ import org.koin.core.component.get
 class HomeScreenComponent(
     val authorizationId: String?,
     private val errorCode: String?,
+    private val todoProvider : TodoProvidersEnums?,
     private val onSettingsOpen: () -> Unit = {},
     private val onBoardFinish: () -> Unit = {},
     componentContext: ComponentContext
@@ -61,9 +62,29 @@ class HomeScreenComponent(
 
     init {
         coroutineScope.launch {
-            authorizationId?.let { getTodoistAuthToken(it) }
-            errorCode?.let { showToastEvent("Unable to authenticate") }
+            if(todoProvider !=null){
+                authenticateTodoProvider()
+            }
             checkTokenAndFetchTasks()
+        }
+    }
+
+    private fun authenticateTodoProvider(){
+        when(todoProvider){
+            TodoProvidersEnums.TODOIST -> {
+                authorizationId?.let { getTodoistAuthToken(it) }
+                errorCode?.let { showToastEvent("Unable to authenticate") }
+
+            }
+            TodoProvidersEnums.TICK_TICK -> {
+
+            }
+            TodoProvidersEnums.UNKNOWN -> {
+
+            }
+            else -> {
+
+            }
         }
     }
 
@@ -71,7 +92,7 @@ class HomeScreenComponent(
         when (intent) {
             is HomeEvent.RequestLocationPermission -> handleLocationPermission(intent.showRationale)
             is HomeEvent.RequestCalendarPermission -> handleCalendarPermission(intent.showRationale)
-            HomeEvent.ConnectTodoist -> requestTodoistAuthentication()
+            is HomeEvent.ConnectTodoist -> requestAuthentication(intent.todoProvider)
             HomeEvent.FetchWeather -> getLocation()
             HomeEvent.FetchCalendarEvents -> fetchCalendarEvents()
             HomeEvent.DisconnectTodoist -> clearTodoistToken()
@@ -93,19 +114,32 @@ class HomeScreenComponent(
 
     }
 
+    private fun requestAuthentication(provider : String){
+        when(provider){
+            TodoProvidersEnums.TODOIST.name -> {
+                requestTodoistAuthentication()
+            }
+
+        }
+    }
+
 
 
     private fun getLocation() = coroutineScope.launch {
         updateWeatherState(isLoading = true)
-        val location = locationServiceRepo.getCurrentLocation()
-        if(location != null){
-            fetchWeatherData(location.latitude!!, location.longitude!!)
+        if(permissionManager.isPermissionGranted(Permissions.LOCATION)) {
+            val location = locationServiceRepo.getCurrentLocation()
+            if (location != null) {
+                fetchWeatherData(location.latitude!!, location.longitude!!)
+            } else {
+                showToastEvent("Unable to fetch the location")
+                updateWeatherState(
+                    isLoading = false,
+                    error = "Unable to fetch the location"
+                )
+            }
         } else {
-            showToastEvent("Unable to fetch the location")
-            updateWeatherState(
-                isLoading = false,
-                error = "Unable to fetch the location"
-            )
+            updateWeatherState(isLoading = false)
         }
     }
 
@@ -176,7 +210,7 @@ class HomeScreenComponent(
 
 
     private fun requestTodoistAuthentication() = coroutineScope.launch {
-        updateTodoState(isAuthenticating = true)
+        updateTodoState(isAuthenticating = true,todoProvider = TodoProvidersEnums.TODOIST)
         todoistRepo.requestAuthorization()
     }
 
@@ -184,7 +218,7 @@ class HomeScreenComponent(
         todoistRepo.getAccessToken(authorizationId).collectLatest { processState ->
             when (processState) {
                 is ProcessState.Error -> handleTodoistAuthError(processState.message)
-                ProcessState.Loading -> updateTodoState(isLoading = true)
+                ProcessState.Loading -> updateTodoState(isLoading = true,todoProvider = TodoProvidersEnums.TODOIST)
                 ProcessState.NotDetermined -> { /* No action needed */ }
                 is ProcessState.Success -> handleTodoistAuthSuccess(processState.data)
             }
@@ -193,12 +227,12 @@ class HomeScreenComponent(
 
     private fun handleTodoistAuthError(message: String) {
         if (message == ErrorCodes.UNAUTHORIZED.name) clearTodoistToken()
-        updateTodoState(isTodoAuthenticated = false)
+        updateTodoState(isTodoAuthenticated = false,todoProvider = TodoProvidersEnums.TODOIST)
     }
 
     private fun handleTodoistAuthSuccess(data: TodoistTokenDTO) {
         data.access_token?.let { token ->
-            updateTodoState(isTodoAuthenticated = true, isAuthenticating = false)
+            updateTodoState(isTodoAuthenticated = true, isAuthenticating = false,todoProvider = TodoProvidersEnums.TODOIST)
             saveTodoistToken(token)
             fetchTodoistTasks(token)
         }
@@ -212,9 +246,9 @@ class HomeScreenComponent(
         todoistRepo.getTodayTasks(token).collectLatest { processState ->
             when (processState) {
                 is ProcessState.Error -> handleTodoistTasksError(processState.message)
-                ProcessState.Loading -> updateTodoState(isLoading = true)
+                ProcessState.Loading -> updateTodoState(isLoading = true,todoProvider = TodoProvidersEnums.TODOIST)
                 ProcessState.NotDetermined -> { /* No action needed */ }
-                is ProcessState.Success -> updateTodoState(todoData = processState.data, lastSycned = DateUtils.getCurrentTimeInMillis().toString(), isTodoAuthenticated = true)
+                is ProcessState.Success -> updateTodoState(todoData = processState.data, lastSycned = DateUtils.getCurrentTimeInMillis().toString(), isTodoAuthenticated = true,todoProvider = TodoProvidersEnums.TODOIST)
             }
         }
     }
@@ -226,12 +260,13 @@ class HomeScreenComponent(
             updateTodoState(
                 isTodoAuthenticated = false,
                 isAuthenticating = false,
-                isLoading = false
+                isLoading = false,
+                todoProvider = TodoProvidersEnums.TODOIST
             )
         } else {
             updateTodoState(
                 isLoading =  false,
-                error = message
+                error = message,todoProvider = TodoProvidersEnums.TODOIST
             )
         }
 
@@ -240,11 +275,11 @@ class HomeScreenComponent(
     private fun checkTokenAndFetchTasks() = coroutineScope.launch {
         userPreferences.todoistAccessToken.collectLatest { token ->
             if(token == null){
-                updateTodoState(isLoading = false, isTodoAuthenticated = false)
+                updateTodoState(isLoading = false, isTodoAuthenticated = false,todoProvider = TodoProvidersEnums.TODOIST)
                 return@collectLatest
             }
             token?.let {
-                updateTodoState(isTodoAuthenticated = true)
+                updateTodoState(isTodoAuthenticated = true,todoProvider = TodoProvidersEnums.TODOIST)
                 fetchTodoistTasks(it)
 
             }
@@ -253,7 +288,7 @@ class HomeScreenComponent(
 
     private fun clearTodoistToken() = coroutineScope.launch {
         userPreferences.deleteTodoistToken()
-        updateTodoState(isTodoAuthenticated = false)
+        updateTodoState(isTodoAuthenticated = false, todoProvider = TodoProvidersEnums.TODOIST)
     }
 
     private fun showToastEvent(e : String) = coroutineScope.launch {
@@ -283,24 +318,35 @@ class HomeScreenComponent(
         isAuthenticating: Boolean = false,
         isTodoAuthenticated: Boolean? = null,
         todoData: List<TodoData>? = null,
-        lastSycned : String? = null,
-        error: String? = null
+        lastSycned: String? = null,
+        error: String? = null,
+        todoProvider: TodoProvidersEnums
     ) {
+        _state.update { currentState ->
+            val existingProviderState = currentState.todoState.todoProviderState[todoProvider.name] ?: TodoProviderState()
 
-        _state.update {
-            print(it.todoState.isTodoAuthenticated)
-            it.copy(
-                todoState = it.todoState.copy(
+            val updatedProviderState = existingProviderState.copy(
+                isAuthenticating = isAuthenticating,
+                isAuthenticated = isTodoAuthenticated ?: existingProviderState.isAuthenticated,
+                lastSycned = lastSycned ?: existingProviderState.lastSycned,
+                error = error
+            )
+
+            val updatedMap = currentState.todoState.todoProviderState.toMutableMap().apply {
+                put(todoProvider.name, updatedProviderState)
+            }
+
+            currentState.copy(
+                todoState = currentState.todoState.copy(
+                    todoProviderState = updatedMap,
                     isLoading = isLoading,
-                    isAuthenticating = isAuthenticating,
-                    isTodoAuthenticated = isTodoAuthenticated ?: it.todoState.isTodoAuthenticated,
-                    todoData = todoData ?: it.todoState.todoData,
-                    lastSycned = lastSycned,
-                    error = error
-                ),
+                    isAnyTodoAuthenticated = isTodoAuthenticated == true,
+                    todoData = todoData
+                )
             )
         }
     }
+
 
 
 }
