@@ -96,16 +96,18 @@ class HomeScreenComponent(
 
 
     private fun getLocation() = coroutineScope.launch {
-        updateWeatherState(isLoading = true)
-        val location = locationServiceRepo.getCurrentLocation()
-        if(location != null){
-            fetchWeatherData(location.latitude!!, location.longitude!!)
-        } else {
-            showToastEvent("Unable to fetch the location")
-            updateWeatherState(
-                isLoading = false,
-                error = "Unable to fetch the location"
-            )
+        if(permissionManager.isPermissionGranted(Permissions.LOCATION)) {
+            updateWeatherState(isLoading = true)
+            val location = locationServiceRepo.getCurrentLocation()
+            if (location != null) {
+                fetchWeatherData(location.latitude!!, location.longitude!!)
+            } else {
+                showToastEvent("Unable to fetch the location")
+                updateWeatherState(
+                    isLoading = false,
+                    error = "Unable to fetch the location"
+                )
+            }
         }
     }
 
