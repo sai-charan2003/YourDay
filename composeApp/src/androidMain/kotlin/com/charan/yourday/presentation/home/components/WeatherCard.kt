@@ -40,7 +40,6 @@ fun WeatherCard(
         hasError = weatherState?.error,
         hasContent = weatherState?.weatherData != null,
         content = {
-
             if (weatherState?.isLocationPermissionGranted == false) {
                 GrantPermissionContent("Please Enable location permission to fetch weather data") {
                     onLocationPermissionAccess()

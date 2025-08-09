@@ -9,6 +9,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -25,6 +26,7 @@ import com.charan.yourday.data.model.WeatherData
 import com.charan.yourday.utils.DateUtils
 import dev.icerock.moko.resources.compose.painterResource
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun WeatherForecastItem(forecastData: List<WeatherData>) {
     LazyRow {
@@ -39,7 +41,7 @@ fun WeatherForecastItem(forecastData: List<WeatherData>) {
                     item.time?.let {
                         Text(
                             text = it,
-                            style = MaterialTheme.typography.bodySmall
+                            style = MaterialTheme.typography.bodySmallEmphasized
                         )
                     }
                     Spacer(modifier = Modifier.height(10.dp))
@@ -54,14 +56,14 @@ fun WeatherForecastItem(forecastData: List<WeatherData>) {
                     item.currentTemperature?.let {
                         Text(
                             text = it,
-                            style = MaterialTheme.typography.bodyMedium
+                            style = MaterialTheme.typography.bodyMediumEmphasized
                         )
                     }
                     Spacer(modifier = Modifier.height(2.dp))
                     item.currentCondition?.let {
                         Text(
                             text = it,
-                            style = MaterialTheme.typography.bodySmall
+                            style = MaterialTheme.typography.bodySmallEmphasized
                         )
                     }
                 }

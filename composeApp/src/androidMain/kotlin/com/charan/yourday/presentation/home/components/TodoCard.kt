@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FilledTonalButton
@@ -64,7 +65,8 @@ fun TodoCard(
                         modifier = Modifier
                             .animateContentSize()
                             .height(30.dp),
-                        enabled = !todoState.isAuthenticating
+                        enabled = !todoState.isAuthenticating,
+                        shape = ButtonDefaults.filledTonalShape
                     ) {
                         if (todoState.isAuthenticating) {
                             CircularProgressIndicator(

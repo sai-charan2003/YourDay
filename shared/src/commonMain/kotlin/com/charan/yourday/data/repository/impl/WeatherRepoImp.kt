@@ -19,6 +19,7 @@ class WeatherRepoImp(private val apiService: ApiService) : WeatherRepo {
         emit(ProcessState.Loading)
         try {
             val response = apiService.getCurrentWeather(lat, long)
+            print(response  )
             when(response.status){
                 HttpStatusCode.OK -> {
                     emit(ProcessState.Success(response.body<WeatherDTO>()))
@@ -58,6 +59,7 @@ class WeatherRepoImp(private val apiService: ApiService) : WeatherRepo {
 
             }
         } catch (e :Exception){
+            print("error for weather $e")
             emit(ProcessState.Error(e.message ?: "Unknown Error"))
         }
     }

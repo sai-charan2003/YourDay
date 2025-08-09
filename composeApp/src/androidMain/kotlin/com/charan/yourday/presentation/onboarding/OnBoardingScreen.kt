@@ -95,8 +95,15 @@ fun OnBoardingScreen(
     Scaffold { padding ->
         Column(
             modifier = Modifier
-                .padding(padding)
-                .fillMaxSize(),
+                .then(
+                    if(pagerState.currentPage == 0) {
+                        Modifier
+                    } else {
+                        Modifier.padding(padding).fillMaxSize()
+                    }
+
+                )
+                ,
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -135,9 +142,11 @@ fun OnBoardingScreen(
 
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun WelcomeScreen(onClick: () -> Unit) {
     Box(modifier = Modifier
+
         .fillMaxSize()
         .background(
             brush = Brush.linearGradient(
@@ -178,7 +187,7 @@ fun WelcomeScreen(onClick: () -> Unit) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = "Welcome to Your Day",
-                        style = MaterialTheme.typography.headlineMedium.copy(
+                        style = MaterialTheme.typography.headlineMediumEmphasized.copy(
                             fontWeight = FontWeight.Bold,
                             color = Color.White
                         )
@@ -188,7 +197,7 @@ fun WelcomeScreen(onClick: () -> Unit) {
 
                     Text(
                         text = "Your all-in-one companion for planning your day with weather updates, calendar events, and to-do lists.",
-                        style = MaterialTheme.typography.bodyMedium.copy(
+                        style = MaterialTheme.typography.bodyMediumEmphasized.copy(
                             textAlign = TextAlign.Center,
                             color = Color.White
                         ),
@@ -207,7 +216,7 @@ fun WelcomeScreen(onClick: () -> Unit) {
         ) {
             FilledTonalButton(
                 onClick = {
-                    onClick
+                    onClick()
                 },
                 modifier = Modifier
                     .padding(20.dp)
@@ -217,6 +226,7 @@ fun WelcomeScreen(onClick: () -> Unit) {
                     contentColor = Color(0xFF72201D),
                     disabledContainerColor = Color(0xFFE0B89F)
                 ),
+                shapes = ButtonDefaults.shapes()
             ) {
                 Text("Let's go")
                 Spacer(modifier = Modifier.width(8.dp))
@@ -226,7 +236,7 @@ fun WelcomeScreen(onClick: () -> Unit) {
     }
 }
 
-@OptIn(ExperimentalPermissionsApi::class)
+@OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun PermissionsScreen(
     onLocationAccess: () -> Unit,
@@ -259,7 +269,7 @@ fun PermissionsScreen(
             ) {
                 Text(
                     text = "Get the Most Out of Your Day!",
-                    style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                    style = MaterialTheme.typography.headlineMediumEmphasized.copy(fontWeight = FontWeight.Bold),
                     textAlign = TextAlign.Center
                 )
             }
@@ -330,14 +340,15 @@ fun PermissionsScreen(
             onClick = {
                 onNextClick()
             },
-            modifier = Modifier.align(Alignment.BottomEnd).padding(10.dp)
+            modifier = Modifier.align(Alignment.BottomEnd).padding(10.dp),
+            shapes = ButtonDefaults.shapes()
         ) {
             Text("Next")
         }
     }
 }
 
-@OptIn(ExperimentalPermissionsApi::class)
+@OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun WeatherFeatureSection(
     onLocationAccess: () -> Unit,
@@ -345,7 +356,7 @@ fun WeatherFeatureSection(
     isPermissionGranted: Boolean
 ) {
     FeatureSection(
-        icon = Icons.Filled.Cloud,
+        icon = Icons.Filled.WbSunny,
         title = "Stay Ahead of the Weather",
         description = "Plan your day with real-time weather updates, so you're always prepared, rain or shine!"
     ) {
@@ -366,14 +377,15 @@ fun WeatherFeatureSection(
                     Spacer(Modifier.width(8.dp))
                     Text(
                         "Location access granted",
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyMediumEmphasized
                     )
                 }
             }
             else -> {
                 OutlinedButton(
                     onClick = onLocationAccess,
-                    modifier = Modifier.animateContentSize()
+                    modifier = Modifier.animateContentSize(),
+                    shapes = ButtonDefaults.shapes()
                 ) {
                     Text("Enable Location Access")
                 }
@@ -382,7 +394,7 @@ fun WeatherFeatureSection(
     }
 }
 
-@OptIn(ExperimentalPermissionsApi::class)
+@OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun CalendarFeatureSection(
     onCalendarAccess: () -> Unit,
@@ -411,14 +423,15 @@ fun CalendarFeatureSection(
                     Spacer(Modifier.width(8.dp))
                     Text(
                         "Calendar access granted",
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyMediumEmphasized
                     )
                 }
             }
             else -> {
                 OutlinedButton(
                     onClick = onCalendarAccess,
-                    modifier = Modifier.animateContentSize()
+                    modifier = Modifier.animateContentSize(),
+                    shapes = ButtonDefaults.shapes()
                 ) {
                     Text("Grant Calendar Access")
                 }
@@ -427,6 +440,7 @@ fun CalendarFeatureSection(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun TodoFeatureSection(
     onTodoistConnect: () -> Unit,
@@ -452,7 +466,7 @@ fun TodoFeatureSection(
                 Spacer(Modifier.width(8.dp))
                 Text(
                     "Connected to Todoist",
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMediumEmphasized
                 )
                 Spacer(Modifier.weight(1f))
                 Icon(
@@ -478,7 +492,8 @@ fun TodoFeatureSection(
                 Text("Connect to Todoist")
                 Spacer(Modifier.weight(1f))
                 TextButton(
-                    onClick = onTodoistConnect
+                    onClick = onTodoistConnect,
+                    shapes = ButtonDefaults.shapes()
                 ) {
                     Text("Connect")
                 }
@@ -487,6 +502,7 @@ fun TodoFeatureSection(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun FeatureSection(
     icon: ImageVector,
@@ -508,13 +524,13 @@ fun FeatureSection(
             Spacer(Modifier.width(10.dp))
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                style = MaterialTheme.typography.titleMediumEmphasized.copy(fontWeight = FontWeight.Bold)
             )
         }
         Spacer(Modifier.height(8.dp))
         Text(
             text = description,
-            style = MaterialTheme.typography.bodyMedium
+            style = MaterialTheme.typography.bodyMediumEmphasized
         )
         Spacer(Modifier.height(8.dp))
         action()

@@ -6,8 +6,6 @@ import dev.icerock.moko.resources.ImageResource
 
 actual object WeatherIconName {
     actual fun weatherIcon(code: String,isDay : Boolean): ImageResource? {
-        Log.d("TAG", "weatherIcon: $isDay")
-        Log.d("TAG", "weatherIcon: $code")
         val iconName = weatherIconsMap.entries.find { it.key.toString() == code }?.value
         return if(isDay) iconName?.first else iconName?.second
     }

@@ -27,11 +27,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Scaffold
@@ -50,6 +54,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.charan.yourday.home.HomeEvent
 import com.charan.yourday.presentation.home.components.CalendarCard
@@ -58,6 +63,7 @@ import com.charan.yourday.presentation.home.components.TopBarTitleContent
 import com.charan.yourday.presentation.home.components.WeatherCard
 import com.charan.yourday.home.HomeScreenComponent
 import com.charan.yourday.home.HomeViewEffect
+import com.charan.yourday.utils.DateUtils
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberPermissionState
@@ -65,7 +71,7 @@ import com.google.accompanist.permissions.shouldShowRationale
 import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class,
-    ExperimentalMaterialApi::class
+    ExperimentalMaterialApi::class, ExperimentalMaterial3ExpressiveApi::class
 )
 @Composable
 fun HomeScreen(
@@ -137,16 +143,21 @@ fun HomeScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            LargeFlexibleTopAppBar(
                 title = {
+                   Text(DateUtils.getGreeting())
 
+                },
+                subtitle = {
+                    Text(DateUtils.getDateInDDMMYYYY())
                 },
                 scrollBehavior = scroll,
                 actions = {
                     IconButton(
                         onClick = {
                             showDropDown = true
-                        }
+                        },
+                        shapes = IconButtonDefaults.shapes(),
 
                     ) {
                         Icon(Icons.Default.MoreVert, "More")
@@ -203,22 +214,17 @@ fun HomeScreen(
                         contentAlignment = Alignment.Center) {
                         Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
                             val refreshText = if(isThresholdReached) "Release to refresh" else "Pull to refresh"
-                            CircularProgressIndicator(
+                            CircularWavyProgressIndicator(
                                 progress = {
                                     pullToRefreshState.progress
                                 },
-                                modifier = Modifier.size(20.dp),
-                                color = MaterialTheme.colorScheme.onSurface,
-                                strokeWidth = 2.dp
+                                modifier = Modifier.size(25.dp),
                             )
                             Spacer(Modifier.padding(end = 8.dp))
                             Text(refreshText,modifier = Modifier.animateContentSize())
                         }
                     }
                     }
-
-
-                    TopBarTitleContent(Modifier.padding(bottom = 20.dp))
                     WeatherCard(
                         weatherState = homeState.weatherState,
                         onLocationPermissionAccess = {

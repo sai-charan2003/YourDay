@@ -14,6 +14,7 @@ import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
 import io.ktor.client.utils.EmptyContent.headers
 import io.ktor.http.Parameters
 import io.ktor.http.append

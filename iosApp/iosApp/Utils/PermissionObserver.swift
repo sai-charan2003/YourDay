@@ -59,10 +59,13 @@ class PermissionObserver: NSObject, ObservableObject, CLLocationManagerDelegate{
         print(status.rawValue)
         switch status {
         case .authorized, .fullAccess:
+            print("Calender Permission Is given")
             calendarPermission = .granted
         case .denied, .restricted:
+            print("Calender Permission Is not given")
             calendarPermission = .notGranted
         case .notDetermined:
+            print("Calener Permission Is not determined")
             calendarPermission = .notDetermined
         default:
             print("Unknown calendar permission status")

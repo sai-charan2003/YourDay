@@ -35,7 +35,7 @@ kotlin {
             implementation(compose.foundation)
             implementation(compose.material)
             implementation(libs.androidx.material)
-            implementation(compose.material3)
+//            implementation(compose.material3)
             implementation(compose.materialIconsExtended)
             implementation(compose.ui)
             implementation(compose.components.resources)
@@ -60,6 +60,7 @@ kotlin {
             implementation (libs.aboutlibraries.core)
             implementation(libs.aboutlibraries.compose.m3)
             implementation (libs.androidx.graphics.shapes)
+            implementation("org.jetbrains.compose.material3:material3:1.9.0-alpha04")
 
 
         }
@@ -108,6 +109,7 @@ android {
         debug {
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
+            resValue("string","app_name","YourDay-Debug")
 
         }
 
@@ -119,6 +121,14 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+        }
+        applicationVariants.all {
+            val variant = this
+            variant.outputs.map { it as com.android.build.gradle.internal.api.BaseVariantOutputImpl }
+                .forEach { output ->
+                    val outputFileName = "YourDay-${variant.buildType.name}-${variant.versionName}.apk"
+                    output.outputFileName = outputFileName
+                }
         }
     }
 }

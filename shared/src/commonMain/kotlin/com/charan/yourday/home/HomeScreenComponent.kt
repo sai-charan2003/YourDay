@@ -60,6 +60,7 @@ class HomeScreenComponent(
     private val userPreferences: UserPreferencesStore = get()
 
     init {
+        print("code :$authorizationId")
         coroutineScope.launch {
             authorizationId?.let { getTodoistAuthToken(it) }
             errorCode?.let { showToastEvent("Unable to authenticate") }
@@ -100,6 +101,7 @@ class HomeScreenComponent(
             updateWeatherState(isLoading = true)
             val location = locationServiceRepo.getCurrentLocation()
             if (location != null) {
+                println("Checking the location : $location")
                 fetchWeatherData(location.latitude!!, location.longitude!!)
             } else {
                 showToastEvent("Unable to fetch the location")
@@ -117,6 +119,7 @@ class HomeScreenComponent(
 
     private fun fetchWeatherData(lat: Double, long: Double) = coroutineScope.launch {
         weatherRepo.getCurrentForecast(lat, long).collectLatest { processState ->
+
             when (processState) {
                 is ProcessState.Error -> {
                     updateWeatherState(error = processState.message)
@@ -162,8 +165,7 @@ class HomeScreenComponent(
 
 
     private fun fetchCalendarEvents() {
-        println("Fetching calender events....")
-        println(isPermissionEnabled(Permissions.CALENDER))
+        print(isPermissionEnabled(Permissions.CALENDER))
         if(isPermissionEnabled(Permissions.CALENDER)) {
             _state.update {
                 it.copy(

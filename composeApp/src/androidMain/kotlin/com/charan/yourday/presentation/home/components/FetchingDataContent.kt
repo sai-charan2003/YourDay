@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import com.charan.yourday.MR
 import dev.icerock.moko.resources.compose.painterResource
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun FetchingDataContent() {
     Row(
@@ -26,7 +28,7 @@ fun FetchingDataContent() {
     ) {
         Text(
             text = "Fetching..." ,
-            style = MaterialTheme.typography.titleMedium
+            style = MaterialTheme.typography.titleMediumEmphasized
         )
 
             CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
@@ -35,5 +37,5 @@ fun FetchingDataContent() {
 
 
 
-        Text("Loading weather data...", style = MaterialTheme.typography.bodyMedium)
+        Text("Loading weather data...", style = MaterialTheme.typography.bodyMediumEmphasized)
     }

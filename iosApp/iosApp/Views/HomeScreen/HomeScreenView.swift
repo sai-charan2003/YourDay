@@ -119,6 +119,7 @@ struct HomeScreenView: View {
                 print("Not Granted")
             }
         }
+        
     }
     
     
@@ -131,7 +132,6 @@ struct HomeScreenView: View {
                 case is Shared.HomeViewEffectRequestLocationPermission:
                     getLocationPermission()
                 case let toastEffect as Shared.HomeViewEffectShowToast:
-                    // Handle toast if needed
                     break
                 default:
                     break

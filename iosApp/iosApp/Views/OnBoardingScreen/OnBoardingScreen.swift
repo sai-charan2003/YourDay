@@ -10,6 +10,8 @@ import SwiftUI
 import Shared
 import Combine
 import EventKit
+import PermissionsKit
+import CalendarPermission
 
 struct OnBoardingScreen: View {
     let component: Shared.HomeScreenComponent
@@ -73,9 +75,12 @@ struct OnBoardingScreen: View {
                 print("Not Granted")
             }
         }
+        
         .tabViewStyle(.page)
+        
     }
-    
+
+
     private func getCalendarPermission() {
         let eventStore = EKEventStore()
         let status = EKEventStore.authorizationStatus(for: .event)
@@ -88,6 +93,7 @@ struct OnBoardingScreen: View {
                 }
                 DispatchQueue.main.async {
                     if granted {
+                        print("Calender Permission Is given from onboarding screen")
                         component.onEvent(intent: HomeEventFetchCalendarEvents.shared)
                     } else {
                         print("Calendar access denied")
@@ -95,6 +101,7 @@ struct OnBoardingScreen: View {
                 }
             }
         case .authorized:
+            print("Calender permission is given")
             component.onEvent(intent: HomeEventFetchCalendarEvents.shared)
         case .denied, .restricted:
             component.onEvent(intent: HomeEventRequestCalendarPermission(showRationale: true))
@@ -102,6 +109,9 @@ struct OnBoardingScreen: View {
             print("Unknown authorization status")
         }
     }
+
+
+
     
     private func getLocationPermission() {
         let status = CLLocationManager.authorizationStatus()
@@ -187,12 +197,6 @@ struct WelcomeScreen: View {
                     Image(systemName: "arrow.right")
                 }
                 .padding()
-                
-                .background(Color(red: 1.0, green: 0.85, blue: 0.78))
-                .foregroundColor(Color(red: 0.45, green: 0.13, blue: 0.11))
-                .clipShape(Capsule())
-                .shadow(radius: 5)
-                .padding(.vertical,10)
             }
             .offset(y: isVisible ? 0 : 30)
             .opacity(isVisible ? 1.0 : 0.0)
@@ -201,13 +205,6 @@ struct WelcomeScreen: View {
 
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity,alignment: .center)
-        .background(
-            LinearGradient(
-                gradient: Gradient(colors: [Color(red: 0.88, green: 0.54, blue: 0.49), Color(red: 0.45, green: 0.13, blue: 0.11)]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-        )
         .onAppear {
             isVisible = true
         }

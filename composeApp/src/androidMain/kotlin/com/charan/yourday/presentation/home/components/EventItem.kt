@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -36,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import com.charan.yourday.data.model.CalenderItems
 import com.charan.yourday.utils.DateUtils
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun EventItem(calenderEvent: CalenderItems) {
     val eventColor = Color(color = calenderEvent.calenderColor?.toLong() ?: 0)
@@ -53,12 +55,12 @@ fun EventItem(calenderEvent: CalenderItems) {
             Column {
                 Text(
                     text = calenderEvent.getEventName(),
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleMediumEmphasized,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = "${calenderEvent.getFormatedStartTime()} - ${calenderEvent.getFormatedEndTime()}",
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodySmallEmphasized,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }

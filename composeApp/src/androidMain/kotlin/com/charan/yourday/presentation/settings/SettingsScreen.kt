@@ -18,9 +18,12 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
@@ -47,7 +50,7 @@ import com.charan.yourday.settings.SettingsScreenComponent
 import com.charan.yourday.utils.WeatherUnits
 import com.charan.yourday.utils.WeatherUnitsEnums
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SettingsScreen(
     component: SettingsScreenComponent
@@ -58,10 +61,10 @@ fun SettingsScreen(
 
     Scaffold(
         topBar = {
-            LargeTopAppBar(
-                title = { Text("Settings", style = MaterialTheme.typography.headlineMedium) },
+            LargeFlexibleTopAppBar(
+                title = { Text("Settings", style = MaterialTheme.typography.headlineMediumEmphasized) },
                 navigationIcon = {
-                    IconButton(onClick = { component.onEvent(SettingsEvents.onBack) }) {
+                    IconButton(onClick = { component.onEvent(SettingsEvents.onBack) }, shapes = IconButtonDefaults.shapes()) {
                         Icon(Icons.AutoMirrored.Default.ArrowBack, contentDescription = "Back")
                     }
                 },
@@ -82,7 +85,7 @@ fun SettingsScreen(
                     label = "Temperature Units",
                     trailingContent = {
 
-                        TextButton(onClick = { dropDown = true }) {
+                        TextButton(onClick = { dropDown = true }, shapes = ButtonDefaults.shapes()) {
                             state.weatherUnits?.let { Text(it) }
                             Icon(Icons.Filled.ArrowDropDown, contentDescription = "Select unit")
                         }
@@ -116,7 +119,8 @@ fun SettingsScreen(
                     label = "Todoist",
                     trailingContent = {
                         TextButton(
-                            onClick = { component.onEvent(SettingsEvents.TodoConnect) }
+                            onClick = { component.onEvent(SettingsEvents.TodoConnect) },
+                            shapes = ButtonDefaults.shapes()
                         ) {
                             val buttonText = if (state.isTodoistConnected == false) "Connect" else "Disconnect"
                             val buttonColor = if (state.isTodoistConnected == false) Color.Green else Color.Red

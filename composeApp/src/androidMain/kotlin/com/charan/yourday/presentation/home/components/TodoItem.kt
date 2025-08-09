@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -44,6 +45,7 @@ import com.mohamedrejeb.richeditor.ui.material3.RichTextEditor
 import dev.icerock.moko.resources.compose.painterResource
 import org.jetbrains.compose.resources.imageResource
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun TodoItem(
         todoItem: TodoData,
@@ -68,7 +70,7 @@ fun TodoItem(
                 ) {
                         RichText(
                                 state = richTextState,
-                                style = MaterialTheme.typography.bodyLarge,
+                                style = MaterialTheme.typography.bodyLargeEmphasized,
                                 modifier = Modifier.padding(bottom = 12.dp)
                                         .weight(1f)
                                         .padding(end = 5.dp)
@@ -107,14 +109,14 @@ fun TodoItem(
 
                                 Text(
                                         text = todoItem.todoProvider ?: "Unknown Provider",
-                                        style = MaterialTheme.typography.bodySmall,
+                                        style = MaterialTheme.typography.bodySmallEmphasized,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                         }
                         Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                         text = todoItem.dueTime?.convertToMMMDYYYYWithTime() ?: todoItem.dueDate?.convertToMMMDYYYY() ?: "",
-                                        style = MaterialTheme.typography.bodySmall,
+                                        style = MaterialTheme.typography.bodySmallEmphasized,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
 

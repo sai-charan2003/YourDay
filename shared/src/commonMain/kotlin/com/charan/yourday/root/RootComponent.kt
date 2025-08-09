@@ -34,6 +34,7 @@ class RootComponent(
     private val userPreferences: UserPreferencesStore = get()
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     init {
+        print(authorizationId)
         CoroutineScope(Dispatchers.Main).launch {
             val shouldShowOnBoarding = userPreferences.shouldShowOnboarding.first()
             if(shouldShowOnBoarding) navigation.replaceCurrent(Configuration.OnBoardingScreen(authorizationId,errorCode))

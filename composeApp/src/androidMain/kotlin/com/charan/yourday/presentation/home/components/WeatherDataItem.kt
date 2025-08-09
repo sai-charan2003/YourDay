@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,6 +18,7 @@ import com.charan.yourday.MR
 import com.charan.yourday.data.model.WeatherData
 import dev.icerock.moko.resources.compose.painterResource
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 
 fun WeatherDataItem(weatherData: WeatherData){
@@ -43,7 +45,7 @@ fun WeatherDataItem(weatherData: WeatherData){
 
     Text(
         weatherData?.currentTemperature ?: "",
-        style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold)
+        style = MaterialTheme.typography.displaySmallEmphasized.copy(fontWeight = FontWeight.Bold)
     )
 
 }
