@@ -20,10 +20,10 @@ import kotlinx.coroutines.flow.flow
 class TodoistImp(private val apiService: ApiService) : TodoistRepo {
     override suspend fun requestAuthorization() {
         OpenURL.openURL("https://"+todoist_base_url + "/oauth/authorize?client_id=${BuildKonfig.TODOIST_CLIENT_ID}&scope=data:read&state=secretstring")
-
     }
 
     override suspend fun getAccessToken(code: String): Flow<ProcessState<TodoistTokenDTO>> = flow{
+        println("Todoist Authorization ID: $code")
         emit(ProcessState.Loading)
         try {
             val response = apiService.getTodoistAccessToken(code)
@@ -45,6 +45,7 @@ class TodoistImp(private val apiService: ApiService) : TodoistRepo {
     }
 
     override suspend fun getTodayTasks(code : String): Flow<ProcessState<List<TodoData>>> =flow{
+        println("Todoist Access Token: $code")
         emit(ProcessState.Loading)
         try {
             val response = apiService.getTodoistTodayTasks(code)

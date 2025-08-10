@@ -60,9 +60,10 @@ class HomeScreenComponent(
     private val userPreferences: UserPreferencesStore = get()
 
     init {
-        print("code :$authorizationId")
         coroutineScope.launch {
-            authorizationId?.let { getTodoistAuthToken(it) }
+            authorizationId?.let {
+                getTodoistAuthToken(it)
+            }
             errorCode?.let { showToastEvent("Unable to authenticate") }
             checkTokenAndFetchTasks()
         }
