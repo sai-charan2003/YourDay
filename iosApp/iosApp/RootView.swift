@@ -23,8 +23,6 @@ struct RootView: View {
             stackValue: StateValue(root.childStack),
             onBack: root.onBackClicked
                 ) { child in
-                    let _ = print("the child is")
-                    let _ = print(child)
                     switch child {
                     case let main as Shared.RootComponent.ChildHomeScreen:
                         HomeScreenView(main.component)

@@ -26,8 +26,20 @@ struct iOSApp: App {
         WindowGroup {
             RootView(componentHolder.component)
                 .onOpenURL { url in
-                    let code = url.absoluteString.split(separator: "code=").last.map(String.init)
-                    let errorCode = url.absoluteString.split(separator: "error=").last.map(String.init)                    
+                    var code: String? = nil
+                    var errorCode: String? = nil
+
+                    if let codeParam = url.absoluteString.components(separatedBy: "code=").last {
+                        code = codeParam.components(separatedBy: ",").first
+                    }
+
+                    if let errorParam = url.absoluteString.components(separatedBy: "error=").last {
+                        errorCode = errorParam.components(separatedBy: ",").first
+                    }
+
+                    print("Code for the Todoist is:", code ?? "nil")
+                    print("Error code:", errorCode ?? "nil")
+
                     self.componentHolder = ComponentHolder { context in
                         RootComponent(
                             authorizationId: code,
@@ -36,8 +48,8 @@ struct iOSApp: App {
                         )
                     }
                 }
-
         }
     }
+
 }
 
