@@ -45,6 +45,7 @@ kotlin {
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.client.encoding)
             api(libs.resources)
+            api(libs.graphics)
             implementation(libs.kotlinx.datetime)
             api(libs.koin.core)
             implementation(libs.koin.compose)
