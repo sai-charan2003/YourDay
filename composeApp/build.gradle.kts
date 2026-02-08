@@ -4,9 +4,7 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidApplication)
-    alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.google.gms.google.services)
@@ -15,31 +13,21 @@ plugins {
 }
 
 kotlin {
-    androidTarget {
-        @OptIn(ExperimentalKotlinGradlePluginApi::class)
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_11)
-        }
-    }
     
     sourceSets {
-        
-        androidMain.dependencies {
-            implementation(compose.preview)
+
+        dependencies {
+            implementation(libs.ui.tooling.preview)
             implementation(libs.androidx.activity.compose)
-
-
-        }
-        commonMain.dependencies {
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.material)
+            implementation(libs.runtime)
+            implementation(libs.foundation)
+            implementation(libs.material)
             implementation(libs.androidx.material)
 //            implementation(compose.material3)
-            implementation(compose.materialIconsExtended)
-            implementation(compose.ui)
-            implementation(compose.components.resources)
-            implementation(compose.components.uiToolingPreview)
+            implementation(libs.material.icons.extended)
+            implementation(libs.ui)
+            implementation(libs.components.resources)
+            implementation(libs.ui.tooling.preview)
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtime.compose)
             implementation(projects.shared)
@@ -60,7 +48,9 @@ kotlin {
             implementation (libs.aboutlibraries.core)
             implementation(libs.aboutlibraries.compose.m3)
             implementation (libs.androidx.graphics.shapes)
-            implementation("org.jetbrains.compose.material3:material3:1.9.0-alpha04")
+            implementation(libs.material3)
+            implementation(libs.firebase.crashlytics)
+            debugImplementation(libs.ui.tooling)
 
 
         }
@@ -94,6 +84,8 @@ android {
     }
     buildFeatures {
         buildConfig = true
+        resValues = true
+        compose = true
     }
 
     signingConfigs {
@@ -109,7 +101,7 @@ android {
         debug {
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
-            resValue("string","app_name","YourDay-Debug")
+            resValue("string", "app_name", "YourDay-Debug")
 
         }
 
@@ -122,21 +114,19 @@ android {
                 "proguard-rules.pro"
             )
         }
-        applicationVariants.all {
-            val variant = this
-            variant.outputs.map { it as com.android.build.gradle.internal.api.BaseVariantOutputImpl }
-                .forEach { output ->
-                    val outputFileName = "YourDay-${variant.buildType.name}-${variant.versionName}.apk"
-                    output.outputFileName = outputFileName
+
+        androidComponents {
+            onVariants { variant ->
+                variant.outputs.forEach { output ->
+                    if (output is com.android.build.api.variant.impl.VariantOutputImpl) {
+                        val name = variant.name
+                        val versionName = android.defaultConfig.versionName ?: "1.0"
+                        output.outputFileName.set("YourDay-$name-$versionName.apk")
+                    }
                 }
+            }
         }
     }
 }
 
-dependencies {
-    implementation(libs.firebase.crashlytics)
-    debugImplementation(compose.uiTooling)
-
-
-}
 
