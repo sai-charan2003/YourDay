@@ -1,12 +1,10 @@
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 import com.codingfeline.buildkonfig.compiler.FieldSpec
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidLibrary)
-    id("dev.icerock.mobile.multiplatform-resources")
+    alias(libs.plugins.androidKMP)
+    alias(libs.plugins.multiplatformResources)
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.buildKonfig)
     alias(libs.plugins.skie)
@@ -15,11 +13,9 @@ plugins {
 
 kotlin {
 
-    androidTarget {
-        @OptIn(ExperimentalKotlinGradlePluginApi::class)
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_11)
-        }
+    androidLibrary {
+        namespace = "com.charan.yourday.shared"
+        compileSdk = libs.versions.android.compileSdk.get().toInt()
     }
     
     listOf(
@@ -47,6 +43,7 @@ kotlin {
             api(libs.resources)
             implementation(libs.kotlinx.datetime)
             api(libs.koin.core)
+            api(libs.graphics)
             implementation(libs.koin.compose)
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.napier)
@@ -73,23 +70,6 @@ kotlin {
             implementation(libs.ktor.client.darwin)
 
         }
-    }
-}
-
-
-android {
-    namespace = "com.charan.yourday.shared"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-    defaultConfig {
-        minSdk = libs.versions.android.minSdk.get().toInt()
-
-    }
-    buildFeatures {
-        buildConfig=true
     }
 }
 multiplatformResources {

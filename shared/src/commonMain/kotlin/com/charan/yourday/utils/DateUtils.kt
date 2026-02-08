@@ -1,9 +1,7 @@
 package com.charan.yourday.utils
 
 
-import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
-import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
@@ -14,10 +12,12 @@ import kotlinx.datetime.format.FormatStringsInDatetimeFormats
 import kotlinx.datetime.format.byUnicodePattern
 import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
+@OptIn(FormatStringsInDatetimeFormats::class, ExperimentalTime::class)
 object DateUtils {
-
-    @OptIn(FormatStringsInDatetimeFormats::class)
     fun getDateInDDMMYYYY(): String {
         val formatPattern = "dd/MM/yyyy"
         val currentDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())

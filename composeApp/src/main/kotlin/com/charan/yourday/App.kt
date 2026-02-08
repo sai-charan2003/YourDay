@@ -33,7 +33,6 @@ import com.charan.yourday.ui.theme.slideAndFade
 import dev.icerock.moko.permissions.PermissionsController
 import dev.icerock.moko.permissions.compose.BindEffect
 import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.KoinContext
 import org.koin.compose.getKoin
 import org.koin.compose.koinInject
@@ -44,7 +43,6 @@ import org.koin.compose.koinInject
     FaultyDecomposeApi::class
 )
 @Composable
-@Preview
 fun App(root: RootComponent) {
     KoinContext  {
         val permissionsController: PermissionsController = koinInject()
