@@ -1,10 +1,7 @@
 package com.charan.yourday.presentation.home.components
 
-import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -22,10 +18,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.charan.yourday.MR
-import com.charan.yourday.home.TodoState
+import com.charan.yourday.presentation.home.TodoState
+import com.charan.yourday.utils.DateUtils.toMMMDYYYYWithTime
 import dev.icerock.moko.resources.compose.painterResource
 
 
@@ -85,9 +81,15 @@ fun TodoCard(
             }
             if (todoState.todoData.isNullOrEmpty().not()) {
                 todoState.todoData!!.forEach {
-                    TodoItem(todoItem = it, onOpenTodo = { link ->
-                        onTodoOpen(link)
-                    })
+                    TodoItem(
+                        taskName = it.taskName,
+                        taskLink = it.taskLink,
+                        todoProvider = it.todoProvider,
+                        todoProviderLogo = it.todoImage ?: MR.images.Todoist,
+                        date = it.date.orEmpty(),
+                        isOverDue = it.isOverDue,
+                        onOpenTodo = onTodoOpen
+                    )
                     HorizontalDivider()
                 }
                 return@ContentElevatedCard

@@ -1,4 +1,4 @@
-package com.charan.yourday.onBoarding
+package com.charan.yourday.presentation.onBoarding
 
 data class OnBoardingState (
     val isLocationPermissionGranted : Boolean = false,

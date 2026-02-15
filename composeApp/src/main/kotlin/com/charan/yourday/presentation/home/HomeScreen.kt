@@ -11,7 +11,6 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,7 +20,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
@@ -36,11 +34,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LargeFlexibleTopAppBar
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -54,15 +49,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.charan.yourday.home.HomeEvent
 import com.charan.yourday.presentation.home.components.CalendarCard
 import com.charan.yourday.presentation.home.components.TodoCard
-import com.charan.yourday.presentation.home.components.TopBarTitleContent
 import com.charan.yourday.presentation.home.components.WeatherCard
-import com.charan.yourday.home.HomeScreenComponent
-import com.charan.yourday.home.HomeViewEffect
 import com.charan.yourday.utils.DateUtils
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
@@ -225,16 +215,25 @@ fun HomeScreen(
                         }
                     }
                     }
+
                     WeatherCard(
-                        weatherState = homeState.weatherState,
+                        isLoading = homeState.weatherState.isLoading,
+                        error = homeState.weatherState.error,
+                        hasContent =  homeState.weatherState.currentWeather != null,
+                        location = homeState.weatherState.currentWeather?.location,
+                        currentTemperature = homeState.weatherState.currentWeather?.temp.toString(),
+                        currentWeatherIcon = homeState.weatherState.currentWeather?.icon,
+                        forecastData = homeState.weatherState.forecastWeather,
+                        isPermissionGranted = homeState.weatherState.isLocationPermissionGranted,
+                        weatherConditionText = homeState.weatherState.currentWeather?.condition.orEmpty(),
+                        weatherUnits = homeState.weatherState.weatherUnits,
                         onLocationPermissionAccess = {
                             component.onEvent(
                                 HomeEvent.RequestLocationPermission(
                                     locationPermissionState.status.shouldShowRationale
                                 )
                             )
-
-                        },
+                        }
                     )
                     Spacer(Modifier.padding(vertical = 10.dp))
                     CalendarCard(

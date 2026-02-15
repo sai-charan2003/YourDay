@@ -24,7 +24,6 @@ struct HomeScreenView: View {
 
     var body: some View {
         NavigationView {
-            
             ScrollView {
                 LazyVStack() {
                     VStack(alignment: .leading) {

@@ -1,4 +1,4 @@
-package com.charan.yourday.settings
+package com.charan.yourday.presentation.settings
 
 sealed class SettingsEvents {
         data class OnChangeWeatherUnits(val weatherUnit : String) : SettingsEvents()

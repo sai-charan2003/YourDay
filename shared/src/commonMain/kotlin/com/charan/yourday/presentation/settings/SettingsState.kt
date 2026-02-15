@@ -1,4 +1,4 @@
-package com.charan.yourday.settings
+package com.charan.yourday.presentation.settings
 
 import com.charan.yourday.utils.WeatherUnits
 

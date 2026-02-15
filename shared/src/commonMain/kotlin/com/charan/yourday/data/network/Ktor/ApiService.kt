@@ -2,7 +2,6 @@ package com.charan.yourday.data.network.Ktor
 
 
 import com.charan.yourday.BuildKonfig
-import com.charan.yourday.data.network.responseDTO.TodoistTodayTasksDTO
 import com.charan.yourday.data.network.responseDTO.TodoistTokenDTO
 import com.charan.yourday.data.network.responseDTO.WeatherDTO
 import io.ktor.client.HttpClient
@@ -78,7 +77,7 @@ class ApiService (val client : HttpClient) {
                     append("Authorization", "Bearer $code")
                     append("Accept", "application/json")
                 }
-                path("rest/v2/tasks")
+                path("api/v1/tasks")
                 parameters.append("filter","today|overdue")
             }
             println(url)

@@ -1,4 +1,4 @@
-package com.charan.yourday.home
+package com.charan.yourday.presentation.home
 
 sealed interface HomeEvent {
     data class RequestLocationPermission(val showRationale: Boolean) : HomeEvent

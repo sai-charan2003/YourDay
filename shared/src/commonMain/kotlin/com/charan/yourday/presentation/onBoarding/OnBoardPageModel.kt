@@ -1,4 +1,4 @@
-package com.charan.yourday.onBoarding
+package com.charan.yourday.presentation.onBoarding
 
 import com.charan.yourday.MR
 import dev.icerock.moko.resources.ImageResource
