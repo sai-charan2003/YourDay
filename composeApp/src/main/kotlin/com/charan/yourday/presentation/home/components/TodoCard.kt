@@ -86,7 +86,7 @@ fun TodoCard(
                         taskLink = it.taskLink,
                         todoProvider = it.todoProvider,
                         todoProviderLogo = it.todoImage ?: MR.images.Todoist,
-                        date = it.date?.toMMMDYYYYWithTime() ?: "",
+                        date = it.date.orEmpty(),
                         isOverDue = it.isOverDue,
                         onOpenTodo = onTodoOpen
                     )

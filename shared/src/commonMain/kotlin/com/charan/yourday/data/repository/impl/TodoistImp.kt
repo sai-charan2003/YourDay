@@ -15,6 +15,7 @@ import com.charan.yourday.utils.OpenURL
 import io.ktor.client.call.body
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 
 
@@ -27,12 +28,12 @@ class TodoistImp(
     }
 
     override suspend fun getAccessToken(code: String): Flow<ProcessState<TodoistTokenDTO>> = flow{
-        println("Todoist Authorization ID: $code")
         emit(ProcessState.Loading)
         try {
             val response = apiService.getTodoistAccessToken(code)
             when(response.status){
                 HttpStatusCode.OK -> {
+                    dataStoreRepository.setTodoistAccessToken(response.body<TodoistTokenDTO>().access_token ?: "")
                     emit(ProcessState.Success(response.body<TodoistTokenDTO>()))
                 }
                 HttpStatusCode.Unauthorized -> {

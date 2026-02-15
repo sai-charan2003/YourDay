@@ -33,7 +33,7 @@ data class CurrentWeatherState(
 )
 
 data class ForecastWeatherState(
-    val time : LocalDateTime? = null,
+    val time : String? = null,
     val temp : Int = 0,
     val icon: ImageResource ? = null,
     val condition : String = ""
@@ -50,10 +50,11 @@ data class TodoState(
 )
 
 data class TodoDataState(
+    val id : String = "",
     val taskName : String = "",
     val taskLink : String = "",
     val isOverDue : Boolean = false,
-    val date : LocalDateTime? = null,
+    val date : String? = null,
     val todoProvider: String = TodoProvidersEnums.TODOIST.name,
     val todoImage : ImageResource? = null
 )

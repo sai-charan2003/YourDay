@@ -5,6 +5,8 @@ import com.charan.yourday.data.model.WeatherData
 import com.charan.yourday.presentation.home.CurrentWeatherState
 import com.charan.yourday.presentation.home.ForecastWeatherState
 import com.charan.yourday.presentation.home.TodoDataState
+import com.charan.yourday.utils.DateUtils.toMMMDYYYYWithTime
+import com.charan.yourday.utils.DateUtils.toTimeString
 import com.charan.yourday.utils.TodoProvidersEnums
 import com.charan.yourday.utils.WeatherIconName
 import com.charan.yourday.utils.WeatherUnitsEnums
@@ -33,7 +35,7 @@ fun List<WeatherData>.toForecastWeatherState(units : WeatherUnitsEnums) : List<F
             },
             condition = it.currentCondition ?: "",
             icon = WeatherIconName.weatherIcon(it.temperatureIcon ?:1000, it.isDay == true ),
-            time = it.time
+            time = it.time?.toTimeString()
         )
     }
 }
@@ -46,7 +48,7 @@ fun List<TodoData>.toTodoDataState() : List<TodoDataState>{
             isOverDue = it.isOverDue ?: false,
             todoProvider = it.todoProvider ?: "",
             todoImage = it.todoProvider?.getProviderLogo(),
-            date = it.date
+            date = it.date?.toMMMDYYYYWithTime()
         )
     }
 }

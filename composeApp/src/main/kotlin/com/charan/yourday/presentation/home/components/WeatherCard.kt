@@ -37,7 +37,6 @@ fun WeatherCard(
     weatherUnits : String,
     forecastData: List<ForecastWeatherState>
 ) {
-    Log.d("TAG", "WeatherCard: $forecastData")
     ContentElevatedCard(
         isLoading = isLoading,
         hasError = error,
@@ -83,7 +82,7 @@ fun WeatherCard(
                                 )
                             }
                             Text(
-                                text = "${currentTemperature.orEmpty()} ${weatherUnits} °",
+                                text = "${currentTemperature.orEmpty()}° ${weatherUnits} ",
                                 style = MaterialTheme.typography.headlineMediumEmphasized,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface
@@ -135,7 +134,7 @@ private fun CompactForecastChip(
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         Text(
-            item.time?.toTimeString().toString(),
+            item.time.orEmpty(),
             style = MaterialTheme.typography.labelSmallEmphasized,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -148,7 +147,7 @@ private fun CompactForecastChip(
             modifier = Modifier.size(24.dp)
         )
             Text(
-                text = "${item.temp.toString()} $weatherUnits °",
+                text = "${item.temp.toString()}° $weatherUnits ",
                 style = MaterialTheme.typography.labelMediumEmphasized,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface

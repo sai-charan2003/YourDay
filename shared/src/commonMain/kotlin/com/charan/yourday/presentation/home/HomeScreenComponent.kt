@@ -1,8 +1,6 @@
 package com.charan.yourday.presentation.home
 
 import com.arkivanov.decompose.ComponentContext
-import com.charan.yourday.data.model.TodoData
-import com.charan.yourday.data.model.WeatherData
 import com.charan.yourday.data.network.responseDTO.TodoistTokenDTO
 import com.charan.yourday.data.repository.CalenderEventsRepo
 import com.charan.yourday.data.repository.DataStoreRepository
@@ -15,7 +13,6 @@ import com.charan.yourday.presentation.toCurrentWeatherState
 import com.charan.yourday.presentation.toForecastWeatherState
 import com.charan.yourday.presentation.toTodoDataState
 import com.charan.yourday.utils.DateUtils
-import com.charan.yourday.utils.DateUtils.toTimeInMillis
 import com.charan.yourday.utils.ErrorCodes
 import com.charan.yourday.utils.OpenURL
 import com.charan.yourday.utils.ProcessState
@@ -66,12 +63,11 @@ class HomeScreenComponent(
         observeTodoData()
         coroutineScope.launch {
             authorizationId?.let {
-                getTodoistAuthToken(it)
+                getTodoistAccessToken(it)
             }
-            errorCode?.let { showToastEvent("Unable to authenticate") }
-            checkTokenAndFetchTasks()
-
+            errorCode?.let { sendEffect(HomeViewEffect.ShowToast("Unable to authenticate")) }
         }
+        refreshData()
     }
 
     fun onEvent(intent: HomeEvent) {
@@ -96,25 +92,34 @@ class HomeScreenComponent(
         fetchLocationAndWeather()
         fetchCalendarEvents()
         checkTokenAndFetchTasks()
-
-
     }
 
 
 
     private fun fetchLocationAndWeather() = coroutineScope.launch {
         if(permissionManager.isPermissionGranted(Permissions.LOCATION)) {
-            updateWeatherState(isLoading = true)
+            _state.update {
+                it.copy(
+                    weatherState = it.weatherState.copy(
+                        isLoading = true,
+                        error = null,
+                        isLocationPermissionGranted = true
+                    )
+                )
+            }
             val location = locationServiceRepo.getCurrentLocation()
             if (location != null) {
-                println("Checking the location : $location")
                 fetchWeatherData(location.latitude!!, location.longitude!!)
             } else {
-                showToastEvent("Unable to fetch the location")
-                updateWeatherState(
-                    isLoading = false,
-                    error = "Unable to fetch the location"
-                )
+                sendEffect(HomeViewEffect.ShowToast("Unable to fetch location"))
+                _state.update {
+                    it.copy(
+                        weatherState = it.weatherState.copy(
+                            isLoading = false,
+                            error = "Unable to fetch location"
+                        )
+                    )
+                }
             }
         }
     }
@@ -128,12 +133,37 @@ class HomeScreenComponent(
 
             when (processState) {
                 is ProcessState.Error -> {
-                    updateWeatherState(error = processState.message)
-                    showToastEvent(processState.message)
+                    _state.update {
+                        it.copy(
+                            weatherState = it.weatherState.copy(
+                                isLoading = false,
+                                error = processState.message
+                            )
+                        )
+                    }
+                    sendEffect(HomeViewEffect.ShowToast(processState.message))
                 }
-                ProcessState.Loading -> updateWeatherState(isLoading = true)
-                ProcessState.NotDetermined -> updateWeatherState()
-                is ProcessState.Success -> {updateWeatherState(isLoading = false, error = null)}
+                ProcessState.Loading -> {
+                    _state.update {
+                        it.copy(
+                            weatherState = it.weatherState.copy(
+                                isLoading = true,
+                                error = null
+                            )
+                        )
+                    }
+                }
+                ProcessState.NotDetermined -> {}
+                is ProcessState.Success -> {
+                    _state.update {
+                        it.copy(
+                            weatherState = it.weatherState.copy(
+                                isLoading = false,
+                                error = null,
+                            )
+                        )
+                    }
+                }
             }
         }
     }
@@ -147,26 +177,34 @@ class HomeScreenComponent(
         }.collectLatest { (weatherData, weatherUnit) ->
             val currentWeatherState = weatherData.toCurrentWeatherState(weatherUnit)
             val forecastWeatherState = weatherData.forecast?.toForecastWeatherState(weatherUnit)
-            updateWeatherState(
-                currentWeatherState = currentWeatherState,
-                forecastWeatherState = forecastWeatherState,
-                weatherUnits = weatherUnit.name
-            )
+            _state.update {
+                it.copy(
+                    weatherState = it.weatherState.copy(
+                        currentWeather = currentWeatherState,
+                        forecastWeather = forecastWeatherState ?: emptyList(),
+                        weatherUnits = weatherUnit.name
+                    )
+                )
+            }
         }
     }
 
     private fun observeTodoData() = coroutineScope.launch {
         dataStoreRepo.todoData.collectLatest { todoData ->
-            updateTodoState(todoData = todoData.toTodoDataState())
+            val todoDataState = todoData.toTodoDataState()
+            _state.update {
+                it.copy(
+                    todoState = it.todoState.copy(
+                        todoData = todoDataState
+                    )
+                )
+            }
         }
     }
 
-
     private fun handleLocationPermission(shouldShowRationale: Boolean) = coroutineScope.launch{
-        println(shouldShowRationale)
         if (!shouldShowRationale) {
             _effects.emit(HomeViewEffect.RequestLocationPermission)
-
         } else {
             permissionManager.openAppSettings()
         }
@@ -186,7 +224,6 @@ class HomeScreenComponent(
 
 
     private fun fetchCalendarEvents() {
-        print(isPermissionEnabled(Permissions.CALENDER))
         if(isPermissionEnabled(Permissions.CALENDER)) {
             _state.update {
                 it.copy(
@@ -201,45 +238,86 @@ class HomeScreenComponent(
 
 
     private fun requestTodoistAuthentication() = coroutineScope.launch {
-        updateTodoState(isAuthenticating = true)
+        _state.update {
+            it.copy(
+                todoState = it.todoState.copy(
+                    isAuthenticating = true,
+                    error = null
+                )
+            )
+        }
         todoistRepo.requestAuthorization()
     }
 
-    private fun getTodoistAuthToken(authorizationId: String) = coroutineScope.launch {
+    private fun getTodoistAccessToken(authorizationId: String) = coroutineScope.launch {
         todoistRepo.getAccessToken(authorizationId).collectLatest { processState ->
             when (processState) {
-                is ProcessState.Error -> handleTodoistAuthError(processState.message)
-                ProcessState.Loading -> updateTodoState(isLoading = true)
-                ProcessState.NotDetermined -> { /* No action needed */ }
-                is ProcessState.Success -> handleTodoistAuthSuccess(processState.data)
+                is ProcessState.Error -> {
+                    _state.update {
+                        it.copy(
+                            todoState = it.todoState.copy(
+                                isAuthenticating = true,
+                                error = processState.message
+                            )
+                        )
+                    }
+                    sendEffect(HomeViewEffect.ShowToast(processState.message))
+                }
+                ProcessState.Loading -> {
+                    _state.update {
+                        it.copy(
+                            todoState = it.todoState.copy(
+                                isAuthenticating = true,
+                                error = null
+                            )
+                        )
+                    }
+                }
+                ProcessState.NotDetermined -> {  }
+                is ProcessState.Success -> {
+                    _state.update {
+                        it.copy(
+                            todoState = it.todoState.copy(
+                                isAuthenticating = false,
+                                isTodoAuthenticated = true,
+                                error = null,
+                            )
+                        )
+                    }
+                    fetchTodoistTasks(processState.data.access_token ?: "")
+                }
             }
         }
-    }
-
-    private fun handleTodoistAuthError(message: String) {
-        if (message == ErrorCodes.UNAUTHORIZED.name) clearTodoistToken()
-        updateTodoState(isTodoAuthenticated = false)
-    }
-
-    private fun handleTodoistAuthSuccess(data: TodoistTokenDTO) {
-        data.access_token?.let { token ->
-            updateTodoState(isTodoAuthenticated = true, isAuthenticating = false)
-            saveTodoistToken(token)
-            fetchTodoistTasks(token)
-        }
-    }
-
-    private fun saveTodoistToken(token: String) = coroutineScope.launch {
-        dataStoreRepo.setTodoistAccessToken(token)
     }
 
     private fun fetchTodoistTasks(token: String) = coroutineScope.launch {
         todoistRepo.getTodayTasks(token).collectLatest { processState ->
             when (processState) {
-                is ProcessState.Error -> handleTodoistTasksError(processState.message)
-                ProcessState.Loading -> updateTodoState(isLoading = true)
+                is ProcessState.Error -> {
+                    handleTodoistTasksError(processState.message)
+
+                }
+                ProcessState.Loading -> {
+                    _state.update {
+                        it.copy(
+                            todoState = it.todoState.copy(
+                                isLoading = true,
+                                error = null
+                            )
+                        )
+                    }
+                }
                 ProcessState.NotDetermined -> { /* No action needed */ }
-                is ProcessState.Success -> updateTodoState(lastSycned = DateUtils.getCurrentTimeInMillis().toString(), isTodoAuthenticated = true)
+                is ProcessState.Success -> {
+                    _state.update {
+                        it.copy(
+                            todoState = it.todoState.copy(
+                                isLoading = false,
+                                error = null,
+                            )
+                        )
+                    }
+                }
             }
         }
     }
@@ -247,17 +325,26 @@ class HomeScreenComponent(
     private fun handleTodoistTasksError(message: String) {
         if (message == ErrorCodes.UNAUTHORIZED.name) {
             clearTodoistToken()
-            showToastEvent("Please connect again")
-            updateTodoState(
-                isTodoAuthenticated = false,
-                isAuthenticating = false,
-                isLoading = false
-            )
+            sendEffect(HomeViewEffect.ShowToast("Session expired. Please connect again."))
+            _state.update {
+                it.copy(
+                    todoState = it.todoState.copy(
+                        isLoading = false,
+                        error = "Session expired. Please connect again.",
+                        isTodoAuthenticated = false
+                    )
+                )
+            }
         } else {
-            updateTodoState(
-                isLoading =  false,
-                error = message
-            )
+            _state.update {
+                it.copy(
+                    todoState = it.todoState.copy(
+                        isLoading = false,
+                        error = message
+                    )
+                )
+            }
+            sendEffect(HomeViewEffect.ShowToast(message))
         }
 
     }
@@ -265,12 +352,25 @@ class HomeScreenComponent(
     private fun checkTokenAndFetchTasks() = coroutineScope.launch {
         dataStoreRepo.todoistAccessToken.collectLatest { token ->
             if(token == null){
-                updateTodoState(isLoading = false, isTodoAuthenticated = false)
-                return@collectLatest
-            }
-            token?.let {
-                updateTodoState(isTodoAuthenticated = true)
-                fetchTodoistTasks(it)
+                _state.update {
+                    it.copy(
+                        todoState = it.todoState.copy(
+                            isTodoAuthenticated = false,
+                            todoToken = null,
+                            todoData = null
+                        )
+                    )
+                }
+            } else {
+                _state.update {
+                    it.copy(
+                        todoState = it.todoState.copy(
+                            isTodoAuthenticated = true,
+                            todoToken = token
+                        )
+                    )
+                }
+                fetchTodoistTasks(token)
 
             }
         }
@@ -278,57 +378,19 @@ class HomeScreenComponent(
 
     private fun clearTodoistToken() = coroutineScope.launch {
         dataStoreRepo.setTodoistAccessToken("")
-        updateTodoState(isTodoAuthenticated = false)
-    }
-
-    private fun showToastEvent(e : String) = coroutineScope.launch {
-        _effects.emit(HomeViewEffect.ShowToast(e))
-    }
-    private fun updateWeatherState(
-        isLoading: Boolean = false,
-        error: String? = null,
-        currentWeatherState: CurrentWeatherState? = null,
-        forecastWeatherState : List<ForecastWeatherState>? = null,
-        weatherUnits : String? = null,
-        lastSycned: String? = null
-    ) {
         _state.update {
-            it.copy(
-                weatherState = it.weatherState.copy(
-                    isLoading = isLoading,
-                    error = error,
-                    isLocationPermissionGranted = isPermissionEnabled(Permissions.LOCATION),
-                    currentWeather = currentWeatherState ?: it.weatherState.currentWeather,
-                    forecastWeather = forecastWeatherState ?: it.weatherState.forecastWeather,
-                    weatherUnits = weatherUnits ?: it.weatherState.weatherUnits
-
-                ),
-            )
-        }
-    }
-
-    private fun updateTodoState(
-        isLoading: Boolean = false,
-        isAuthenticating: Boolean = false,
-        isTodoAuthenticated: Boolean? = null,
-        todoData: List<TodoDataState>? = null,
-        lastSycned : String? = null,
-        error: String? = null
-    ) {
-
-        _state.update {
-            print(it.todoState.isTodoAuthenticated)
             it.copy(
                 todoState = it.todoState.copy(
-                    isLoading = isLoading,
-                    isAuthenticating = isAuthenticating,
-                    isTodoAuthenticated = isTodoAuthenticated ?: it.todoState.isTodoAuthenticated,
-                    todoData = todoData ?: it.todoState.todoData,
-                    lastSycned = lastSycned,
-                    error = error
-                ),
+                    isTodoAuthenticated = false,
+                    todoToken = null,
+                    todoData = null
+                )
             )
         }
+    }
+
+    private fun sendEffect(effect: HomeViewEffect) = coroutineScope.launch {
+        _effects.emit(effect)
     }
 
 
