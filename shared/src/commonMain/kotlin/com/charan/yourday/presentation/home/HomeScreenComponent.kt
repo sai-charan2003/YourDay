@@ -1,24 +1,25 @@
-package com.charan.yourday.home
+package com.charan.yourday.presentation.home
 
 import com.arkivanov.decompose.ComponentContext
-import com.charan.yourday.data.mapper.mapToWeatherData
 import com.charan.yourday.data.model.TodoData
 import com.charan.yourday.data.model.WeatherData
 import com.charan.yourday.data.network.responseDTO.TodoistTokenDTO
-import com.charan.yourday.data.network.responseDTO.WeatherDTO
 import com.charan.yourday.data.repository.CalenderEventsRepo
+import com.charan.yourday.data.repository.DataStoreRepository
 import com.charan.yourday.data.repository.LocationServiceRepo
 import com.charan.yourday.data.repository.TodoistRepo
 import com.charan.yourday.data.repository.WeatherRepo
 import com.charan.yourday.permission.PermissionManager
 import com.charan.yourday.permission.Permissions
+import com.charan.yourday.presentation.toCurrentWeatherState
+import com.charan.yourday.presentation.toForecastWeatherState
+import com.charan.yourday.presentation.toTodoDataState
 import com.charan.yourday.utils.DateUtils
+import com.charan.yourday.utils.DateUtils.toTimeInMillis
 import com.charan.yourday.utils.ErrorCodes
 import com.charan.yourday.utils.OpenURL
 import com.charan.yourday.utils.ProcessState
 import kotlinx.coroutines.flow.MutableSharedFlow
-import com.charan.yourday.utils.UserPreferencesStore
-import com.charan.yourday.utils.WeatherUnits
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -27,6 +28,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
@@ -57,15 +59,18 @@ class HomeScreenComponent(
     private val permissionManager: PermissionManager = get()
     private val calendarEventsRepo: CalenderEventsRepo = get()
     private val todoistRepo: TodoistRepo = get()
-    private val userPreferences: UserPreferencesStore = get()
+    private val dataStoreRepo: DataStoreRepository = get()
 
     init {
+        observerWeatherData()
+        observeTodoData()
         coroutineScope.launch {
             authorizationId?.let {
                 getTodoistAuthToken(it)
             }
             errorCode?.let { showToastEvent("Unable to authenticate") }
             checkTokenAndFetchTasks()
+
         }
     }
 
@@ -74,7 +79,7 @@ class HomeScreenComponent(
             is HomeEvent.RequestLocationPermission -> handleLocationPermission(intent.showRationale)
             is HomeEvent.RequestCalendarPermission -> handleCalendarPermission(intent.showRationale)
             HomeEvent.ConnectTodoist -> requestTodoistAuthentication()
-            HomeEvent.FetchWeather -> getLocation()
+            HomeEvent.FetchWeather -> fetchLocationAndWeather()
             HomeEvent.FetchCalendarEvents -> fetchCalendarEvents()
             HomeEvent.DisconnectTodoist -> clearTodoistToken()
             HomeEvent.OpenSettingsPage -> onSettingsOpen()
@@ -88,7 +93,7 @@ class HomeScreenComponent(
     }
 
     private fun refreshData() {
-        getLocation()
+        fetchLocationAndWeather()
         fetchCalendarEvents()
         checkTokenAndFetchTasks()
 
@@ -97,7 +102,7 @@ class HomeScreenComponent(
 
 
 
-    private fun getLocation() = coroutineScope.launch {
+    private fun fetchLocationAndWeather() = coroutineScope.launch {
         if(permissionManager.isPermissionGranted(Permissions.LOCATION)) {
             updateWeatherState(isLoading = true)
             val location = locationServiceRepo.getCurrentLocation()
@@ -128,16 +133,31 @@ class HomeScreenComponent(
                 }
                 ProcessState.Loading -> updateWeatherState(isLoading = true)
                 ProcessState.NotDetermined -> updateWeatherState()
-                is ProcessState.Success -> handleWeatherSuccess(processState.data)
+                is ProcessState.Success -> {updateWeatherState(isLoading = false, error = null)}
             }
         }
     }
 
-    private suspend fun handleWeatherSuccess(data: WeatherDTO) {
-        userPreferences.weatherUnits.collectLatest { units ->
-            val weatherData = units?.let { data.mapToWeatherData(it) }
-            updateWeatherState(weatherData = weatherData, lastSycned = DateUtils.getCurrentTimeInMillis().toString())
+    private fun observerWeatherData() = coroutineScope.launch {
+        combine(
+            dataStoreRepo.weatherData,
+            dataStoreRepo.weatherUnit
+        ) { weatherData, weatherUnit ->
+            Pair(weatherData, weatherUnit)
+        }.collectLatest { (weatherData, weatherUnit) ->
+            val currentWeatherState = weatherData.toCurrentWeatherState(weatherUnit)
+            val forecastWeatherState = weatherData.forecast?.toForecastWeatherState(weatherUnit)
+            updateWeatherState(
+                currentWeatherState = currentWeatherState,
+                forecastWeatherState = forecastWeatherState,
+                weatherUnits = weatherUnit.name
+            )
+        }
+    }
 
+    private fun observeTodoData() = coroutineScope.launch {
+        dataStoreRepo.todoData.collectLatest { todoData ->
+            updateTodoState(todoData = todoData.toTodoDataState())
         }
     }
 
@@ -210,7 +230,7 @@ class HomeScreenComponent(
     }
 
     private fun saveTodoistToken(token: String) = coroutineScope.launch {
-        userPreferences.setTodoistAccessToken(token)
+        dataStoreRepo.setTodoistAccessToken(token)
     }
 
     private fun fetchTodoistTasks(token: String) = coroutineScope.launch {
@@ -219,7 +239,7 @@ class HomeScreenComponent(
                 is ProcessState.Error -> handleTodoistTasksError(processState.message)
                 ProcessState.Loading -> updateTodoState(isLoading = true)
                 ProcessState.NotDetermined -> { /* No action needed */ }
-                is ProcessState.Success -> updateTodoState(todoData = processState.data, lastSycned = DateUtils.getCurrentTimeInMillis().toString(), isTodoAuthenticated = true)
+                is ProcessState.Success -> updateTodoState(lastSycned = DateUtils.getCurrentTimeInMillis().toString(), isTodoAuthenticated = true)
             }
         }
     }
@@ -243,7 +263,7 @@ class HomeScreenComponent(
     }
 
     private fun checkTokenAndFetchTasks() = coroutineScope.launch {
-        userPreferences.todoistAccessToken.collectLatest { token ->
+        dataStoreRepo.todoistAccessToken.collectLatest { token ->
             if(token == null){
                 updateTodoState(isLoading = false, isTodoAuthenticated = false)
                 return@collectLatest
@@ -257,7 +277,7 @@ class HomeScreenComponent(
     }
 
     private fun clearTodoistToken() = coroutineScope.launch {
-        userPreferences.deleteTodoistToken()
+        dataStoreRepo.setTodoistAccessToken("")
         updateTodoState(isTodoAuthenticated = false)
     }
 
@@ -267,7 +287,9 @@ class HomeScreenComponent(
     private fun updateWeatherState(
         isLoading: Boolean = false,
         error: String? = null,
-        weatherData: WeatherData? = null,
+        currentWeatherState: CurrentWeatherState? = null,
+        forecastWeatherState : List<ForecastWeatherState>? = null,
+        weatherUnits : String? = null,
         lastSycned: String? = null
     ) {
         _state.update {
@@ -276,8 +298,10 @@ class HomeScreenComponent(
                     isLoading = isLoading,
                     error = error,
                     isLocationPermissionGranted = isPermissionEnabled(Permissions.LOCATION),
-                    weatherData = weatherData ?: it.weatherState.weatherData,
-                    lastSycned = lastSycned
+                    currentWeather = currentWeatherState ?: it.weatherState.currentWeather,
+                    forecastWeather = forecastWeatherState ?: it.weatherState.forecastWeather,
+                    weatherUnits = weatherUnits ?: it.weatherState.weatherUnits
+
                 ),
             )
         }
@@ -287,7 +311,7 @@ class HomeScreenComponent(
         isLoading: Boolean = false,
         isAuthenticating: Boolean = false,
         isTodoAuthenticated: Boolean? = null,
-        todoData: List<TodoData>? = null,
+        todoData: List<TodoDataState>? = null,
         lastSycned : String? = null,
         error: String? = null
     ) {

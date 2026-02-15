@@ -1,8 +1,6 @@
 package com.charan.yourday.presentation.onboarding
 
 import android.Manifest
-import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -25,18 +23,14 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.icerock.moko.resources.compose.painterResource
 import kotlinx.coroutines.launch
 import com.charan.yourday.MR
-import com.charan.yourday.home.HomeEvent
-import com.charan.yourday.home.HomeScreenComponent
-import com.charan.yourday.home.HomeState
-import com.charan.yourday.home.HomeViewEffect
-import com.charan.yourday.onBoarding.OnBoardingEvent
-import com.charan.yourday.onBoarding.OnBoardingScreenComponent
-import com.example.compose.AppTheme
+import com.charan.yourday.presentation.home.HomeEvent
+import com.charan.yourday.presentation.home.HomeScreenComponent
+import com.charan.yourday.presentation.home.HomeState
+import com.charan.yourday.presentation.home.HomeViewEffect
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberPermissionState

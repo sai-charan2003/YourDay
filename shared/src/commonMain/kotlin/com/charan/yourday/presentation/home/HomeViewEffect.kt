@@ -1,4 +1,4 @@
-package com.charan.yourday.home
+package com.charan.yourday.presentation.home
 
 sealed interface HomeViewEffect {
     data class ShowToast(val message : String) : HomeViewEffect

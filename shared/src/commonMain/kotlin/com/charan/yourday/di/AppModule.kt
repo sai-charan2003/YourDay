@@ -2,8 +2,10 @@ package com.charan.yourday.di
 
 import com.charan.yourday.data.network.Ktor.ApiService
 import com.charan.yourday.data.network.Ktor.createHttpClient
+import com.charan.yourday.data.repository.DataStoreRepository
 import com.charan.yourday.data.repository.TodoistRepo
 import com.charan.yourday.data.repository.WeatherRepo
+import com.charan.yourday.data.repository.impl.DataStoreRepositoryImpl
 import com.charan.yourday.data.repository.impl.TodoistImp
 import com.charan.yourday.data.repository.impl.WeatherRepoImp
 import com.charan.yourday.utils.UserPreferencesStore
@@ -15,9 +17,10 @@ import org.koin.dsl.module
     val appModule = module {
         single { createHttpClient(get()) }
         factory  { ApiService(client = get()) }
-        factory  <WeatherRepo> { WeatherRepoImp(apiService = get()) }
-        factory <TodoistRepo>{ TodoistImp(get())  }
+        factory  <WeatherRepo> { WeatherRepoImp(apiService = get(),get()) }
+        factory <TodoistRepo>{ TodoistImp(get(),get())  }
         single <UserPreferencesStore>{ UserPreferencesStore() }
+        single <DataStoreRepository>{ DataStoreRepositoryImpl(get()) }
     }
 
     fun initKoin(appDeclaration: KoinAppDeclaration = {}) = startKoin {

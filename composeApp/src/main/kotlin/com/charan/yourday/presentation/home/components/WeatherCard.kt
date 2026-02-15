@@ -1,58 +1,159 @@
 package com.charan.yourday.presentation.home.components
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
+
+import android.util.Log
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.charan.yourday.MR
 import com.charan.yourday.data.model.WeatherData
-import com.charan.yourday.home.WeatherState
+import com.charan.yourday.presentation.home.ForecastWeatherState
+import com.charan.yourday.utils.DateUtils.toTimeString
+import com.charan.yourday.utils.WeatherUnitsEnums
+import dev.icerock.moko.resources.ImageResource
 import dev.icerock.moko.resources.compose.painterResource
 
-
-
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun WeatherCard(
-    weatherState: WeatherState?,
-    onLocationPermissionAccess : () -> Unit
+    isLoading: Boolean,
+    error: String?,
+    hasContent: Boolean,
+    location: String?,
+    currentWeatherIcon: ImageResource?,
+    currentTemperature: String?,
+    isPermissionGranted: Boolean,
+    weatherConditionText : String,
+    onLocationPermissionAccess: () -> Unit,
+    weatherUnits : String,
+    forecastData: List<ForecastWeatherState>
 ) {
-
+    Log.d("TAG", "WeatherCard: $forecastData")
     ContentElevatedCard(
-        title = "Today's Weather",
-        isLoading = weatherState?.isLoading == true,
-        hasError = weatherState?.error,
-        hasContent = weatherState?.weatherData != null,
+        isLoading = isLoading,
+        hasError = error,
         content = {
-            if (weatherState?.isLocationPermissionGranted == false) {
-                GrantPermissionContent("Please Enable location permission to fetch weather data") {
+            if (!isPermissionGranted) {
+                GrantPermissionContent(
+                    title = "Enable location to show weather"
+                ) {
                     onLocationPermissionAccess()
                 }
                 return@ContentElevatedCard
             }
-            if (weatherState?.weatherData != null) {
-                WeatherDataItem(weatherData = weatherState.weatherData ?: WeatherData())
-                WeatherForecastItem(forecastData = weatherState.weatherData?.forecast ?: emptyList())
-                return@ContentElevatedCard
-            }
 
+            if (hasContent) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.LocationOn,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(14.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                                Text(
+                                    text = location.orEmpty(),
+                                    style = MaterialTheme.typography.labelMediumEmphasized,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Text(
+                                text = "${currentTemperature.orEmpty()} ${weatherUnits} °",
+                                style = MaterialTheme.typography.headlineMediumEmphasized,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+
+                            Text(
+                                text = weatherConditionText,
+                                style = MaterialTheme.typography.labelMediumEmphasized,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+
+
+                        }
+
+                        Image(
+                            painter = painterResource(
+                                currentWeatherIcon ?: MR.images.cloudy
+                            ),
+                            contentDescription = null,
+                            modifier = Modifier.size(40.dp)
+                        )
+                    }
+
+                    if (forecastData.isNotEmpty()) {
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(forecastData) { item ->
+                                CompactForecastChip(item,weatherUnits)
+                            }
+                        }
+                    }
+                }
+            }
         }
     )
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun CompactForecastChip(
+    item: ForecastWeatherState,
+    weatherUnits : String
+) {
+    Column(
+        modifier = Modifier
+            .padding(horizontal = 10.dp, vertical = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Text(
+            item.time?.toTimeString().toString(),
+            style = MaterialTheme.typography.labelSmallEmphasized,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Image(
+            painter = painterResource(
+                item.icon ?: MR.images.cloudy
+            ),
+            contentDescription = null,
+            modifier = Modifier.size(24.dp)
+        )
+            Text(
+                text = "${item.temp.toString()} $weatherUnits °",
+                style = MaterialTheme.typography.labelMediumEmphasized,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+    }
+
+}

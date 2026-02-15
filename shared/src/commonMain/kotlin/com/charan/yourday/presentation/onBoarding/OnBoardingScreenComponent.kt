@@ -1,8 +1,7 @@
-package com.charan.yourday.onBoarding
+package com.charan.yourday.presentation.onBoarding
 
 import com.arkivanov.decompose.ComponentContext
 import com.charan.yourday.data.repository.TodoistRepo
-import com.charan.yourday.home.HomeViewEffect
 import com.charan.yourday.permission.PermissionManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

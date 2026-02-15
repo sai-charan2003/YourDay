@@ -1,21 +1,9 @@
-package com.charan.yourday.settings
+package com.charan.yourday.presentation.settings
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.stringPreferencesKey
 import com.arkivanov.decompose.ComponentContext
-import com.charan.yourday.BuildKonfig
-import com.charan.yourday.data.network.responseDTO.WeatherDTO
 import com.charan.yourday.data.repository.TodoistRepo
-import com.charan.yourday.utils.ProcessState
 import com.charan.yourday.utils.UserPreferencesStore
-import com.charan.yourday.utils.WeatherUnits
 import com.charan.yourday.utils.appVersion
-import com.charan.yourday.utils.asCommonFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
