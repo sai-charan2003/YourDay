@@ -13,9 +13,6 @@ import com.splendo.kaluga.permissions.base.PermissionsBuilder
 import com.splendo.kaluga.permissions.calendar.registerCalendarPermissionIfNotRegistered
 import com.splendo.kaluga.permissions.location.registerLocationPermission
 import com.splendo.kaluga.permissions.location.registerLocationPermissionIfNotRegistered
-import dev.brewkits.grant.GrantFactory
-import dev.brewkits.grant.di.grantModule
-import dev.brewkits.grant.di.grantPlatformModule
 import org.koin.core.context.startKoin
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.KoinAppDeclaration
@@ -40,6 +37,5 @@ import org.koin.dsl.module
 
     fun initKoin(appDeclaration: KoinAppDeclaration = {}) = startKoin {
         appDeclaration()
-        modules(grantModule,grantPlatformModule)
         modules(appModule)
     }

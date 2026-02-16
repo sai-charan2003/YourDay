@@ -25,10 +25,6 @@ import com.splendo.kaluga.permissions.base.PermissionsBuilder
 import com.splendo.kaluga.permissions.calendar.CalendarPermission
 import com.splendo.kaluga.permissions.location.LocationPermission
 import com.splendo.kaluga.permissions.location.registerLocationPermission
-import dev.brewkits.grant.AppGrant
-import dev.brewkits.grant.GrantHandler
-import dev.brewkits.grant.GrantManager
-import dev.brewkits.grant.GrantStatus
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -36,6 +32,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.any
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -72,7 +69,6 @@ class HomeScreenComponent(
     private val calendarEventsRepo: CalenderEventsRepo = get()
     private val todoistRepo: TodoistRepo = get()
     private val dataStoreRepo: DataStoreRepository = get()
-    private val grantManager: GrantManager = get()
 
     private val permissionsBuilder: PermissionsBuilder = get()
 
@@ -82,11 +78,14 @@ class HomeScreenComponent(
 
     private val calendarPermission = CalendarPermission()
 
-    private var locationPermissionObserverJob: Job? = null
-    private var calendarPermissionObserverJob: Job? = null
+    // Cached permission states
+    private val _isLocationPermissionGranted = MutableStateFlow(false)
+    private val _isCalendarPermissionGranted = MutableStateFlow(false)
 
     init {
         println("HomeScreenComponent initialized")
+        observeLocationPermission()
+        observeCalendarPermission()
         observerWeatherData()
         observeTodoData()
         coroutineScope.launch {
@@ -122,22 +121,95 @@ class HomeScreenComponent(
         checkTokenAndFetchTasks()
     }
 
+    private fun observeLocationPermission() = coroutineScope.launch {
+        permissions[locationPermission].collectLatest { permissionState ->
+            val isGranted = permissionState is PermissionState.Allowed
+            _isLocationPermissionGranted.value = isGranted
+
+            _state.update {
+                it.copy(
+                    weatherState = it.weatherState.copy(
+                        isLocationPermissionGranted = isGranted
+                    )
+                )
+            }
+
+
+            if (isGranted) {
+                fetchLocationAndWeather()
+            }
+        }
+    }
+
+    private fun observeCalendarPermission() = coroutineScope.launch {
+        permissions[calendarPermission].collectLatest { permissionState ->
+            val isGranted = permissionState is PermissionState.Allowed
+            _isCalendarPermissionGranted.value = isGranted
+
+            _state.update {
+                it.copy(
+                    calenderData = it.calenderData.copy(
+                        isCalenderPermissionGranted = isGranted
+                    )
+                )
+            }
+
+            if (isGranted) {
+                fetchCalendarEvents()
+            }
+        }
+    }
+    private fun handleLocationPermission() = coroutineScope.launch {
+        when (val state = permissions[locationPermission].peekState()) {
+            is PermissionState.Allowed -> {
+
+                fetchLocationAndWeather()
+            }
+            is PermissionState.Denied.Requestable,
+            is PermissionState.Uninitialized -> {
+
+                permissions.request(locationPermission)
+
+            }
+            is PermissionState.Denied.Locked -> {
+
+                permissionManager.openAppSettings()
+
+            }
+            else -> {}
+        }
+    }
+    private fun handleCalendarPermission() = coroutineScope.launch {
+        when (val state = permissions[calendarPermission].peekState()) {
+            is PermissionState.Allowed -> {
+
+                fetchCalendarEvents()
+            }
+            is PermissionState.Denied.Requestable,
+            is PermissionState.Uninitialized -> {
+
+                permissions.request(calendarPermission)
+
+            }
+            is PermissionState.Denied.Locked -> {
+                permissionManager.openAppSettings()
+            }
+            else -> {}
+        }
+    }
 
     private fun fetchLocationAndWeather() = coroutineScope.launch {
-        if (isPermissionEnabled(com.charan.yourday.permission.Permissions.LOCATION)) {
-            println("fetching location data")
+        if (_isLocationPermissionGranted.value) {
             _state.update {
                 it.copy(
                     weatherState = it.weatherState.copy(
                         isLoading = true,
-                        error = null,
-                        isLocationPermissionGranted = true
+                        error = null
                     )
                 )
             }
             val location = locationServiceRepo.getCurrentLocation()
             if (location != null) {
-                locationPermissionObserverJob?.cancel()
                 fetchWeatherData(location.latitude!!, location.longitude!!)
             } else {
                 sendEffect(HomeViewEffect.ShowToast("Unable to fetch location"))
@@ -233,76 +305,11 @@ class HomeScreenComponent(
         }
     }
 
-    private fun handleLocationPermission() {
-        locationPermissionObserverJob?.cancel()
-        locationPermissionObserverJob = coroutineScope.launch {
-            permissions[locationPermission].collectLatest { permissionState ->
-                when (permissionState) {
-                    is PermissionState.Allowed -> {
-                        fetchLocationAndWeather()
-                    }
-
-                    is PermissionState.Denied.Requestable, is PermissionState.Uninitialized -> {
-                        permissions.request(locationPermission)
-                    }
-
-                    is PermissionState.Denied.Locked -> {
-                        permissionManager.openAppSettings()
-
-                    }
-
-                    else -> {}
-                }
-
-            }
-        }
-    }
-
-    private fun handleCalendarPermission() {
-        calendarPermissionObserverJob?.cancel()
-        calendarPermissionObserverJob = coroutineScope.launch {
-            permissions[calendarPermission].collectLatest { permissionState ->
-                when (permissionState) {
-                    is PermissionState.Allowed -> {
-                        fetchCalendarEvents()
-                    }
-
-                    is PermissionState.Denied.Requestable, is PermissionState.Uninitialized -> {
-                        permissions.request(calendarPermission)
-                    }
-
-                    is PermissionState.Denied.Locked -> {
-                        permissionManager.openAppSettings()
-                    }
-
-                    else -> {
-                    }
-                }
-            }
-
-        }
-    }
-
-    private suspend fun isPermissionEnabled(permission: com.charan.yourday.permission.Permissions): Boolean {
-        return when (permission) {
-            com.charan.yourday.permission.Permissions.CALENDER -> {
-                permissions[calendarPermission].filter { it !is PermissionState.Uninitialized }.first() is PermissionState.Allowed
-            }
-
-            com.charan.yourday.permission.Permissions.LOCATION -> {
-                permissions[locationPermission].filter { it !is PermissionState.Uninitialized }.first() is PermissionState.Allowed
-            }
-        }
-    }
-
-
     private fun fetchCalendarEvents() = coroutineScope.launch {
-        if (isPermissionEnabled(com.charan.yourday.permission.Permissions.CALENDER)) {
-            calendarPermissionObserverJob?.cancel()
+        if (_isCalendarPermissionGranted.value) {
             _state.update {
                 it.copy(
                     calenderData = it.calenderData.copy(
-                        isCalenderPermissionGranted = true,
                         calenderData = calendarEventsRepo.getCalenderEvents()
                     )
                 )

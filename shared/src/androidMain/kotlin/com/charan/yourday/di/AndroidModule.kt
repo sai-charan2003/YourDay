@@ -10,7 +10,6 @@ import com.charan.yourday.data.repository.impl.LocationServiceImp
 import com.charan.yourday.permission.PermissionManager
 import com.charan.yourday.permission.PermissionManagerImp
 import com.charan.yourday.utils.PlatformSettings
-import dev.brewkits.grant.GrantFactory
 import dev.icerock.moko.permissions.PermissionsController
 import io.ktor.client.engine.okhttp.OkHttp
 import org.koin.android.ext.koin.androidApplication
@@ -30,6 +29,5 @@ val androidModule = module {
     single <CalenderEventsRepo> { CalenderEventsImp(context = androidContext())}
     single <PlatformSettings>{ PlatformSettings(context = androidContext()) }
     single { createDataStore(get()) }
-    single { GrantFactory.create(get()) }
 
 }

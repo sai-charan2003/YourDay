@@ -26,58 +26,70 @@ struct OnBoardingScreen: View {
     }
     
     var body: some View {
-        VStack(alignment : .center) {
-            Text(
-                "Welcome to Your Day"
-            )
-            .font(.title)
-            .fontWeight(.bold)
-            Text(
-                "Your all-in-one companion for planning your day with weather updates, calendar events and to-do lists"
-            )
-            .font(.subheadline)
-            .fontWeight(.light)
-            .multilineTextAlignment(.center)
-            .padding(.vertical)
-            
-            PermissionCard(
-                title: "Weather Insights",
-                description: "Real-time weather updates to plan your day",
-                systemImage: "sun.max.fill",
-                buttonTitle: "Enable Location",
-                buttonImage: "location.fill",
-                action: {
-                    component.onEvent(intent: HomeEventRequestLocationPermission(showRationale: false))
+        VStack(spacing: 0) {
+            ScrollView {
+                VStack(alignment: .center, spacing: 16) {
+                    Text(
+                        "Welcome to Your Day"
+                    )
+                    .font(.title)
+                    .fontWeight(.bold)
+                    .padding(.top)
                     
-                },
-                isPermissionGranted: homeState?.weatherState.isLocationPermissionGranted == true
-            )
-            PermissionCard(
-                title: "Calendar Sync",
-                description: "Never miss important events and meetings",
-                systemImage: "calendar",
-                buttonTitle: "Grant Calendar access",
-                buttonImage: "calendar.circle",
-                action: {
-                    component.onEvent(intent: HomeEventRequestCalendarPermission(showRationale: false))
-                },
-                isPermissionGranted: homeState?.calenderData.isCalenderPermissionGranted == true
-            )
-            PermissionCard(
-                title: "Task Management",
-                description: "Integrate Todoist and see all your daily tasks in one place",
-                systemImage: "checkmark",
-                buttonTitle: "Connect Todoist",
-                buttonImage: "location.fill",
-                action: {
-                    component.onEvent(intent: HomeEventConnectTodoist())
-                },
-                isPermissionGranted: homeState?.todoState.isTodoAuthenticated == true
-            )
-            
-            Button(action : {}) {
-                Text("Get Started")
+                    Text(
+                        "Your all-in-one companion for planning your day with weather updates, calendar events and to-do lists"
+                    )
+                    .font(.subheadline)
+                    .fontWeight(.light)
+                    .multilineTextAlignment(.center)
+                    .padding(.bottom)
+                    
+                    PermissionCard(
+                        title: "Weather Insights",
+                        description: "Real-time weather updates to plan your day",
+                        systemImage: "sun.max.fill",
+                        buttonTitle: "Enable Location",
+                        buttonImage: "location.fill",
+                        action: {
+                            component.onEvent(intent: HomeEventRequestLocationPermission(showRationale: false))
+                            
+                        },
+                        isPermissionGranted: homeState?.weatherState.isLocationPermissionGranted == true
+                    )
+                    PermissionCard(
+                        title: "Calendar Sync",
+                        description: "Never miss important events and meetings",
+                        systemImage: "calendar",
+                        buttonTitle: "Grant Calendar access",
+                        buttonImage: "calendar.circle",
+                        action: {
+                            component.onEvent(intent: HomeEventRequestCalendarPermission(showRationale: false))
+                        },
+                        isPermissionGranted: homeState?.calenderData.isCalenderPermissionGranted == true
+                    )
+                    PermissionCard(
+                        title: "Task Management",
+                        description: "Integrate Todoist and see all your daily tasks in one place",
+                        systemImage: "checkmark",
+                        buttonTitle: "Connect Todoist",
+                        buttonImage: "location.fill",
+                        action: {
+                            component.onEvent(intent: HomeEventConnectTodoist())
+                        },
+                        isPermissionGranted: homeState?.todoState.isTodoAuthenticated == true
+                    )
+                }
+                .padding(.horizontal)
             }
+            
+            Button("Get Started", systemImage: "arrow.right"){
+                component.onEvent(intent: HomeEventOnBoardingFinish())
+            }
+            .frame(maxWidth: .infinity)
+            .controlSize(.large)
+            .buttonStyle(.borderedProminent)
+            .buttonBorderShape(.capsule)
+            .padding()
         }
         .onAppear(){
             observeState()
@@ -154,9 +166,12 @@ struct PermissionCard: View {
                             .fontWeight(.semibold)
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
+                
                 }
-                .buttonStyle(.borderedProminent)
+                .controlSize(.regular)
+                .buttonBorderShape(.capsule)
+                .buttonStyle(.bordered)
+            
             }
         }
         .padding(16)
@@ -167,5 +182,3 @@ struct PermissionCard: View {
         .animation(.easeInOut, value: isPermissionGranted)
     }
 }
-
-

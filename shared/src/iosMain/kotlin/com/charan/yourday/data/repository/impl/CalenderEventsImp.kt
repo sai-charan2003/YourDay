@@ -3,8 +3,6 @@ package com.charan.yourday.data.repository.impl
 import com.charan.yourday.data.model.CalenderItems
 import com.charan.yourday.data.repository.CalenderEventsRepo
 import com.charan.yourday.utils.DateUtils
-import dev.brewkits.grant.GrantManager
-import dev.brewkits.grant.GrantStatus
 import kotlinx.cinterop.ExperimentalForeignApi
 import platform.EventKit.EKAuthorizationStatusAuthorized
 import platform.EventKit.EKEntityType
