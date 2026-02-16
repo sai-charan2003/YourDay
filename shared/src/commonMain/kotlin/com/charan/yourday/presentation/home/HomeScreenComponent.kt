@@ -1,5 +1,7 @@
 package com.charan.yourday.presentation.home
 
+import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.arkivanov.decompose.ComponentContext
 import com.charan.yourday.data.network.responseDTO.TodoistTokenDTO
 import com.charan.yourday.data.repository.CalenderEventsRepo
@@ -8,7 +10,6 @@ import com.charan.yourday.data.repository.LocationServiceRepo
 import com.charan.yourday.data.repository.TodoistRepo
 import com.charan.yourday.data.repository.WeatherRepo
 import com.charan.yourday.permission.PermissionManager
-import com.charan.yourday.permission.Permissions
 import com.charan.yourday.presentation.toCurrentWeatherState
 import com.charan.yourday.presentation.toForecastWeatherState
 import com.charan.yourday.presentation.toTodoDataState
@@ -16,9 +17,22 @@ import com.charan.yourday.utils.DateUtils
 import com.charan.yourday.utils.ErrorCodes
 import com.charan.yourday.utils.OpenURL
 import com.charan.yourday.utils.ProcessState
+import com.charan.yourday.utils.asCommonFlow
+import com.splendo.kaluga.permissions.base.Permission
+import com.splendo.kaluga.permissions.base.PermissionState
+import com.splendo.kaluga.permissions.base.Permissions
+import com.splendo.kaluga.permissions.base.PermissionsBuilder
+import com.splendo.kaluga.permissions.calendar.CalendarPermission
+import com.splendo.kaluga.permissions.location.LocationPermission
+import com.splendo.kaluga.permissions.location.registerLocationPermission
+import dev.brewkits.grant.AppGrant
+import dev.brewkits.grant.GrantHandler
+import dev.brewkits.grant.GrantManager
+import dev.brewkits.grant.GrantStatus
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -26,6 +40,8 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
@@ -43,7 +59,6 @@ class HomeScreenComponent(
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
 
-
     private val _state = MutableStateFlow(HomeState())
     val state: StateFlow<HomeState> = _state.asStateFlow()
 
@@ -57,8 +72,21 @@ class HomeScreenComponent(
     private val calendarEventsRepo: CalenderEventsRepo = get()
     private val todoistRepo: TodoistRepo = get()
     private val dataStoreRepo: DataStoreRepository = get()
+    private val grantManager: GrantManager = get()
+
+    private val permissionsBuilder: PermissionsBuilder = get()
+
+    private val permissions = Permissions(permissionsBuilder)
+
+    private val locationPermission = LocationPermission(background = false, precise = true)
+
+    private val calendarPermission = CalendarPermission()
+
+    private var locationPermissionObserverJob: Job? = null
+    private var calendarPermissionObserverJob: Job? = null
 
     init {
+        println("HomeScreenComponent initialized")
         observerWeatherData()
         observeTodoData()
         coroutineScope.launch {
@@ -72,8 +100,8 @@ class HomeScreenComponent(
 
     fun onEvent(intent: HomeEvent) {
         when (intent) {
-            is HomeEvent.RequestLocationPermission -> handleLocationPermission(intent.showRationale)
-            is HomeEvent.RequestCalendarPermission -> handleCalendarPermission(intent.showRationale)
+            is HomeEvent.RequestLocationPermission -> handleLocationPermission()
+            is HomeEvent.RequestCalendarPermission -> handleCalendarPermission()
             HomeEvent.ConnectTodoist -> requestTodoistAuthentication()
             HomeEvent.FetchWeather -> fetchLocationAndWeather()
             HomeEvent.FetchCalendarEvents -> fetchCalendarEvents()
@@ -95,9 +123,9 @@ class HomeScreenComponent(
     }
 
 
-
     private fun fetchLocationAndWeather() = coroutineScope.launch {
-        if(permissionManager.isPermissionGranted(Permissions.LOCATION)) {
+        if (isPermissionEnabled(com.charan.yourday.permission.Permissions.LOCATION)) {
+            println("fetching location data")
             _state.update {
                 it.copy(
                     weatherState = it.weatherState.copy(
@@ -109,6 +137,7 @@ class HomeScreenComponent(
             }
             val location = locationServiceRepo.getCurrentLocation()
             if (location != null) {
+                locationPermissionObserverJob?.cancel()
                 fetchWeatherData(location.latitude!!, location.longitude!!)
             } else {
                 sendEffect(HomeViewEffect.ShowToast("Unable to fetch location"))
@@ -124,7 +153,7 @@ class HomeScreenComponent(
         }
     }
 
-    private fun openURL(url : String) {
+    private fun openURL(url: String) {
         OpenURL.openURL(url)
     }
 
@@ -143,6 +172,7 @@ class HomeScreenComponent(
                     }
                     sendEffect(HomeViewEffect.ShowToast(processState.message))
                 }
+
                 ProcessState.Loading -> {
                     _state.update {
                         it.copy(
@@ -153,6 +183,7 @@ class HomeScreenComponent(
                         )
                     }
                 }
+
                 ProcessState.NotDetermined -> {}
                 is ProcessState.Success -> {
                     _state.update {
@@ -202,33 +233,76 @@ class HomeScreenComponent(
         }
     }
 
-    private fun handleLocationPermission(shouldShowRationale: Boolean) = coroutineScope.launch{
-        if (!shouldShowRationale) {
-            _effects.emit(HomeViewEffect.RequestLocationPermission)
-        } else {
-            permissionManager.openAppSettings()
+    private fun handleLocationPermission() {
+        locationPermissionObserverJob?.cancel()
+        locationPermissionObserverJob = coroutineScope.launch {
+            permissions[locationPermission].collectLatest { permissionState ->
+                when (permissionState) {
+                    is PermissionState.Allowed -> {
+                        fetchLocationAndWeather()
+                    }
+
+                    is PermissionState.Denied.Requestable, is PermissionState.Uninitialized -> {
+                        permissions.request(locationPermission)
+                    }
+
+                    is PermissionState.Denied.Locked -> {
+                        permissionManager.openAppSettings()
+
+                    }
+
+                    else -> {}
+                }
+
+            }
         }
     }
 
-    private fun handleCalendarPermission(shouldShowRationale: Boolean) = coroutineScope.launch{
-        if (!shouldShowRationale) {
-            _effects.emit(HomeViewEffect.RequestCalenderPermission)
-        } else {
-            permissionManager.openAppSettings()
+    private fun handleCalendarPermission() {
+        calendarPermissionObserverJob?.cancel()
+        calendarPermissionObserverJob = coroutineScope.launch {
+            permissions[calendarPermission].collectLatest { permissionState ->
+                when (permissionState) {
+                    is PermissionState.Allowed -> {
+                        fetchCalendarEvents()
+                    }
+
+                    is PermissionState.Denied.Requestable, is PermissionState.Uninitialized -> {
+                        permissions.request(calendarPermission)
+                    }
+
+                    is PermissionState.Denied.Locked -> {
+                        permissionManager.openAppSettings()
+                    }
+
+                    else -> {
+                    }
+                }
+            }
+
         }
     }
 
-    private fun isPermissionEnabled(permissions: Permissions): Boolean {
-        return permissionManager.isPermissionGranted(permissions)
+    private suspend fun isPermissionEnabled(permission: com.charan.yourday.permission.Permissions): Boolean {
+        return when (permission) {
+            com.charan.yourday.permission.Permissions.CALENDER -> {
+                permissions[calendarPermission].filter { it !is PermissionState.Uninitialized }.first() is PermissionState.Allowed
+            }
+
+            com.charan.yourday.permission.Permissions.LOCATION -> {
+                permissions[locationPermission].filter { it !is PermissionState.Uninitialized }.first() is PermissionState.Allowed
+            }
+        }
     }
 
 
-    private fun fetchCalendarEvents() {
-        if(isPermissionEnabled(Permissions.CALENDER)) {
+    private fun fetchCalendarEvents() = coroutineScope.launch {
+        if (isPermissionEnabled(com.charan.yourday.permission.Permissions.CALENDER)) {
+            calendarPermissionObserverJob?.cancel()
             _state.update {
                 it.copy(
                     calenderData = it.calenderData.copy(
-                        isCalenderPermissionGranted = isPermissionEnabled(Permissions.CALENDER),
+                        isCalenderPermissionGranted = true,
                         calenderData = calendarEventsRepo.getCalenderEvents()
                     )
                 )
@@ -263,6 +337,7 @@ class HomeScreenComponent(
                     }
                     sendEffect(HomeViewEffect.ShowToast(processState.message))
                 }
+
                 ProcessState.Loading -> {
                     _state.update {
                         it.copy(
@@ -273,7 +348,8 @@ class HomeScreenComponent(
                         )
                     }
                 }
-                ProcessState.NotDetermined -> {  }
+
+                ProcessState.NotDetermined -> {}
                 is ProcessState.Success -> {
                     _state.update {
                         it.copy(
@@ -297,6 +373,7 @@ class HomeScreenComponent(
                     handleTodoistTasksError(processState.message)
 
                 }
+
                 ProcessState.Loading -> {
                     _state.update {
                         it.copy(
@@ -307,7 +384,10 @@ class HomeScreenComponent(
                         )
                     }
                 }
-                ProcessState.NotDetermined -> { /* No action needed */ }
+
+                ProcessState.NotDetermined -> { /* No action needed */
+                }
+
                 is ProcessState.Success -> {
                     _state.update {
                         it.copy(
@@ -351,7 +431,7 @@ class HomeScreenComponent(
 
     private fun checkTokenAndFetchTasks() = coroutineScope.launch {
         dataStoreRepo.todoistAccessToken.collectLatest { token ->
-            if(token == null){
+            if (token == null) {
                 _state.update {
                     it.copy(
                         todoState = it.todoState.copy(
@@ -392,6 +472,5 @@ class HomeScreenComponent(
     private fun sendEffect(effect: HomeViewEffect) = coroutineScope.launch {
         _effects.emit(effect)
     }
-
 
 }

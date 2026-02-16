@@ -3,6 +3,8 @@ package com.charan.yourday.data.repository.impl
 import com.charan.yourday.data.model.CalenderItems
 import com.charan.yourday.data.repository.CalenderEventsRepo
 import com.charan.yourday.utils.DateUtils
+import dev.brewkits.grant.GrantManager
+import dev.brewkits.grant.GrantStatus
 import kotlinx.cinterop.ExperimentalForeignApi
 import platform.EventKit.EKAuthorizationStatusAuthorized
 import platform.EventKit.EKEntityType
@@ -19,12 +21,12 @@ import platform.Foundation.timeIntervalSince1970
 import platform.UIKit.UIColor
 
 class CalenderEventsImp : CalenderEventsRepo {
-    private val eventStore = EKEventStore()
+
 
 
     @OptIn(ExperimentalForeignApi::class)
     override fun getCalenderEvents(): List<CalenderItems> {
-        if (EKEventStore.authorizationStatusForEntityType(EKEntityType.EKEntityTypeEvent) == EKAuthorizationStatusAuthorized) {
+            val eventStore = EKEventStore()
             val calendars = eventStore.calendarsForEntityType(EKEntityType.EKEntityTypeEvent)
             val now = NSDate()
 
@@ -42,7 +44,6 @@ class CalenderEventsImp : CalenderEventsRepo {
                 oneDayFromNow!!,
                 calendars
             )
-            println(eventStore.eventsMatchingPredicate(range))
             return eventStore.eventsMatchingPredicate(range).mapNotNull { event ->
                 event as? EKEvent
             }.map {
@@ -55,12 +56,6 @@ class CalenderEventsImp : CalenderEventsRepo {
 
                 )
             }
-
-
-        } else{
-            print("Permission not provided")
-            return emptyList()
-        }
     }
 
 }

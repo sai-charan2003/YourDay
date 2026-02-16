@@ -25,6 +25,7 @@ class PermissionManagerImp : PermissionManager {
     override fun isPermissionGranted(permissions: Permissions): Boolean {
         return when (permissions) {
             Permissions.CALENDER -> {
+                store = EKEventStore()
                 val status = EKEventStore.authorizationStatusForEntityType(EKEntityType.EKEntityTypeEvent)
                 val isGranted = status == EKAuthorizationStatusAuthorized || status == EKAuthorizationStatusFullAccess
                 isGranted
