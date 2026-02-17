@@ -16,91 +16,101 @@ import LocationPermission
 
 struct OnBoardingScreen: View {
     let component: Shared.HomeScreenComponent
-    @State var homeState : Shared.HomeState?
-    @State private var permissionState: PermissionState?
-    @State private var selectedTab = 0
-    @ObservedObject private var permissionObserver: PermissionObserver = .init()
+    @State var homeState: Shared.HomeState?
+    
     init(_ component: HomeScreenComponent) {
         self.component = component
-        permissionState = permissionObserver.locationPermission
     }
     
     var body: some View {
-        VStack(spacing: 0) {
+        NavigationStack {
             ScrollView {
-                VStack(alignment: .center, spacing: 16) {
-                    Text(
-                        "Welcome to Your Day"
-                    )
-                    .font(.title)
-                    .fontWeight(.bold)
-                    .padding(.top)
+                VStack(spacing: 0) {
+                    // Hero Header
+                    VStack(spacing: 16) {
+                        Image(resource: MR.images.shared.app_logo_transparent)
+                            .font(.system(size: 64))
+                            .foregroundStyle(.yellow, .orange)
+                        
+                        Text("Welcome to Your Day")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                            .multilineTextAlignment(.center)
+                        
+                        Text("Grant a few permissions to get the most out of your experience")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .padding(.horizontal, 32)
+                    .padding(.vertical, 40)
                     
-                    Text(
-                        "Your all-in-one companion for planning your day with weather updates, calendar events and to-do lists"
-                    )
-                    .font(.subheadline)
-                    .fontWeight(.light)
-                    .multilineTextAlignment(.center)
-                    .padding(.bottom)
+                    Divider()
                     
-                    PermissionCard(
+                    PermissionRow(
                         title: "Weather Insights",
                         description: "Real-time weather updates to plan your day",
-                        systemImage: "sun.max.fill",
+                        systemImage: "location.fill",
                         buttonTitle: "Enable Location",
-                        buttonImage: "location.fill",
                         action: {
                             component.onEvent(intent: HomeEventRequestLocationPermission(showRationale: false))
-                            
                         },
                         isPermissionGranted: homeState?.weatherState.isLocationPermissionGranted == true
                     )
-                    PermissionCard(
+                    
+                    Divider()
+                        .padding(.leading, 72)
+                    
+                    PermissionRow(
                         title: "Calendar Sync",
                         description: "Never miss important events and meetings",
                         systemImage: "calendar",
-                        buttonTitle: "Grant Calendar access",
-                        buttonImage: "calendar.circle",
+                        buttonTitle: "Grant Access",
                         action: {
                             component.onEvent(intent: HomeEventRequestCalendarPermission(showRationale: false))
                         },
                         isPermissionGranted: homeState?.calenderData.isCalenderPermissionGranted == true
                     )
-                    PermissionCard(
+                    
+                    Divider()
+                        .padding(.leading, 72)
+                    
+                    PermissionRow(
                         title: "Task Management",
-                        description: "Integrate Todoist and see all your daily tasks in one place",
-                        systemImage: "checkmark",
+                        description: "See all your Todoist tasks in one place",
+                        systemImage: "checklist",
                         buttonTitle: "Connect Todoist",
-                        buttonImage: "location.fill",
                         action: {
                             component.onEvent(intent: HomeEventConnectTodoist())
                         },
                         isPermissionGranted: homeState?.todoState.isTodoAuthenticated == true
                     )
+                    
+                    Divider()
                 }
-                .padding(.horizontal)
             }
-            
-            Button("Get Started", systemImage: "arrow.right"){
-                component.onEvent(intent: HomeEventOnBoardingFinish())
+            .safeAreaInset(edge: .bottom) {
+                Button {
+                    component.onEvent(intent: HomeEventOnBoardingFinish())
+                } label: {
+                    Text("Get Started")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .padding()
+                
             }
-            .frame(maxWidth: .infinity)
-            .controlSize(.large)
-            .buttonStyle(.borderedProminent)
-            .buttonBorderShape(.capsule)
-            .padding()
+            .navigationBarTitleDisplayMode(.inline)
         }
-        .onAppear(){
+        .onAppear {
             observeState()
         }
-        
-        
     }
+    
     private func observeState() {
         Task {
             for await state in component.state {
-                print(state)
                 await MainActor.run {
                     self.homeState = state
                 }
@@ -109,76 +119,57 @@ struct OnBoardingScreen: View {
     }
 }
 
-struct PermissionCard: View {
+struct PermissionRow: View {
     let title: String
     let description: String
     let systemImage: String
     let buttonTitle: String
-    let buttonImage: String?
     let action: () -> Void
     let isPermissionGranted: Bool
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-
-            HStack(spacing: 12) {
-                Image(systemName: systemImage)
-                    .font(.system(size: 22, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .frame(width: 44, height: 44)
-                    .background(
-                        Circle()
-                            .fill(isPermissionGranted ? Color.green : Color.blue.opacity(0.9))
-                    )
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(title)
-                        .font(.headline)
-
-                    Text(description)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-
-                Spacer()
-            }
-
-            if isPermissionGranted {
-                HStack {
-                    Image(systemName: "checkmark.circle.fill")
-                    Text("Permission Granted")
-                        .fontWeight(.semibold)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 12)
-                .foregroundStyle(.green)
-                .background(
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(Color.green.opacity(0.15))
-                )
-            } else {
-                Button(action: action) {
-                    HStack {
-                        if let buttonImage {
-                            Image(systemName: buttonImage)
-                        }
-                        Text(buttonTitle)
-                            .fontWeight(.semibold)
-                    }
-                    .frame(maxWidth: .infinity)
+        HStack(spacing: 0) {
+            // Icon Badge
+            ZStack {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(isPermissionGranted ? Color.green.opacity(0.15) : Color.blue.opacity(0.15))
+                    .frame(width: 48, height: 48)
                 
-                }
-                .controlSize(.regular)
-                .buttonBorderShape(.capsule)
-                .buttonStyle(.bordered)
-            
+                Image(systemName: isPermissionGranted ? "checkmark" : systemImage)
+                    .font(.title3)
+                    .foregroundStyle(isPermissionGranted ? .green : .blue)
             }
+            .padding(.horizontal, 16)
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.headline)
+                
+                Text(description)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(.vertical, 16)
+            
+            Spacer()
+            
+            // Trailing action
+            Group {
+                if isPermissionGranted {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(.green)
+                        .font(.title3)
+                } else {
+                    Button(action: action) {
+                        Text(buttonTitle)
+                            .font(.caption)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                }
+            }
+            .padding(.trailing, 16)
         }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .fill(.background)
-        )
-        .animation(.easeInOut, value: isPermissionGranted)
     }
 }
