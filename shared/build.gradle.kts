@@ -57,6 +57,11 @@ kotlin {
             api(libs.essenty.lifecycle)
             api(libs.essenty.stateKeeper)
             api(libs.essenty.instanceKeeper)
+            api("com.splendo.kaluga:base-permissions:1.6.0")
+            api("com.splendo.kaluga:calendar-permissions:1.6.0")
+            api("com.splendo.kaluga:location-permissions:1.6.0")
+
+
 
             // put your Multiplatform dependencies here
         }
