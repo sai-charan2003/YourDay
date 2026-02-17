@@ -26,7 +26,6 @@ struct OnBoardingScreen: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 0) {
-                    // Hero Header
                     VStack(spacing: 16) {
                         Image(resource: MR.images.shared.app_logo_transparent)
                             .font(.system(size: 64))
@@ -37,7 +36,7 @@ struct OnBoardingScreen: View {
                             .fontWeight(.bold)
                             .multilineTextAlignment(.center)
                         
-                        Text("Grant a few permissions to get the most out of your experience")
+                        Text("Your companion for planning your day with current weather conditions, events, and tasks.")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)
@@ -129,13 +128,12 @@ struct PermissionRow: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            // Icon Badge
             ZStack {
                 RoundedRectangle(cornerRadius: 12)
                     .fill(isPermissionGranted ? Color.green.opacity(0.15) : Color.blue.opacity(0.15))
                     .frame(width: 48, height: 48)
                 
-                Image(systemName: isPermissionGranted ? "checkmark" : systemImage)
+                Image(systemName: systemImage)
                     .font(.title3)
                     .foregroundStyle(isPermissionGranted ? .green : .blue)
             }
@@ -153,8 +151,6 @@ struct PermissionRow: View {
             .padding(.vertical, 16)
             
             Spacer()
-            
-            // Trailing action
             Group {
                 if isPermissionGranted {
                     Image(systemName: "checkmark.circle.fill")

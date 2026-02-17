@@ -43,18 +43,6 @@ fun OnBoardingScreen(
 
     LaunchedEffect(Unit) { visible = true }
 
-    LaunchedEffect(component.effects) {
-        component.effects.collectLatest { effect ->
-            when (effect) {
-                HomeViewEffect.RequestCalenderPermission -> {}
-
-                HomeViewEffect.RequestLocationPermission -> {}
-
-                else -> Unit
-            }
-        }
-    }
-
     Scaffold (
         modifier = Modifier.navigationBarsPadding(),
         bottomBar = {
@@ -113,7 +101,7 @@ fun OnBoardingScreen(
                         Spacer(Modifier.height(12.dp))
 
                         Text(
-                            text = "Your all-in-one companion for planning your day with weather updates, calendar events, and to-do lists.",
+                            text = "Your companion for planning your day with current weather conditions, events, and tasks.",
                             style = MaterialTheme.typography.bodyMediumEmphasized,
                             textAlign = TextAlign.Center,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
