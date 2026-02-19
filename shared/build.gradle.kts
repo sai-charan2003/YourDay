@@ -60,6 +60,8 @@ kotlin {
             api("com.splendo.kaluga:base-permissions:1.6.0")
             api("com.splendo.kaluga:calendar-permissions:1.6.0")
             api("com.splendo.kaluga:location-permissions:1.6.0")
+            api("com.cactuscompute:cactus:1.4.1-beta")
+
 
 
 

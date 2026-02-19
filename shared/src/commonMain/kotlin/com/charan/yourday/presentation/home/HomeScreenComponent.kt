@@ -6,6 +6,7 @@ import com.arkivanov.decompose.ComponentContext
 import com.charan.yourday.data.network.responseDTO.TodoistTokenDTO
 import com.charan.yourday.data.repository.CalenderEventsRepo
 import com.charan.yourday.data.repository.DataStoreRepository
+import com.charan.yourday.data.repository.LocalLLMRepository
 import com.charan.yourday.data.repository.LocationServiceRepo
 import com.charan.yourday.data.repository.TodoistRepo
 import com.charan.yourday.data.repository.WeatherRepo
@@ -39,6 +40,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
@@ -69,6 +71,7 @@ class HomeScreenComponent(
     private val calendarEventsRepo: CalenderEventsRepo = get()
     private val todoistRepo: TodoistRepo = get()
     private val dataStoreRepo: DataStoreRepository = get()
+    private val localLLMRepo : LocalLLMRepository = get()
 
     private val permissionsBuilder: PermissionsBuilder = get()
 
@@ -93,8 +96,11 @@ class HomeScreenComponent(
                 getTodoistAccessToken(it)
             }
             errorCode?.let { sendEffect(HomeViewEffect.ShowToast("Unable to authenticate")) }
+            localLLMRepo.downloadModel().collectLatest {  }
         }
         refreshData()
+        generateSummary()
+
     }
 
     fun onEvent(intent: HomeEvent) {
@@ -229,7 +235,7 @@ class HomeScreenComponent(
         OpenURL.openURL(url)
     }
 
-    private fun fetchWeatherData(lat: Double, long: Double) = coroutineScope.launch {
+    private suspend fun fetchWeatherData(lat: Double, long: Double){
         weatherRepo.getCurrentForecast(lat, long).collectLatest { processState ->
 
             when (processState) {
@@ -479,5 +485,78 @@ class HomeScreenComponent(
     private fun sendEffect(effect: HomeViewEffect) = coroutineScope.launch {
         _effects.emit(effect)
     }
+
+    private fun generateSummary() = coroutineScope.launch {
+        val currentState = state.value
+
+        val summaryInput = buildString {
+            appendLine("You are a personal day planning assistant.")
+            appendLine()
+            appendLine("TASK:")
+            appendLine("Write a short, friendly summary for today.")
+            appendLine("Keep it concise and easy to read.")
+            appendLine("Do not invent details.")
+            appendLine()
+
+            appendLine("INPUT:")
+            appendLine()
+
+            // Weather
+            appendLine("Weather:")
+            currentState.weatherState.currentWeather?.let { weather ->
+                appendLine(
+                    "- ${weather.location}, ${weather.temp}°, ${weather.condition}"
+                )
+            } ?: appendLine("- No weather data available")
+            appendLine()
+
+            // Todos (limit and clean)
+            appendLine("Todos:")
+            val todos = currentState.todoState.todoData
+                ?.filterNot { it.isOverDue }
+                ?.take(6)
+                ?: emptyList()
+
+            if (todos.isEmpty()) {
+                appendLine("- No tasks planned")
+            } else {
+                todos.forEach {
+                    appendLine("- ${it.taskName}")
+                }
+            }
+
+            val overdueCount = currentState.todoState.todoData
+                ?.count { it.isOverDue }
+                ?: 0
+
+            if (overdueCount > 0) {
+                appendLine("- $overdueCount overdue task(s)")
+            }
+
+            appendLine()
+
+            // Calendar
+            appendLine("Calendar Today:")
+            val events = currentState.calenderData.calenderData?.take(5)
+
+            if (events.isNullOrEmpty()) {
+                appendLine("- No events scheduled")
+            } else {
+                events.forEach {
+                    appendLine("- ${it.title}")
+                }
+            }
+
+            appendLine()
+            appendLine("OUTPUT:")
+        }
+
+        localLLMRepo.generateDaySummary(input = summaryInput)
+            .collectLatest { summary ->
+                println(summary)
+            }
+    }
+
+
 
 }
