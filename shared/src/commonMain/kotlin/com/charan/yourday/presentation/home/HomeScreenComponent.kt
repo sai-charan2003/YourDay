@@ -1,21 +1,20 @@
 package com.charan.yourday.presentation.home
 
 import com.arkivanov.decompose.ComponentContext
-import com.arkivanov.decompose.router.children.ChildNavState
-import com.arkivanov.essenty.lifecycle.Lifecycle
-import com.arkivanov.essenty.lifecycle.doOnResume
-import com.arkivanov.essenty.lifecycle.subscribe
+import com.charan.yourday.data.model.WeatherData
+import com.charan.yourday.data.network.responseDTO.ForecastClass
 import com.charan.yourday.data.repository.CalenderEventsRepo
 import com.charan.yourday.data.repository.DataStoreRepository
-import com.charan.yourday.data.repository.LocalLLMRepository
 import com.charan.yourday.data.repository.LocationServiceRepo
 import com.charan.yourday.data.repository.TodoistRepo
 import com.charan.yourday.data.repository.WeatherRepo
 import com.charan.yourday.permission.PermissionManager
-import com.charan.yourday.presentation.utils.SummaryPromptBuilder.generateSummaryPrompt
-import com.charan.yourday.presentation.utils.toCurrentWeatherState
-import com.charan.yourday.presentation.utils.toForecastWeatherState
-import com.charan.yourday.presentation.utils.toTodoDataState
+import com.charan.yourday.presentation.toCurrentWeatherState
+import com.charan.yourday.presentation.toForecastWeatherState
+import com.charan.yourday.presentation.toTodoDataState
+import com.charan.yourday.utils.DateUtils
+import com.charan.yourday.utils.DateUtils.getGreeting
+import com.charan.yourday.utils.DateUtils.toDDMMYYYY
 import com.charan.yourday.utils.ErrorCodes
 import com.charan.yourday.utils.OpenURL
 import com.charan.yourday.utils.ProcessState
@@ -35,20 +34,21 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.toLocalDateTime
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
-
+@OptIn(ExperimentalTime::class)
 class HomeScreenComponent(
     val authorizationId: String?,
     private val errorCode: String?,
     private val onSettingsOpen: () -> Unit = {},
     private val onBoardFinish: () -> Unit = {},
-    private val isResumed : Boolean,
     componentContext: ComponentContext
 ) : KoinComponent, ComponentContext by componentContext {
 
@@ -58,7 +58,7 @@ class HomeScreenComponent(
     private val _state = MutableStateFlow(HomeState())
     val state: StateFlow<HomeState> = _state.asStateFlow()
 
-    private val _effects = MutableSharedFlow<HomeViewEffect>()
+    private val _effects = MutableSharedFlow<HomeEffect>()
     val effects = _effects.asSharedFlow()
 
 
@@ -68,7 +68,6 @@ class HomeScreenComponent(
     private val calendarEventsRepo: CalenderEventsRepo = get()
     private val todoistRepo: TodoistRepo = get()
     private val dataStoreRepo: DataStoreRepository = get()
-    private val localLLMRepo: LocalLLMRepository = get()
 
     private val permissionsBuilder: PermissionsBuilder = get()
 
@@ -83,7 +82,6 @@ class HomeScreenComponent(
     private val _isCalendarPermissionGranted = MutableStateFlow(false)
 
     init {
-        println("HomeScreenComponent initialized")
         observeLocationPermission()
         observeCalendarPermission()
         observerWeatherData()
@@ -92,61 +90,67 @@ class HomeScreenComponent(
             authorizationId?.let {
                 getTodoistAccessToken(it)
             }
-            errorCode?.let { sendEffect(HomeViewEffect.ShowToast("Unable to authenticate")) }
+            errorCode?.let { sendEffect(HomeEffect.ShowToast("Unable to authenticate")) }
         }
         refreshData()
-        lifecycle.subscribe(
-            onResume = {
-                if (!_state.value.aiResponseState.isModelDownloaded) {
-                    generateSummary()
-                }
-            }
-        )
-
-
     }
 
-
-    fun onEvent(intent: HomeEvent) {
-        when (intent) {
+    fun onEvent(event: HomeEvent) {
+        when (event) {
             is HomeEvent.RequestLocationPermission -> handleLocationPermission()
             is HomeEvent.RequestCalendarPermission -> handleCalendarPermission()
             HomeEvent.ConnectTodoist -> requestTodoistAuthentication()
             HomeEvent.FetchWeather -> fetchLocationAndWeather()
             HomeEvent.FetchCalendarEvents -> fetchCalendarEvents()
             HomeEvent.DisconnectTodoist -> clearTodoistToken()
-            HomeEvent.OpenSettingsPage -> onSettingsOpen()
-            is HomeEvent.OnOpenLink -> openURL(intent.url)
+            HomeEvent.OpenSettingsPage -> {
+                updateDropdownMenuState(false)
+                onSettingsOpen()
+            }
+            is HomeEvent.OnOpenLink -> openURL(event.url)
             HomeEvent.FetchTodo -> checkTokenAndFetchTasks()
             HomeEvent.RefreshData -> refreshData()
             HomeEvent.OnBoardingFinish -> {
                 onBoardFinish()
             }
-            HomeEvent.OnGenerateAIResponse -> generateSummary()
-
-            HomeEvent.OnToggleThinkingResponse -> {
-                _state.update {
-                    it.copy(
-                        aiResponseState = it.aiResponseState.copy(
-                            showThinkingResponse = !it.aiResponseState.showThinkingResponse
-                        )
-                    )
-                }
+            is HomeEvent.ShowDropdownMenu -> {
+                updateDropdownMenuState(event.show)
             }
         }
     }
 
+    private fun updateDropdownMenuState(show: Boolean) {
+        _state.update {
+            it.copy(
+                showDropDown = show
+            )
+        }
+    }
+
     private fun refreshData() {
+        refreshDateAndGreetings()
         fetchLocationAndWeather()
         fetchCalendarEvents()
         checkTokenAndFetchTasks()
+        updateDropdownMenuState(false)
+    }
+
+
+    private fun refreshDateAndGreetings(){
+        val localDateTime = DateUtils.getCurrentDateTime()
+        _state.update {
+            it.copy(
+                greetings = localDateTime.getGreeting(),
+                currentDateTime = localDateTime.toDDMMYYYY()
+            )
+        }
+
     }
 
     private fun observeLocationPermission() = coroutineScope.launch {
-        permissions[locationPermission].collectLatest { permissionState ->
+        permissions[locationPermission].filter { it !is PermissionState.Uninitialized }.collectLatest { permissionState ->
             val isGranted = permissionState is PermissionState.Allowed
             _isLocationPermissionGranted.value = isGranted
-
             _state.update {
                 it.copy(
                     weatherState = it.weatherState.copy(
@@ -154,8 +158,6 @@ class HomeScreenComponent(
                     )
                 )
             }
-
-
             if (isGranted) {
                 fetchLocationAndWeather()
             }
@@ -163,7 +165,7 @@ class HomeScreenComponent(
     }
 
     private fun observeCalendarPermission() = coroutineScope.launch {
-        permissions[calendarPermission].collectLatest { permissionState ->
+        permissions[calendarPermission].filter { it !is PermissionState.Uninitialized }.collectLatest { permissionState ->
             val isGranted = permissionState is PermissionState.Allowed
             _isCalendarPermissionGranted.value = isGranted
 
@@ -180,49 +182,41 @@ class HomeScreenComponent(
             }
         }
     }
-
     private fun handleLocationPermission() = coroutineScope.launch {
         when (val state = permissions[locationPermission].peekState()) {
             is PermissionState.Allowed -> {
 
                 fetchLocationAndWeather()
             }
-
             is PermissionState.Denied.Requestable,
             is PermissionState.Uninitialized -> {
 
                 permissions.request(locationPermission)
 
             }
-
             is PermissionState.Denied.Locked -> {
 
                 permissionManager.openAppSettings()
 
             }
-
             else -> {}
         }
     }
-
     private fun handleCalendarPermission() = coroutineScope.launch {
         when (val state = permissions[calendarPermission].peekState()) {
             is PermissionState.Allowed -> {
 
                 fetchCalendarEvents()
             }
-
             is PermissionState.Denied.Requestable,
             is PermissionState.Uninitialized -> {
 
                 permissions.request(calendarPermission)
 
             }
-
             is PermissionState.Denied.Locked -> {
                 permissionManager.openAppSettings()
             }
-
             else -> {}
         }
     }
@@ -241,7 +235,7 @@ class HomeScreenComponent(
             if (location != null) {
                 fetchWeatherData(location.latitude!!, location.longitude!!)
             } else {
-                sendEffect(HomeViewEffect.ShowToast("Unable to fetch location"))
+                sendEffect(HomeEffect.ShowToast("Unable to fetch location"))
                 _state.update {
                     it.copy(
                         weatherState = it.weatherState.copy(
@@ -258,7 +252,7 @@ class HomeScreenComponent(
         OpenURL.openURL(url)
     }
 
-    private suspend fun fetchWeatherData(lat: Double, long: Double) {
+    private fun fetchWeatherData(lat: Double, long: Double) = coroutineScope.launch {
         weatherRepo.getCurrentForecast(lat, long).collectLatest { processState ->
 
             when (processState) {
@@ -271,7 +265,7 @@ class HomeScreenComponent(
                             )
                         )
                     }
-                    sendEffect(HomeViewEffect.ShowToast(processState.message))
+                    sendEffect(HomeEffect.ShowToast(processState.message))
                 }
 
                 ProcessState.Loading -> {
@@ -296,8 +290,6 @@ class HomeScreenComponent(
                         )
                     }
                 }
-
-                else -> {}
             }
         }
     }
@@ -316,12 +308,21 @@ class HomeScreenComponent(
                     weatherState = it.weatherState.copy(
                         currentWeather = currentWeatherState,
                         forecastWeather = forecastWeatherState ?: emptyList(),
-                        weatherUnits = weatherUnit.name
+                        weatherUnits = weatherUnit.name,
+                        scrollToForecastCurrentTimeIndex = calculateCurrentForecastIndex(weatherData.forecast ?: emptyList())
                     )
                 )
             }
         }
     }
+    private fun calculateCurrentForecastIndex(
+        forecast: List<WeatherData>,
+    ): Int {
+        return forecast.indexOfFirst { item ->
+            item.time?.hour == DateUtils.getCurrentDateTime().hour
+        }.coerceAtLeast(0)
+    }
+
 
     private fun observeTodoData() = coroutineScope.launch {
         dataStoreRepo.todoData.collectLatest { todoData ->
@@ -353,7 +354,6 @@ class HomeScreenComponent(
         _state.update {
             it.copy(
                 todoState = it.todoState.copy(
-                    isAuthenticating = true,
                     error = null
                 )
             )
@@ -373,7 +373,7 @@ class HomeScreenComponent(
                             )
                         )
                     }
-                    sendEffect(HomeViewEffect.ShowToast(processState.message))
+                    sendEffect(HomeEffect.ShowToast(processState.message))
                 }
 
                 ProcessState.Loading -> {
@@ -400,8 +400,6 @@ class HomeScreenComponent(
                     }
                     fetchTodoistTasks(processState.data.access_token ?: "")
                 }
-
-                else -> {}
             }
         }
     }
@@ -438,8 +436,6 @@ class HomeScreenComponent(
                         )
                     }
                 }
-
-                else -> {}
             }
         }
     }
@@ -447,7 +443,7 @@ class HomeScreenComponent(
     private fun handleTodoistTasksError(message: String) {
         if (message == ErrorCodes.UNAUTHORIZED.name) {
             clearTodoistToken()
-            sendEffect(HomeViewEffect.ShowToast("Session expired. Please connect again."))
+            sendEffect(HomeEffect.ShowToast("Session expired. Please connect again."))
             _state.update {
                 it.copy(
                     todoState = it.todoState.copy(
@@ -466,7 +462,7 @@ class HomeScreenComponent(
                     )
                 )
             }
-            sendEffect(HomeViewEffect.ShowToast(message))
+            sendEffect(HomeEffect.ShowToast(message))
         }
 
     }
@@ -479,7 +475,8 @@ class HomeScreenComponent(
                         todoState = it.todoState.copy(
                             isTodoAuthenticated = false,
                             todoToken = null,
-                            todoData = null
+                            todoData = null,
+                            isLoading = false
                         )
                     )
                 }
@@ -511,104 +508,8 @@ class HomeScreenComponent(
         }
     }
 
-    private fun sendEffect(effect: HomeViewEffect) = coroutineScope.launch {
+    private fun sendEffect(effect: HomeEffect) = coroutineScope.launch {
         _effects.emit(effect)
     }
 
-    private fun checkIfModelIsDownloaded() = coroutineScope.launch {
-//        _state.update {
-//            it.copy(
-//                aiResponseState = it.aiResponseState.copy(
-//                    isModelDownloaded = localLLMRepo.isModelDownloaded()
-//                )
-//            )
-//        }
-    }
-
-    private fun generateSummary() = coroutineScope.launch {
-        println(localLLMRepo.isModelDownloaded())
-        if (localLLMRepo.isModelDownloaded()) {
-            combine(
-                state.map { it.weatherState },
-                state.map { it.todoState },
-                state.map { it.calenderData }
-            ) { weatherState, todoState, calendarState ->
-                val weatherReady = !weatherState.isLoading
-                val todoReady = !todoState.isLoading
-                val calendarReady = !calendarState.isLoading
-                weatherReady && todoReady && calendarReady
-            }
-                .filter { it }
-                .first()
-
-            localLLMRepo.generateDaySummary(input = _state.value.generateSummaryPrompt())
-                .collectLatest { processState ->
-                    when (processState) {
-                        is ProcessState.Error -> {
-                            sendEffect(HomeViewEffect.ShowToast("Failed to generate summary: ${processState.message}"))
-                        }
-
-                        ProcessState.Loading -> {
-                            _state.update {
-                                it.copy(
-                                    aiResponseState = it.aiResponseState.copy(
-                                        isGenerating = true,
-                                        error = null,
-                                        isModelDownloaded = true
-                                    )
-                                )
-                            }
-                        }
-
-                        ProcessState.NotDetermined -> {}
-                        is ProcessState.Success -> {
-                            _state.update {
-                                it.copy(
-                                    aiResponseState = it.aiResponseState.copy(
-                                        isGenerating = false,
-                                        error = null,
-                                        aiResponse = processState.data.aiResponse,
-                                        thinkingResponse = processState.data.thinkingResponse,
-                                        modelName = processState.data.modelName,
-                                        isThinking = processState.data.isThinking
-                                    )
-                                )
-                            }
-
-                        }
-
-                        is ProcessState.Streaming -> {
-                            _state.update {
-                                it.copy(
-                                    aiResponseState = it.aiResponseState.copy(
-                                        isGenerating = true,
-                                        error = null,
-                                        aiResponse = processState.partialData.aiResponse,
-                                        thinkingResponse = processState.partialData.thinkingResponse,
-                                        modelName = processState.partialData.modelName,
-                                        isThinking = processState.partialData.isThinking
-                                    )
-                                )
-                            }
-                        }
-
-                        else -> {}
-
-                    }
-
-                }
-        } else {
-            _state.update {
-                it.copy(
-                    aiResponseState = it.aiResponseState.copy(
-                        isModelDownloaded = false,
-                        error = "AI model not downloaded"
-                    )
-                )
-            }
-        }
-    }
 }
-
-
-
