@@ -36,7 +36,7 @@ import org.koin.dsl.module
                 }
         }
 
-        single <LocalLLMRepository>{ LocalLLMRepositoryImpl(get()) }
+        single <LocalLLMRepository>{ LocalLLMRepositoryImpl(get(),get()) }
 
         single <CactusLM>{ CactusLM() }
 

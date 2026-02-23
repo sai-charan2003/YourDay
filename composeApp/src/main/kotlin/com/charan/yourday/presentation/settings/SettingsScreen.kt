@@ -6,6 +6,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -16,6 +19,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LargeFlexibleTopAppBar
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -114,6 +118,46 @@ fun SettingsScreen(
                     }
                 )
                 SectionDivider()
+            }
+
+            item {
+                SectionHeader(title = "AI Model")
+                SettingItem(
+                    label = "qwen3-0.6",
+                    trailingContent = {
+                        if(state.isAIModelDownloaded){
+                            IconButton(
+                                onClick = {
+                                    component.onEvent(SettingsEvents.OnDeleteAIModel)
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "Delete model",
+                                    tint = Color.Red
+                                )
+
+                            }
+                        } else{
+                            if(!(state.isAiModelDownloading)) {
+                                IconButton(
+                                    onClick = {
+                                        component.onEvent(SettingsEvents.OnDownloadAIModel)
+                                    },
+                                    shapes = IconButtonDefaults.shapes()
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Download,
+                                        contentDescription = "Download model",
+                                    )
+                                }
+                            } else{
+                                LoadingIndicator()
+                            }
+                        }
+                    }
+                )
+                 SectionDivider()
             }
 
             item {

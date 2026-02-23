@@ -17,7 +17,7 @@ kotlin {
         namespace = "com.charan.yourday.shared"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
     }
-    
+
     listOf(
         iosX64(),
         iosArm64(),
@@ -29,6 +29,8 @@ kotlin {
             export(libs.graphics)
             export(libs.decompose)
             export(libs.essenty.lifecycle)
+            linkerOpts("-framework", "CoreML")
+
         }
     }
     
