@@ -16,7 +16,8 @@ data class HomeState(
     val isRefreshing : Boolean = false,
     val showDropDown : Boolean = false,
     val greetings : String = "",
-    val currentDateTime : String = ""
+    val currentDateTime : String = "",
+    val aiResponseState : AIResponseState = AIResponseState()
 )
 
 data class WeatherState(
@@ -70,5 +71,14 @@ data class CalenderState(
     val error : String? = null,
     val lastSycned: String? = null
 )
-
+data class AIResponseState(
+    val isModelDownloaded : Boolean = false,
+    val modelName : String? = null,
+    val isGenerating : Boolean = false,
+    val aiResponse : String? = null,
+    val error : String? = null,
+    val thinkingResponse : String? = null,
+    val showThinkingResponse : Boolean = true,
+    val isThinking : Boolean = false
+)
 

@@ -69,7 +69,6 @@ class RootComponent(
                     onSettingsOpen = {
                         navigation.pushNew(Configuration.SettingsScreen)
                     },
-                    isResumed = lifecycle.state == Lifecycle.State.RESUMED
                 )
             )
             Configuration.SettingsScreen -> Child.SettingsScreen(
@@ -100,7 +99,6 @@ class RootComponent(
                     onBoardFinish = {
                         finishOnBoard()
                     },
-                    isResumed = false
 
                 )
             )

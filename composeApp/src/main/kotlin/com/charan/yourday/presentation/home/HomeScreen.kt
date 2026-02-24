@@ -49,6 +49,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import com.charan.yourday.presentation.common.CustomDropDown
 import com.charan.yourday.presentation.common.DropDownItem
+import com.charan.yourday.presentation.home.components.AIResponseCard
 import com.charan.yourday.presentation.home.components.CalendarCard
 import com.charan.yourday.presentation.home.components.TodoCard
 import com.charan.yourday.presentation.home.components.WeatherCard
@@ -167,6 +168,20 @@ fun HomeScreen(
                             Text(refreshText, modifier = Modifier.animateContentSize())
                         }
                     }
+                }
+
+                if(state.aiResponseState.isModelDownloaded) {
+                    AIResponseCard(
+                        thinkingResponse = state.aiResponseState.thinkingResponse ?: "",
+                        aiResponse = state.aiResponseState.aiResponse ?: "",
+                        isGenerating = state.aiResponseState.isGenerating,
+                        showThinkingText = state.aiResponseState.showThinkingResponse,
+                        onToggleThinking = {
+                            component.onEvent(HomeEvent.OnToggleThinkingResponse)
+                        },
+                        isThinking = state.aiResponseState.isThinking
+                    )
+                    Spacer(Modifier.padding(vertical = 15.dp))
                 }
 
                 WeatherCard(

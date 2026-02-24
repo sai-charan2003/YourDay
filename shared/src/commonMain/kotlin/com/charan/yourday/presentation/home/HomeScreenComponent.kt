@@ -1,17 +1,20 @@
 package com.charan.yourday.presentation.home
 
 import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.essenty.lifecycle.subscribe
 import com.charan.yourday.data.model.WeatherData
 import com.charan.yourday.data.network.responseDTO.ForecastClass
 import com.charan.yourday.data.repository.CalenderEventsRepo
 import com.charan.yourday.data.repository.DataStoreRepository
+import com.charan.yourday.data.repository.LocalLLMRepository
 import com.charan.yourday.data.repository.LocationServiceRepo
 import com.charan.yourday.data.repository.TodoistRepo
 import com.charan.yourday.data.repository.WeatherRepo
 import com.charan.yourday.permission.PermissionManager
-import com.charan.yourday.presentation.toCurrentWeatherState
-import com.charan.yourday.presentation.toForecastWeatherState
-import com.charan.yourday.presentation.toTodoDataState
+import com.charan.yourday.presentation.utils.SummaryPromptBuilder.generateSummaryPrompt
+import com.charan.yourday.presentation.utils.toCurrentWeatherState
+import com.charan.yourday.presentation.utils.toForecastWeatherState
+import com.charan.yourday.presentation.utils.toTodoDataState
 import com.charan.yourday.utils.DateUtils
 import com.charan.yourday.utils.DateUtils.getGreeting
 import com.charan.yourday.utils.DateUtils.toDDMMYYYY
@@ -34,6 +37,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDateTime
@@ -76,6 +81,7 @@ class HomeScreenComponent(
     private val locationPermission = LocationPermission(background = false, precise = true)
 
     private val calendarPermission = CalendarPermission()
+    private val localLLMRepo : LocalLLMRepository = get()
 
     // Cached permission states
     private val _isLocationPermissionGranted = MutableStateFlow(false)
@@ -91,14 +97,22 @@ class HomeScreenComponent(
                 getTodoistAccessToken(it)
             }
             errorCode?.let { sendEffect(HomeEffect.ShowToast("Unable to authenticate")) }
+
+            lifecycle.subscribe(
+                onResume = {
+                    if (!_state.value.aiResponseState.isModelDownloaded) {
+                        generateSummary()
+                    }
+                }
+            )
         }
         refreshData()
     }
 
     fun onEvent(event: HomeEvent) {
         when (event) {
-            is HomeEvent.RequestLocationPermission -> handleLocationPermission()
-            is HomeEvent.RequestCalendarPermission -> handleCalendarPermission()
+            HomeEvent.RequestLocationPermission -> handleLocationPermission()
+            HomeEvent.RequestCalendarPermission -> handleCalendarPermission()
             HomeEvent.ConnectTodoist -> requestTodoistAuthentication()
             HomeEvent.FetchWeather -> fetchLocationAndWeather()
             HomeEvent.FetchCalendarEvents -> fetchCalendarEvents()
@@ -115,6 +129,18 @@ class HomeScreenComponent(
             }
             is HomeEvent.ShowDropdownMenu -> {
                 updateDropdownMenuState(event.show)
+            }
+
+            HomeEvent.OnGenerateAIResponse -> generateSummary()
+
+            HomeEvent.OnToggleThinkingResponse -> {
+                _state.update {
+                    it.copy(
+                        aiResponseState = it.aiResponseState.copy(
+                            showThinkingResponse = !it.aiResponseState.showThinkingResponse
+                        )
+                    )
+                }
             }
         }
     }
@@ -290,6 +316,8 @@ class HomeScreenComponent(
                         )
                     }
                 }
+
+                else -> {}
             }
         }
     }
@@ -400,6 +428,8 @@ class HomeScreenComponent(
                     }
                     fetchTodoistTasks(processState.data.access_token ?: "")
                 }
+
+                else -> {}
             }
         }
     }
@@ -436,6 +466,8 @@ class HomeScreenComponent(
                         )
                     }
                 }
+
+                else -> {}
             }
         }
     }
@@ -505,6 +537,90 @@ class HomeScreenComponent(
                     todoData = null
                 )
             )
+        }
+    }
+
+    private fun generateSummary() = coroutineScope.launch {
+        println(localLLMRepo.isModelDownloaded())
+        if (localLLMRepo.isModelDownloaded()) {
+            combine(
+                state.map { it.weatherState },
+                state.map { it.todoState },
+                state.map { it.calenderData }
+            ) { weatherState, todoState, calendarState ->
+                val weatherReady = !weatherState.isLoading
+                val todoReady = !todoState.isLoading
+                val calendarReady = !calendarState.isLoading
+                weatherReady && todoReady && calendarReady
+            }
+                .filter { it }
+                .first()
+
+            localLLMRepo.generateDaySummary(input = _state.value.generateSummaryPrompt())
+                .collectLatest { processState ->
+                    when (processState) {
+                        is ProcessState.Error -> {
+                            sendEffect(HomeEffect.ShowToast("Failed to generate summary: ${processState.message}"))
+                        }
+
+                        ProcessState.Loading -> {
+                            _state.update {
+                                it.copy(
+                                    aiResponseState = it.aiResponseState.copy(
+                                        isGenerating = true,
+                                        error = null,
+                                        isModelDownloaded = true
+                                    )
+                                )
+                            }
+                        }
+
+                        ProcessState.NotDetermined -> {}
+                        is ProcessState.Success -> {
+                            _state.update {
+                                it.copy(
+                                    aiResponseState = it.aiResponseState.copy(
+                                        isGenerating = false,
+                                        error = null,
+                                        aiResponse = processState.data.aiResponse,
+                                        thinkingResponse = processState.data.thinkingResponse,
+                                        modelName = processState.data.modelName,
+                                        isThinking = processState.data.isThinking
+                                    )
+                                )
+                            }
+
+                        }
+
+                        is ProcessState.Streaming -> {
+                            _state.update {
+                                it.copy(
+                                    aiResponseState = it.aiResponseState.copy(
+                                        isGenerating = true,
+                                        error = null,
+                                        aiResponse = processState.partialData.aiResponse,
+                                        thinkingResponse = processState.partialData.thinkingResponse,
+                                        modelName = processState.partialData.modelName,
+                                        isThinking = processState.partialData.isThinking
+                                    )
+                                )
+                            }
+                        }
+
+                        else -> {}
+
+                    }
+
+                }
+        } else {
+            _state.update {
+                it.copy(
+                    aiResponseState = it.aiResponseState.copy(
+                        isModelDownloaded = false,
+                        error = "AI model not downloaded"
+                    )
+                )
+            }
         }
     }
 

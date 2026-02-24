@@ -52,7 +52,7 @@ struct OnBoardingScreen: View {
                         systemImage: "location.fill",
                         buttonTitle: "Enable Location",
                         action: {
-                            component.onEvent(intent: HomeEventRequestLocationPermission(showRationale: false))
+                            component.onEvent(event: HomeEventRequestLocationPermission())
                         },
                         isPermissionGranted: homeState?.weatherState.isLocationPermissionGranted == true
                     )
@@ -66,7 +66,7 @@ struct OnBoardingScreen: View {
                         systemImage: "calendar",
                         buttonTitle: "Grant Access",
                         action: {
-                            component.onEvent(intent: HomeEventRequestCalendarPermission(showRationale: false))
+                            component.onEvent(event: HomeEventRequestCalendarPermission())
                         },
                         isPermissionGranted: homeState?.calenderData.isCalenderPermissionGranted == true
                     )
@@ -80,7 +80,7 @@ struct OnBoardingScreen: View {
                         systemImage: "checklist",
                         buttonTitle: "Connect Todoist",
                         action: {
-                            component.onEvent(intent: HomeEventConnectTodoist())
+                            component.onEvent(event: HomeEventConnectTodoist())
                         },
                         isPermissionGranted: homeState?.todoState.isTodoAuthenticated == true
                     )
@@ -90,7 +90,7 @@ struct OnBoardingScreen: View {
             }
             .safeAreaInset(edge: .bottom) {
                 Button {
-                    component.onEvent(intent: HomeEventOnBoardingFinish())
+                    component.onEvent(event: HomeEventOnBoardingFinish())
                 } label: {
                     Text("Get Started")
                         .frame(maxWidth: .infinity)

@@ -29,7 +29,7 @@ struct HomeScreenView: View {
             ScrollView {
                 LazyVStack() {
                     VStack(alignment: .leading) {
-                        Text(DateUtils().getGreeting())
+                        Text(homeState?.greetings ?? "")
                             .font(.title2)
                             .bold()
                         Text(DateUtils().getDateInDDMMYYYY())
@@ -46,8 +46,8 @@ struct HomeScreenView: View {
                                 isThinking : aiState.isThinking,
                                 showThinking: aiState.showThinkingResponse,
                                 onExpandToggle: {
-                                    component.onEvent(intent: HomeEventOnToggleThinkingResponse())
-                                }                              
+                                    component.onEvent(event: HomeEventOnToggleThinkingResponse())
+                                }
                                 
                             )
                         }
@@ -60,8 +60,8 @@ struct HomeScreenView: View {
                         )
                     ) {
                         component.onEvent(
-                            intent: HomeEventRequestLocationPermission(
-                                showRationale: permissionObserver.locationPermission == .notGranted
+                            event: HomeEventRequestLocationPermission(
+                            
                             )
                         )
                     }
@@ -73,8 +73,8 @@ struct HomeScreenView: View {
                         )
                     ) {
                         component.onEvent(
-                            intent: HomeEventRequestCalendarPermission(
-                                showRationale: permissionObserver.calendarPermission == .notGranted
+                            event: HomeEventRequestCalendarPermission(
+                                
                             )
                         )
                     }
@@ -82,14 +82,14 @@ struct HomeScreenView: View {
                     
                     TodoCard(
                         onConnectClick: {
-                            component.onEvent(intent: HomeEventConnectTodoist.shared)
+                            component.onEvent(event: HomeEventConnectTodoist.shared)
                         },
                         todoState: Binding(
                             get: { homeState?.todoState },
                             set: { _ in }
                         ),
                         onTodoOpen: { link in
-                            component.onEvent(intent: Shared.HomeEventOnOpenLink(url: link))
+                            component.onEvent(event: Shared.HomeEventOnOpenLink(url: link))
                             
                         }
                     )
@@ -100,18 +100,17 @@ struct HomeScreenView: View {
                 ToolbarItem{
                     Menu("more",systemImage: "ellipsis.circle"){
                         Button("Settings") {
-                            component.onEvent(intent: Shared.HomeEventOpenSettingsPage.shared)
+                            component.onEvent(event: Shared.HomeEventOpenSettingsPage.shared)
                         }
                         
                     }
                 }
             }
             .refreshable {
-                component.onEvent(intent: HomeEventRefreshData.shared)
+                component.onEvent(event: HomeEventRefreshData.shared)
             }
             .onAppear {
                 observeState()
-                observePermissionRequest()
                 checkAndGenerateIfNeeded()
             }
 
@@ -121,7 +120,7 @@ struct HomeScreenView: View {
         .onReceive(permissionObserver.$locationPermission) { permissionState in
             switch permissionState {
             case .granted:
-                component.onEvent(intent: HomeEventFetchWeather.shared)
+                component.onEvent(event: HomeEventFetchWeather.shared)
             default:
                 print("Not Granted")
             }
@@ -130,7 +129,7 @@ struct HomeScreenView: View {
             print(permissionState)
             switch permissionState {
             case .granted:
-                component.onEvent(intent: HomeEventFetchCalendarEvents.shared)
+                component.onEvent(event: HomeEventFetchCalendarEvents.shared)
             default:
                 print("Not Granted")
             }
@@ -138,27 +137,11 @@ struct HomeScreenView: View {
         
     }
     
-    
-    private func observePermissionRequest() {
-        Task {
-            for await effect in component.effects {
-                switch effect {
-                case is Shared.HomeViewEffectRequestCalenderPermission:
-                    getCalendarPermission()
-                case is Shared.HomeViewEffectRequestLocationPermission:
-                    getLocationPermission()
-                case let toastEffect as Shared.HomeViewEffectShowToast:
-                    break
-                default:
-                    break
-                }
-            }
-        }
-    }
+
     
     private func checkAndGenerateIfNeeded() {
         guard homeState?.aiResponseState.isModelDownloaded == false else { return }
-        component.onEvent(intent: HomeEventOnGenerateAIResponse())
+        component.onEvent(event: HomeEventOnGenerateAIResponse())
     }
     
     private func observeState() {
@@ -166,49 +149,6 @@ struct HomeScreenView: View {
             for await state in component.state {
                 homeState = state
             }
-        }
-    }
-    
-    
-    
-    private func getCalendarPermission() {
-        let eventStore = EKEventStore()
-        let status = EKEventStore.authorizationStatus(for: .event)
-        switch status {
-        case .notDetermined:
-            eventStore.requestAccess(to: .event) { granted, error in
-                if let error = error {
-                    print("Error requesting access: \(error.localizedDescription)")
-                    return
-                }
-                DispatchQueue.main.async {
-                    if granted {
-                        component.onEvent(intent: HomeEventFetchCalendarEvents.shared)
-                    } else {
-                        print("Calendar access denied")
-                    }
-                }
-            }
-        case .authorized:
-            component.onEvent(intent: HomeEventFetchCalendarEvents.shared)
-        case .denied, .restricted:
-            component.onEvent(intent: HomeEventRequestCalendarPermission(showRationale: true))
-        @unknown default:
-            print("Unknown authorization status")
-        }
-    }
-    
-    private func getLocationPermission() {
-        let status = CLLocationManager.authorizationStatus()
-        switch status {
-        case .notDetermined:
-            CLLocationManager().requestWhenInUseAuthorization()
-        case .authorizedWhenInUse, .authorizedAlways:
-            component.onEvent(intent: HomeEventFetchWeather.shared)
-        case .denied, .restricted:
-            component.onEvent(intent: HomeEventRequestCalendarPermission(showRationale: false))
-        @unknown default:
-            print("Unknown authorization status")
         }
     }
 }
