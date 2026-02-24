@@ -25,5 +25,9 @@ interface DataStoreRepository {
 
     suspend fun setTodoData(todoData: List<TodoData>)
 
+    val isModelDownloaded : Flow<Boolean>
+
+        suspend fun setModelDownloaded(isDownloaded : Boolean)
+
 
 }

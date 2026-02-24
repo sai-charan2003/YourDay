@@ -17,7 +17,7 @@ kotlin {
         namespace = "com.charan.yourday.shared"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
     }
-    
+
     listOf(
         iosX64(),
         iosArm64(),
@@ -29,6 +29,8 @@ kotlin {
             export(libs.graphics)
             export(libs.decompose)
             export(libs.essenty.lifecycle)
+            linkerOpts("-framework", "CoreML")
+
         }
     }
     
@@ -60,6 +62,8 @@ kotlin {
             api("com.splendo.kaluga:base-permissions:1.6.0")
             api("com.splendo.kaluga:calendar-permissions:1.6.0")
             api("com.splendo.kaluga:location-permissions:1.6.0")
+            api("com.cactuscompute:cactus:1.4.1-beta")
+
 
 
 
