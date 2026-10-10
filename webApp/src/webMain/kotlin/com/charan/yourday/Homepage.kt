@@ -373,7 +373,7 @@ private fun HowItsBuilt() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 100.dp),
+            .padding(bottom = 100.dp),
     ) {
         SectionTitle(
             title = "Built With :",
@@ -486,7 +486,7 @@ private fun Footer(onOpenGitHub: () -> Unit) {
         val interactionSource = remember { MutableInteractionSource() }
         val isHovered by interactionSource.collectIsHoveredAsState()
         AppText(
-            text = "Source on GitHub ↗",
+            text = "Source on GitHub",
             style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Medium),
             color = if (isHovered) Color.White else ZincMuted,
             modifier = Modifier

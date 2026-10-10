@@ -21,3 +21,4 @@ captures
 /composeApp/src/debug/
 iosApp/iosApp/GoogleService-Info.plist
 .hotswan/
+.vercel
