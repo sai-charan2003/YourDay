@@ -111,7 +111,7 @@ fun Homepage() {
         ) {
             item { PageSection { Hero(onOpenGitHub = openGitHub) } }
             item { PageSection { HowItsBuilt() } }
-            item { PageSection(maxWidth = 1180.dp) { Screenshots() } }
+            item { PageSection(maxWidth = 920.dp) { Screenshots() } }
 
             item { PageSection { Footer(onOpenGitHub = openGitHub) } }
         }
