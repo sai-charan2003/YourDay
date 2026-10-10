@@ -38,13 +38,13 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.browser.window
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import yourday.webapp.generated.resources.Res
@@ -58,9 +58,20 @@ import yourday.webapp.generated.resources.shot_android_onboarding
 import yourday.webapp.generated.resources.shot_ios_home_screen
 import yourday.webapp.generated.resources.shot_ios_onboarding
 
-private const val GITHUB_URL = "https://github.com/sai-charan2003/YourDay"
+private const val GITHUB_URL = "https://github.com/sai0x20charan/YourDay"
 private val ContentMaxWidth = 1040.dp
 private val Hairline = Color(0x14FFFFFF)
+
+internal fun openExternalUrl(url: String) {
+    try {
+        val target = window.open(url, "_blank")
+        if (target == null || target.closed) {
+            window.location.href = url
+        }
+    } catch (_: Throwable) {
+        window.location.href = url
+    }
+}
 
 private enum class ShowcaseCategory(
     val title: String,
@@ -82,8 +93,7 @@ private enum class ShowcaseCategory(
 
 @Composable
 fun Homepage() {
-    val uriHandler = LocalUriHandler.current
-    val openGitHub = { uriHandler.openUri(GITHUB_URL) }
+    val openGitHub = { openExternalUrl(GITHUB_URL) }
 
     Box(
         modifier = Modifier
