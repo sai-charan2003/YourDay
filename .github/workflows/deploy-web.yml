@@ -34,7 +34,6 @@ jobs:
         run: ./gradlew :webApp:jsBrowserDistribution --no-daemon
 
       - name: Deploy to Vercel
-        if: ${{ secrets.VERCEL_TOKEN != '' }}
         uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
