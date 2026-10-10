@@ -44,9 +44,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.browser.document
 import kotlinx.browser.window
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
+import org.w3c.dom.HTMLAnchorElement
 import yourday.webapp.generated.resources.Res
 import yourday.webapp.generated.resources.ic_github
 import yourday.webapp.generated.resources.ic_jetpack_compose
@@ -62,14 +64,22 @@ private const val GITHUB_URL = "https://github.com/sai0x20charan/YourDay"
 private val ContentMaxWidth = 1040.dp
 private val Hairline = Color(0x14FFFFFF)
 
-internal fun openExternalUrl(url: String) {
+internal fun openInNewTab(url: String) {
     try {
-        val target = window.open(url, "_blank")
-        if (target == null || target.closed) {
-            window.location.href = url
-        }
+        val anchor = document.createElement("a") as HTMLAnchorElement
+        anchor.href = url
+        anchor.target = "_blank"
+        anchor.rel = "noopener noreferrer"
+        val body = document.body
+        body?.appendChild(anchor)
+        anchor.click()
+        body?.removeChild(anchor)
     } catch (_: Throwable) {
-        window.location.href = url
+        try {
+            window.open(url, "_blank")
+        } catch (_: Throwable) {
+            // Ignored
+        }
     }
 }
 
@@ -93,7 +103,7 @@ private enum class ShowcaseCategory(
 
 @Composable
 fun Homepage() {
-    val openGitHub = { openExternalUrl(GITHUB_URL) }
+    val openGitHub = { openInNewTab(GITHUB_URL) }
 
     Box(
         modifier = Modifier
