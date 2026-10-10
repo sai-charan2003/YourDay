@@ -7,6 +7,7 @@ android-targetSdk = "37"
 androidx-activityCompose = "1.13.0"
 componentsResources = "1.12.1"
 compose-multiplatform = "1.12.1"
+composeunstyled = "2.10.0"
 coreSplashscreen = "1.2.0"
 foundation = "1.12.1"
 kotlin = "2.4.20"
@@ -42,6 +43,7 @@ firebaseBom = "34.19.0"
 
 [libraries]
 # Firebase BOM & modules
+composeunstyled = { module = "com.composables:composeunstyled", version.ref = "composeunstyled" }
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
 firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics" }
 
