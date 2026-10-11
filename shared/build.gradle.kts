@@ -17,6 +17,11 @@ koinCompiler {
     strictSafety = false
     userLogs = true
 }
+skie {
+    features {
+        enableSwiftUIObservingPreview = true
+    }
+}
 
 kotlin {
 

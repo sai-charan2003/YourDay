@@ -11,7 +11,7 @@ import Shared
 
 struct TodoCard: View {
     var onConnectClick: (() -> Void)
-    @Binding var todoState: Shared.TodoState?
+    var todoState: Shared.TodoState?
     var onTodoOpen: ((_ url : String) -> Void )
 
     var body: some View {

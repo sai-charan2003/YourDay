@@ -10,7 +10,7 @@ import SwiftUI
 import Shared
 
 struct CalendarCard: View {
-    @Binding var calendarState: Shared.CalendarState?
+    let calendarState: Shared.CalendarState?
     var onGrant: () -> Void
 
     var body: some View {

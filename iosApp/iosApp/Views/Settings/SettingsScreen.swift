@@ -1,76 +1,58 @@
-//
-//  SettingsScreen.swift
-//  iosApp
-//
-//  Created by Sai Charan on 17/02/25.
-//  Copyright © 2025 orgName. All rights reserved.
-//
-
 import SwiftUI
 import Shared
-struct SettingsScreen: View {
-    var component : SettingsScreenComponent
-    @State var state : Shared.SettingsState?
-    @State var weatherUnit : String?
-    var body: some View {
-        List {
-            Section(
-                header: Text("Preferences")
-            ){
-                Picker("Temperature Units", selection: Binding(
-                    get: { state?.weatherUnits ?? "" },
-                    set: { newValue in
-                        component.onEvent(event: Shared.SettingsEvents.OnChangeWeatherUnits(weatherUnit: newValue))
-                    }
-                )) {
-                    ForEach(Shared.WeatherUnitsEnums.allCases, id: \.self) { item in
-                        let unitsString = switch item {
-                        case .c: WeatherUnits.shared.C
-                        case .f: WeatherUnits.shared.F
-                        }
 
-                        Text(unitsString).tag(unitsString)
+struct SettingsScreen: View {
+    let component: SettingsScreenComponent
+
+    var body: some View {
+        Observing(component.settingsState) { state in
+            List {
+                Section("Preferences") {
+                    Picker(selection: Binding(
+                        get: { state.weatherUnits ?? WeatherUnits.shared.C },
+                        set: { newValue in
+                            component.onEvent(event: SettingsEvents.OnChangeWeatherUnits(weatherUnit: newValue))
+                        }
+                    )) {
+                        Text("Celsius (°C)").tag(WeatherUnits.shared.C)
+                        Text("Fahrenheit (°F)").tag(WeatherUnits.shared.F)
+                    } label: {
+                        Label("Temperature units", systemImage: "thermometer.medium")
+                    }
+                    .pickerStyle(.menu)
+                    .disabled(state.weatherUnits == nil)
+                }
+
+                Section("Integrations") {
+                    let isConnected = state.isTodoistConnected?.boolValue ?? false
+
+                    HStack {
+                        Label("Todoist", systemImage: "checkmark.circle")
+                        Spacer()
+                        if state.isTodoistConnected == nil {
+                            ProgressView()
+                                .accessibilityLabel("Loading Todoist connection")
+                        } else {
+                            Button(isConnected ? "Disconnect" : "Connect", role: isConnected ? .destructive : nil) {
+                                component.onEvent(event: SettingsEvents.TodoConnect.shared)
+                            }
+                            .buttonStyle(.borderless)
+                        }
                     }
                 }
-                .pickerStyle(MenuPickerStyle())
-                .listRowInsets(.init(top: 0, leading: 20, bottom: 0, trailing: 20))
-                .onChange(of: state?.weatherUnits ?? "") { newValue in
-                    component.onEvent(event: Shared.SettingsEvents.OnChangeWeatherUnits(weatherUnit:newValue))
-                }
-            }
-            Section(
-                header: Text("Integrations")
-            ) {
-                HStack {
-                    Text("Todoist Integration")
-                    Spacer()
-                    Button(state?.isTodoistConnected == false ? "Connect" : "Disconnect") {
-                        component.onEvent(event: Shared.SettingsEvents.TodoConnect.shared)
+
+                Section("About") {
+                    HStack {
+                        Label("App version", systemImage: "info.circle")
+                        Spacer()
+                        Text(state.appVersion ?? "—")
+                            .foregroundStyle(.secondary)
                     }
                 }
             }
-            Section(
-                header: Text("About")
-            ) {
-                HStack {
-                    Text("App version")
-                    Spacer()
-                    Text(state?.appVersion ?? "")
-                }
-            }
-        }
-        .onAppear{
-            observeState()
+            .listStyle(.insetGrouped)
         }
         .toolbarRole(.editor)
         .navigationTitle("Settings")
-    }
-    private func observeState() {
-        Task {
-            for await settingsState in component.settingsState {
-                state = settingsState
-                weatherUnit = state?.weatherUnits
-            }
-        }
     }
 }

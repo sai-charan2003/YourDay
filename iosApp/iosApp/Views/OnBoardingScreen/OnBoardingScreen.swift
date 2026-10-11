@@ -16,8 +16,6 @@ import LocationPermission
 
 struct OnBoardingScreen: View {
     let component: Shared.OnBoardingScreenComponent
-    @State var onBoardingState: Shared.OnBoardingState?
-    
     init(_ component: Shared.OnBoardingScreenComponent) {
         self.component = component
     }
@@ -26,66 +24,70 @@ struct OnBoardingScreen: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 0) {
-                    VStack(spacing: 16) {
-                        Image(resource: MR.images.shared.app_logo_transparent)
-                            .font(.system(size: 64))
-                            .foregroundStyle(.yellow, .orange)
+                    Observing(component.onBoardingState){ state in
                         
-                        Text("Welcome to Your Day")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                            .multilineTextAlignment(.center)
                         
-                        Text("Your companion for planning your day with current weather conditions, events, and tasks.")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
+                        VStack(spacing: 16) {
+                            Image(resource: MR.images.shared.app_logo_transparent)
+                                .font(.system(size: 64))
+                                .foregroundStyle(.yellow, .orange)
+                            
+                            Text("Welcome to Your Day")
+                                .font(.largeTitle)
+                                .fontWeight(.bold)
+                                .multilineTextAlignment(.center)
+                            
+                            Text("Your companion for planning your day with current weather conditions, events, and tasks.")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                        }
+                        .padding(.horizontal, 32)
+                        .padding(.vertical, 40)
+                        
+                        Divider()
+                        
+                        PermissionRow(
+                            title: "Weather Insights",
+                            description: "Real-time weather updates to plan your day",
+                            systemImage: "location.fill",
+                            buttonTitle: "Enable Location",
+                            action: {
+                                component.onEvent(event: OnBoardingEventRequestLocationPermission.shared)
+                            },
+                            isPermissionGranted: state.isLocationPermissionGranted == true
+                        )
+                        
+                        Divider()
+                            .padding(.leading, 72)
+                        
+                        PermissionRow(
+                            title: "Calendar Sync",
+                            description: "Never miss important events and meetings",
+                            systemImage: "calendar",
+                            buttonTitle: "Grant Access",
+                            action: {
+                                component.onEvent(event: OnBoardingEventRequestCalendarPermission.shared)
+                            },
+                            isPermissionGranted: state.isCalendarPermissionGranted == true
+                        )
+                        
+                        Divider()
+                            .padding(.leading, 72)
+                        
+                        PermissionRow(
+                            title: "Task Management",
+                            description: "See all your Todoist tasks in one place",
+                            systemImage: "checklist",
+                            buttonTitle: "Connect Todoist",
+                            action: {
+                                component.onEvent(event: OnBoardingEventConnectTodoist.shared)
+                            },
+                            isPermissionGranted: state.isTodoistConnected == true
+                        )
+                        
+                        Divider()
                     }
-                    .padding(.horizontal, 32)
-                    .padding(.vertical, 40)
-                    
-                    Divider()
-                    
-                    PermissionRow(
-                        title: "Weather Insights",
-                        description: "Real-time weather updates to plan your day",
-                        systemImage: "location.fill",
-                        buttonTitle: "Enable Location",
-                        action: {
-                            component.onEvent(event: OnBoardingEventRequestLocationPermission.shared)
-                        },
-                        isPermissionGranted: onBoardingState?.isLocationPermissionGranted == true
-                    )
-                    
-                    Divider()
-                        .padding(.leading, 72)
-                    
-                    PermissionRow(
-                        title: "Calendar Sync",
-                        description: "Never miss important events and meetings",
-                        systemImage: "calendar",
-                        buttonTitle: "Grant Access",
-                        action: {
-                            component.onEvent(event: OnBoardingEventRequestCalendarPermission.shared)
-                        },
-                        isPermissionGranted: onBoardingState?.isCalendarPermissionGranted == true
-                    )
-                    
-                    Divider()
-                        .padding(.leading, 72)
-                    
-                    PermissionRow(
-                        title: "Task Management",
-                        description: "See all your Todoist tasks in one place",
-                        systemImage: "checklist",
-                        buttonTitle: "Connect Todoist",
-                        action: {
-                            component.onEvent(event: OnBoardingEventConnectTodoist.shared)
-                        },
-                        isPermissionGranted: onBoardingState?.isTodoistConnected == true
-                    )
-                    
-                    Divider()
                 }
             }
             .safeAreaInset(edge: .bottom) {
@@ -101,20 +103,8 @@ struct OnBoardingScreen: View {
             }
             .navigationBarTitleDisplayMode(.inline)
         }
-        .onAppear {
-            observeState()
-        }
     }
-    
-    private func observeState() {
-        Task {
-            for await state in component.onBoardingState {
-                await MainActor.run {
-                    self.onBoardingState = state
-                }
-            }
-        }
-    }
+
 }
 
 struct PermissionRow: View {

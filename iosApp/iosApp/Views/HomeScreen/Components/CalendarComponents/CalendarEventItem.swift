@@ -21,10 +21,10 @@ struct CalendarEventItem: View {
                 .padding(.vertical, 6)
             
             VStack(alignment: .leading) {
-                Text(calendarEvent.getEventName())
+                Text(calendarEvent.title ?? "")
                     .font(.headline)
                 HStack {
-                    Text("\(calendarEvent.getFormatedStartTime()) - \(calendarEvent.getFormatedEndTime())")
+                    Text("\(calendarEvent.stateTime) - \(calendarEvent.endTime)")
                         .font(.caption)
                 }
             }
