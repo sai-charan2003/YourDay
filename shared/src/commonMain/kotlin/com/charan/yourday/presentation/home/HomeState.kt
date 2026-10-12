@@ -21,7 +21,7 @@ data class HomeState(
 data class WeatherState(
     val isLoading: Boolean = false,
     val error: String? = null,
-    val isLocationPermissionGranted: Boolean = true,
+    val isLocationPermissionGranted: Boolean = false,
     val currentWeather: CurrentWeatherState? = null,
     val forecastWeather: List<ForecastWeatherState> = emptyList(),
     val weatherUnits: String = WeatherUnitsEnums.C.name,
@@ -44,10 +44,10 @@ data class ForecastWeatherState(
 
 data class TodoState(
     val isAuthenticating: Boolean = false,
-    val isLoading: Boolean = true,
+    val isLoading: Boolean = false,
     val todoData: List<TodoDataState>? = null,
     val error: String? = null,
-    val isTodoAuthenticated: Boolean = true,
+    val isTodoAuthenticated: Boolean = false,
     val todoToken: String? = null,
     val lastSynced: String? = null
 ) {
@@ -68,7 +68,7 @@ data class TodoDataState(
 data class CalendarState(
     val calendarData: List<CalendarItems>? = null,
     val isLoading: Boolean = false,
-    val isCalendarPermissionGranted: Boolean = true,
+    val isCalendarPermissionGranted: Boolean = false,
     val error: String? = null,
     val lastSynced: String? = null
 ) {

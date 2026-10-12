@@ -12,6 +12,7 @@ import EventKit
 
 struct HomeScreenView: View {
     private let component: HomeScreenComponent
+    @State private var errorMessage: String?
 
     init(_ component: HomeScreenComponent) {
         self.component = component
@@ -21,17 +22,17 @@ struct HomeScreenView: View {
         NavigationView {
             ScrollView {
                 LazyVStack() {
-                    VStack(alignment: .leading) {
-                        Text(DateUtils().getGreeting())
-                            .font(.title2)
-                            .bold()
-                        Text(DateUtils().getDateInDDMMYYYY())
-                            .bold()
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding()
-                    
                     Observing(component.state) { state in
+                        VStack(alignment: .leading) {
+                            Text(state.greetings)
+                                .font(.title2)
+                                .bold()
+                            Text(state.currentDateTime)
+                                .bold()
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding()
+
                         WeatherCard(weatherState: state.weatherState) {
                             component.onEvent(
                                 event: HomeEventRequestLocationPermission.shared
@@ -66,7 +67,28 @@ struct HomeScreenView: View {
             }
         }
         .refreshable {
-            component.onEvent(event: HomeEventRefreshData.shared)
+            do {
+                try await component.refresh()
+            } catch is CancellationError {
+                // Leaving the screen cancels the refresh action.
+            } catch {
+                errorMessage = error.localizedDescription
+            }
+        }
+        .task {
+            for await effect in component.effects {
+                if let toast = effect as? HomeEffectShowToast {
+                    errorMessage = toast.message
+                }
+            }
+        }
+        .alert("YourDay", isPresented: Binding(
+            get: { errorMessage != nil },
+            set: { if !$0 { errorMessage = nil } }
+        )) {
+            Button("OK", role: .cancel) { errorMessage = nil }
+        } message: {
+            Text(errorMessage ?? "")
         }
     }
 }

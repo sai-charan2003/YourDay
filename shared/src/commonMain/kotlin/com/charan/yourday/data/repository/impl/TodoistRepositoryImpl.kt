@@ -11,6 +11,7 @@ import com.charan.yourday.data.remote.todoist.datasource.TodoistRemoteDataSource
 import com.charan.yourday.data.repository.TodoistRepository
 import com.charan.yourday.data.repository.UserPreferencesRepository
 import com.charan.yourday.utils.OpenURL
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -57,7 +58,7 @@ class TodoistRepositoryImpl(
             val token = tokenDTO.access_token ?: error("Access token is null")
             userPreferencesRepository.setTodoistAccessToken(token)
             token
-        }
+        }.onFailure { if (it is CancellationException) throw it }
     }
 
     override suspend fun refreshTasks(): Result<List<TodoData>> {
@@ -75,7 +76,7 @@ class TodoistRepositoryImpl(
                 preferences[TODO_DATA_KEY] = json.encodeToString(mapped)
             }
             mapped
-        }
+        }.onFailure { if (it is CancellationException) throw it }
     }
 
     override suspend fun disconnect() {

@@ -29,9 +29,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -59,6 +62,14 @@ fun HomeScreen(
     component: HomeScreenComponent,
 ) {
     val state by component.state.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(component) {
+        component.effects.collect { effect ->
+            when (effect) {
+                is HomeEffect.ShowToast -> snackbarHostState.showSnackbar(effect.message)
+            }
+        }
+    }
     val scroll = TopAppBarDefaults.enterAlwaysScrollBehavior()
     val pullToRefreshState = rememberPullRefreshState(
         refreshing = state.isRefreshing,
@@ -91,6 +102,7 @@ fun HomeScreen(
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             CustomLargeFlexibleTopAppBar(
                 title = { Text(state.greetings) },

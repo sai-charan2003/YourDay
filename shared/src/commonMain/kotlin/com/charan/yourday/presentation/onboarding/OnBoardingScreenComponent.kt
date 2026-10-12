@@ -1,6 +1,7 @@
 package com.charan.yourday.presentation.onboarding
 
 import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.essenty.lifecycle.doOnDestroy
 import com.charan.yourday.data.repository.TodoistRepository
 import com.charan.yourday.data.repository.UserPreferencesRepository
 import com.charan.yourday.permission.PermissionManager
@@ -10,7 +11,12 @@ import com.splendo.kaluga.permissions.base.Permissions
 import com.splendo.kaluga.permissions.base.PermissionsBuilder
 import com.splendo.kaluga.permissions.calendar.CalendarPermission
 import com.splendo.kaluga.permissions.location.LocationPermission
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -21,21 +27,23 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.get
+import org.koin.mp.KoinPlatform
 
 class OnBoardingScreenComponent(
     componentContext: ComponentContext,
     val onFinish: () -> Unit,
     val authorizationId: String? = null,
-) : ComponentContext by componentContext, KoinComponent {
+    private val todoistRepository: TodoistRepository = KoinPlatform.getKoin().get(),
+    private val userPreferencesRepository: UserPreferencesRepository = KoinPlatform.getKoin().get(),
+    private val permissionManager: PermissionManager = KoinPlatform.getKoin().get(),
+    private val permissions: Permissions = Permissions(KoinPlatform.getKoin().get<PermissionsBuilder>()),
+    private val dispatcher: CoroutineDispatcher = Dispatchers.Main
+) : ComponentContext by componentContext {
 
-    private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-    private val todoistRepository: TodoistRepository = get()
-    private val userPreferencesRepository: UserPreferencesRepository = get()
-    private val permissionManager: PermissionManager = get()
-    private val permissionsBuilder: PermissionsBuilder = get()
-    private val permissions = Permissions(permissionsBuilder)
+    private val coroutineScope = CoroutineScope(SupervisorJob() + dispatcher)
+    private var locationPermissionJob: Job? = null
+    private var calendarPermissionJob: Job? = null
+    private var authenticationJob: Job? = null
     private val locationPermission = LocationPermission(background = false, precise = true)
     private val calendarPermission = CalendarPermission()
 
@@ -46,17 +54,11 @@ class OnBoardingScreenComponent(
     val onBoardingEffect = _onBoardingEffect.asSharedFlow()
 
     init {
+        lifecycle.doOnDestroy { coroutineScope.cancel() }
+        authorizationId?.let { handleAuthorizationCode(it) }
         observeLocationPermission()
         observeCalendarPermission()
         observeTodoistAuth()
-
-        authorizationId?.let {
-            coroutineScope.launch {
-                todoistRepository.exchangeToken(it).onSuccess {
-                    _onBoardingState.update { state -> state.copy(isTodoistConnected = true) }
-                }
-            }
-        }
     }
 
     private fun observeLocationPermission() = coroutineScope.launch {
@@ -75,11 +77,12 @@ class OnBoardingScreenComponent(
 
     private fun observeTodoistAuth() = coroutineScope.launch {
         userPreferencesRepository.todoistAccessToken.collectLatest { token ->
-            _onBoardingState.update { it.copy(isTodoistConnected = !token.isNullOrEmpty()) }
+            _onBoardingState.update { it.copy(isTodoistConnected = !token.isNullOrBlank()) }
         }
     }
 
     fun onEvent(event: OnBoardingEvent) {
+        if (!coroutineScope.isActive) return
         when (event) {
             is OnBoardingEvent.RequestLocationPermission,
             is OnBoardingEvent.onLocationPermissionGrant -> handleLocationPermission()
@@ -95,32 +98,81 @@ class OnBoardingScreenComponent(
         }
     }
 
-    private fun handleLocationPermission() = coroutineScope.launch {
-        when (permissions[locationPermission].peekState()) {
-            is PermissionState.Allowed -> {
-                _onBoardingState.update { it.copy(isLocationPermissionGranted = true) }
+    private fun handleLocationPermission() {
+        if (locationPermissionJob?.isActive == true) return
+
+        locationPermissionJob = coroutineScope.launch {
+            _onBoardingState.update { it.copy(error = null) }
+            try {
+                when (permissions[locationPermission].peekState()) {
+                    is PermissionState.Allowed -> {
+                        _onBoardingState.update { it.copy(isLocationPermissionGranted = true) }
+                    }
+                    is PermissionState.Denied.Requestable,
+                    is PermissionState.Uninitialized -> permissions.request(locationPermission)
+                    is PermissionState.Denied.Locked -> permissionManager.openAppSettings()
+                    else -> {}
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                _onBoardingState.update { it.copy(error = error.message ?: "Unable to request location permission") }
             }
-            is PermissionState.Denied.Requestable,
-            is PermissionState.Uninitialized -> permissions.request(locationPermission)
-            is PermissionState.Denied.Locked -> permissionManager.openAppSettings()
-            else -> {}
         }
     }
 
-    private fun handleCalendarPermission() = coroutineScope.launch {
-        when (permissions[calendarPermission].peekState()) {
-            is PermissionState.Allowed -> {
-                _onBoardingState.update { it.copy(isCalendarPermissionGranted = true) }
+    private fun handleCalendarPermission() {
+        if (calendarPermissionJob?.isActive == true) return
+
+        calendarPermissionJob = coroutineScope.launch {
+            _onBoardingState.update { it.copy(error = null) }
+            try {
+                when (permissions[calendarPermission].peekState()) {
+                    is PermissionState.Allowed -> {
+                        _onBoardingState.update { it.copy(isCalendarPermissionGranted = true) }
+                    }
+                    is PermissionState.Denied.Requestable,
+                    is PermissionState.Uninitialized -> permissions.request(calendarPermission)
+                    is PermissionState.Denied.Locked -> permissionManager.openAppSettings()
+                    else -> {}
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                _onBoardingState.update { it.copy(error = error.message ?: "Unable to request calendar permission") }
             }
-            is PermissionState.Denied.Requestable,
-            is PermissionState.Uninitialized -> permissions.request(calendarPermission)
-            is PermissionState.Denied.Locked -> permissionManager.openAppSettings()
-            else -> {}
         }
     }
 
-    private fun connectTodoist() = coroutineScope.launch {
-        todoistRepository.requestAuthorization()
+    private fun connectTodoist() {
+        if (authenticationJob?.isActive == true) return
+
+        authenticationJob = coroutineScope.launch {
+            _onBoardingState.update { it.copy(error = null) }
+            try {
+                todoistRepository.requestAuthorization()
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                _onBoardingState.update { it.copy(error = error.message ?: "Unable to connect Todoist") }
+            }
+        }
+    }
+
+    private fun handleAuthorizationCode(code: String) {
+        if (authenticationJob?.isActive == true) return
+
+        authenticationJob = coroutineScope.launch {
+            _onBoardingState.update { it.copy(error = null) }
+            try {
+                todoistRepository.exchangeToken(code).getOrThrow()
+                _onBoardingState.update { it.copy(isTodoistConnected = true) }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                _onBoardingState.update { it.copy(error = error.message ?: "Authentication failed") }
+            }
+        }
     }
 
     private fun checkPermissions() {

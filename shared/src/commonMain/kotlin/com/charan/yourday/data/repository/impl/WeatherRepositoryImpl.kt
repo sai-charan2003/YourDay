@@ -8,6 +8,7 @@ import com.charan.yourday.data.mapper.toWeatherData
 import com.charan.yourday.data.model.WeatherData
 import com.charan.yourday.data.remote.weather.datasource.WeatherRemoteDataSource
 import com.charan.yourday.data.repository.WeatherRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.encodeToString
@@ -44,6 +45,6 @@ class WeatherRepositoryImpl(
                 preferences[WEATHER_DATA_KEY] = json.encodeToString(mapped)
             }
             mapped
-        }
+        }.onFailure { if (it is CancellationException) throw it }
     }
 }

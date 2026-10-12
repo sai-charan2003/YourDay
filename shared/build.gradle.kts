@@ -33,7 +33,7 @@ kotlin {
             }
         }
     }
-    
+
     listOf(
         iosX64(),
         iosArm64(),
@@ -47,7 +47,7 @@ kotlin {
             export(libs.essenty.lifecycle)
         }
     }
-    
+
     sourceSets {
         commonMain.dependencies {
             // Ktor BOM & clients

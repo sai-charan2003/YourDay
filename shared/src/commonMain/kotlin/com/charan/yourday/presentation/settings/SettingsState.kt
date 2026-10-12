@@ -11,5 +11,6 @@ data class SettingsState(
         DropDownItem(WeatherUnits.F)
     ),
     val appVersion: String? = null,
-    val showDropDown: Boolean = false
+    val showDropDown: Boolean = false,
+    val error: String? = null
 )
