@@ -1,195 +1,149 @@
-name: Publish Android to Play internal testing
+name: Release
 
 on:
   push:
     tags:
       - 'v*'
-  workflow_dispatch:
-    inputs:
-      version_name:
-        description: Version name shown to testers
-        required: true
-        default: '0.0.2'
-        type: string
-
-concurrency:
-  group: yourday-play-internal
-  cancel-in-progress: false
+      - '*-mobile*'
+      - '*-v*'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  publish-internal:
-    name: Build, publish and verify internal release
-    if: github.event_name == 'push' || github.ref == 'refs/heads/master'
+  build-release:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
-    permissions:
-      contents: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
+      - name: Setup JDK
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
-          distribution: 'zulu'
+          distribution: temurin
+          java-version: 17
 
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Install Play verification dependencies
-        run: python -m pip install 'google-auth[requests]==2.40.3'
-
-      - name: Restore release credentials
+      - name: Restore keystore and google services
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
           GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
-          KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD || secrets.KEYSTORE_PASSWORD }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          mkdir -p composeApp/src/release
+
+          # Keystore
+          echo "$KEYSTORE_BASE64" | base64 --decode > composeApp/src/release/Yourday_key.jks
+
+          # google-services
+          echo "$GOOGLE_SERVICES_JSON_BASE64" | base64 --decode > composeApp/src/release/google-services.json
+
+          # keystore.properties
+          echo "storeFile=composeApp/src/release/Yourday_key.jks" > keystore.properties
+          echo "storePassword=$KEYSTORE_PASSWORD" >> keystore.properties
+          echo "keyAlias=$KEY_ALIAS" >> keystore.properties
+          echo "keyPassword=$KEY_PASSWORD" >> keystore.properties
+
+      - name: Determine Release Type
+        run: |
+          TAG="$GITHUB_REF_NAME"
+          CLEAN_VERSION="${TAG#v}"
+
+          # Check for beta tag
+          if [[ "$CLEAN_VERSION" == *-beta* ]]; then
+            IS_BETA=true
+            CLEAN_VERSION="${CLEAN_VERSION/-beta/}"
+          else
+            IS_BETA=false
+          fi
+
+          VERSION_NAME="${CLEAN_VERSION/-mobile/}"
+          VERSION_NAME="${VERSION_NAME/-v/}"
+          RELEASE_TITLE="Your Day v${VERSION_NAME}"
+
+          if [ "$IS_BETA" = "true" ]; then
+            RELEASE_TITLE="${RELEASE_TITLE} (Beta)"
+          fi
+
+          echo "IS_BETA=$IS_BETA" >> "$GITHUB_ENV"
+          echo "VERSION_NAME=$VERSION_NAME" >> "$GITHUB_ENV"
+          echo "RELEASE_TITLE=$RELEASE_TITLE" >> "$GITHUB_ENV"
+
+      - name: Debug Version Info
+        run: |
+          echo "Tag: $GITHUB_REF_NAME"
+          echo "Version: $VERSION_NAME"
+          echo "Is Beta: $IS_BETA"
+          echo "Release Title: $RELEASE_TITLE"
+
+      - name: Create local.properties
+        env:
           API_KEY: ${{ secrets.API_KEY }}
           TODOIST_CLIENT_ID: ${{ secrets.TODOIST_CLIENT_ID }}
           TODOIST_CLIENT_SECRET: ${{ secrets.TODOIST_CLIENT_SECRET }}
-          SERVICE_ACCOUNT_JSON: ${{ secrets.SERVICE_ACCOUNT_JSON }}
         run: |
-          python - <<'PY'
-          import base64
-          import json
-          import os
-          from pathlib import Path
+          echo "API_KEY=$API_KEY" > local.properties
+          echo "TODOIST_CLIENT_ID=$TODOIST_CLIENT_ID" >> local.properties
+          echo "TODOIST_CLIENT_SECRET=$TODOIST_CLIENT_SECRET" >> local.properties
 
-          required = ["KEYSTORE_BASE64", "GOOGLE_SERVICES_JSON_BASE64", "KEY_STORE_PASSWORD",
-                      "KEY_PASSWORD", "KEY_ALIAS", "API_KEY", "TODOIST_CLIENT_ID",
-                      "TODOIST_CLIENT_SECRET", "SERVICE_ACCOUNT_JSON"]
-          missing = [key for key in required if not os.environ.get(key)]
-          if missing:
-              raise SystemExit("Missing repository secrets: " + ", ".join(missing))
-          os.umask(0o077)
-          release = Path("composeApp/src/release")
-          release.mkdir(parents=True, exist_ok=True)
-          keystore = release / "Yourday_key.jks"
-          keystore.write_bytes(base64.b64decode("".join(os.environ["KEYSTORE_BASE64"].split()), validate=True))
-          services = base64.b64decode("".join(os.environ["GOOGLE_SERVICES_JSON_BASE64"].split()), validate=True)
-          packages = [client["client_info"]["android_client_info"]["package_name"]
-                      for client in json.loads(services).get("client", [])]
-          if "com.charan.yourday" not in packages:
-              raise SystemExit("Google services config must include com.charan.yourday")
-          (release / "google-services.json").write_bytes(services)
-          account = json.loads(os.environ["SERVICE_ACCOUNT_JSON"])
-          if account.get("type") != "service_account":
-              raise SystemExit("SERVICE_ACCOUNT_JSON must be a Google service-account key")
-          (Path(os.environ["RUNNER_TEMP"]) / "yourday-play-service-account.json").write_text(json.dumps(account))
+      - name: Release Build
+        run: ./gradlew :composeApp:assembleRelease :composeApp:bundleRelease
 
-          def escape(value):
-              return value.replace("\\", "\\\\").replace("\n", "\\n").replace("\r", "\\r").replace("=", "\\=").replace(":", "\\:").replace(" ", "\\ ")
+      - name: Upload AAB Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: signed-aab
+          path: composeApp/build/outputs/bundle/release/*.aab
+          if-no-files-found: ignore
 
-          values = {key: os.environ[key] for key in ["KEY_STORE_PASSWORD", "KEY_PASSWORD", "KEY_ALIAS",
-                                                     "API_KEY", "TODOIST_CLIENT_ID", "TODOIST_CLIENT_SECRET"]}
-          values["KEY_LOCATION"] = str(keystore.resolve())
-          Path("local.properties").write_text("".join(f"{key}={escape(value)}\n" for key, value in values.items()))
-          PY
-
-      - name: Determine version name
-        id: version
-        env:
-          INPUT_VERSION_NAME: ${{ inputs.version_name }}
+      - name: Prepare Release Notes
         run: |
-          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
-            VERSION_NAME="${GITHUB_REF_NAME#v}"
+          RELEASE_DATE=$(date +'%Y-%m-%d')
+          CHANGELOG="composeApp/src/main/assets/CHANGELOG.md"
+
+          echo "# $RELEASE_TITLE" > release_notes.md
+          echo "" >> release_notes.md
+          echo "Released: $RELEASE_DATE" >> release_notes.md
+          echo "" >> release_notes.md
+
+          if [ -f "$CHANGELOG" ]; then
+            cat "$CHANGELOG" >> release_notes.md
+          fi
+
+          mkdir -p whatsnew
+          if [ -f "$CHANGELOG" ]; then
+            sed 's/^## //' "$CHANGELOG" | head -c 500 > whatsnew/whatsnew-en-US
           else
-            VERSION_NAME="$INPUT_VERSION_NAME"
+            echo "Released on $RELEASE_DATE" > whatsnew/whatsnew-en-US
           fi
-          if [[ ! "$VERSION_NAME" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9][A-Za-z0-9.-]*)?$ ]]; then
-            echo 'Version name must be X.Y.Z, optionally with a suffix such as -beta.1' >&2
-            exit 1
-          fi
-          echo "version_name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
 
-      - name: Check Play access and choose an unused version code
-        id: play
-        run: |
-          python .github/scripts/play_release.py prepare \
-            --service-account "$RUNNER_TEMP/yourday-play-service-account.json" \
-            --minimum-version-code "$GITHUB_RUN_NUMBER"
-
-      - name: Test release verification
-        run: python -m unittest discover -s .github/scripts -p 'test_*.py' -v
-
-      - name: Build signed release APK and app bundle
-        env:
-          VERSION_NAME: ${{ steps.version.outputs.version_name }}
-          VERSION_CODE: ${{ steps.play.outputs.version_code }}
-        run: |
-          chmod +x ./gradlew
-          ./gradlew :composeApp:assembleRelease :composeApp:bundleRelease \
-            -PversionName="$VERSION_NAME" -PversionCode="$VERSION_CODE" --no-daemon
-          test -s composeApp/build/outputs/bundle/release/composeApp-release.aab
-          test -s composeApp/build/outputs/mapping/release/mapping.txt
-          jarsigner -verify composeApp/build/outputs/bundle/release/composeApp-release.aab
-
-      - name: Save signed release artifacts
-        uses: actions/upload-artifact@v4
+      - name: Upload To Play Store
+        uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5 # v1
         with:
-          name: yourday-release-${{ steps.play.outputs.version_code }}
-          path: |
-            composeApp/build/outputs/apk/release/*.apk
-            composeApp/build/outputs/bundle/release/*.aab
-            composeApp/build/outputs/mapping/release/mapping.txt
-          if-no-files-found: error
-          retention-days: 30
-
-      - name: Publish to Google Play internal testing
-        uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5
-        with:
-          serviceAccountJson: ${{ runner.temp }}/yourday-play-service-account.json
+          serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
           packageName: com.charan.yourday
-          releaseFiles: composeApp/build/outputs/bundle/release/composeApp-release.aab
-          tracks: internal
-          status: completed
-          releaseName: ${{ steps.version.outputs.version_name }} (${{ steps.play.outputs.version_code }})
-          whatsNewDirectory: distribution/whatsnew
-          mappingFile: composeApp/build/outputs/mapping/release/mapping.txt
+          releaseFile: composeApp/build/outputs/bundle/release/*.aab
+          track: internal
+          inAppUpdatePriority: 5
+          whatsNewDirectory: whatsnew
 
-      - name: Verify the committed internal release and bundle hash
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda # v2.2.1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ env.RELEASE_TITLE }}
+          prerelease: ${{ env.IS_BETA == 'true' }}
+          body_path: release_notes.md
+          files: composeApp/build/outputs/apk/release/*.apk
         env:
-          VERSION_CODE: ${{ steps.play.outputs.version_code }}
-        run: |
-          python .github/scripts/play_release.py verify \
-            --service-account "$RUNNER_TEMP/yourday-play-service-account.json" \
-            --version-code "$VERSION_CODE" \
-            --bundle composeApp/build/outputs/bundle/release/composeApp-release.aab \
-            --report play-release-verification.json
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Save Play verification report
-        uses: actions/upload-artifact@v4
-        with:
-          name: yourday-play-verification-${{ steps.play.outputs.version_code }}
-          path: play-release-verification.json
-          if-no-files-found: error
-
-      - name: Create GitHub release for version tags
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            composeApp/build/outputs/apk/release/*.apk
-            composeApp/build/outputs/bundle/release/*.aab
-          generate_release_notes: true
-          prerelease: ${{ contains(github.ref_name, '-') }}
-
-      - name: Clean up credentials
+      - name: Clean up sensitive files
         if: always()
         run: |
+          rm -f keystore.properties
           rm -f local.properties
           rm -f composeApp/src/release/Yourday_key.jks
           rm -f composeApp/src/release/google-services.json
-          rm -f "$RUNNER_TEMP/yourday-play-service-account.json"

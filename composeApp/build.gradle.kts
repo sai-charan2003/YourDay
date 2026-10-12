@@ -2,6 +2,7 @@ import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.compose.internal.utils.getLocalProperty
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.androidApplication)
@@ -58,6 +59,13 @@ kotlin {
 }
 
 
+val keystoreProperties = Properties().apply {
+    val configFile = rootProject.file("keystore.properties")
+    if (configFile.exists()) {
+        configFile.inputStream().use { load(it) }
+    }
+}
+
 android {
     namespace = "com.charan.yourday"
     compileSdk {
@@ -71,8 +79,8 @@ android {
         applicationId = "com.charan.yourday"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = providers.gradleProperty("versionCode").orElse("1").get().toInt()
-        versionName = providers.gradleProperty("versionName").orElse("0.0.1").get()
+        versionCode = System.getenv("GITHUB_RUN_NUMBER")?.toInt() ?: 1
+        versionName = System.getenv("VERSION_NAME") ?: "0.0.1"
     }
     packaging {
         resources {
@@ -97,10 +105,11 @@ android {
 
     signingConfigs {
         create("release") {
-            keyAlias = getLocalProperty("KEY_ALIAS")
-            keyPassword = getLocalProperty("KEY_PASSWORD")
-            storeFile = getLocalProperty("KEY_LOCATION")?.takeIf { it.isNotBlank() }?.let { file(it) }
-            storePassword = getLocalProperty("KEY_STORE_PASSWORD")
+            keyAlias = keystoreProperties.getProperty("keyAlias") ?: getLocalProperty("KEY_ALIAS")
+            keyPassword = keystoreProperties.getProperty("keyPassword") ?: getLocalProperty("KEY_PASSWORD")
+            storeFile = keystoreProperties.getProperty("storeFile")?.let { rootProject.file(it) }
+                ?: getLocalProperty("KEY_LOCATION")?.takeIf { it.isNotBlank() }?.let { file(it) }
+            storePassword = keystoreProperties.getProperty("storePassword") ?: getLocalProperty("KEY_STORE_PASSWORD")
         }
     }
 
