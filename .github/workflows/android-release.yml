@@ -4,7 +4,6 @@ on:
   push:
     tags:
       - 'v*'
-      - '*-mobile*'
       - '*-v*'
 
 permissions:
@@ -91,33 +90,27 @@ jobs:
       - name: Release Build
         run: ./gradlew :composeApp:assembleRelease :composeApp:bundleRelease
 
-      - name: Upload AAB Artifact
+      - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: signed-aab
-          path: composeApp/build/outputs/bundle/release/*.aab
+          name: signed-apk
+          path: composeApp/build/outputs/apk/release/*.apk
           if-no-files-found: ignore
 
       - name: Prepare Release Notes
         run: |
           RELEASE_DATE=$(date +'%Y-%m-%d')
-          CHANGELOG="composeApp/src/main/assets/CHANGELOG.md"
 
+          # GitHub Release (with date)
           echo "# $RELEASE_TITLE" > release_notes.md
           echo "" >> release_notes.md
           echo "Released: $RELEASE_DATE" >> release_notes.md
           echo "" >> release_notes.md
+          cat whatsnew.md >> release_notes.md
 
-          if [ -f "$CHANGELOG" ]; then
-            cat "$CHANGELOG" >> release_notes.md
-          fi
-
+          # Play Store (without date)
           mkdir -p whatsnew
-          if [ -f "$CHANGELOG" ]; then
-            sed 's/^## //' "$CHANGELOG" | head -c 500 > whatsnew/whatsnew-en-US
-          else
-            echo "Released on $RELEASE_DATE" > whatsnew/whatsnew-en-US
-          fi
+          sed 's/^## //' whatsnew.md | head -c 500 > whatsnew/whatsnew-en-US
 
       - name: Upload To Play Store
         uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5 # v1
