@@ -79,8 +79,8 @@ android {
         applicationId = "com.charan.yourday"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = System.getenv("GITHUB_RUN_NUMBER")?.toInt() ?: 1
-        versionName = System.getenv("VERSION_NAME") ?: "0.0.1"
+        versionCode = 1
+        versionName = "0.0.1"
     }
     packaging {
         resources {
