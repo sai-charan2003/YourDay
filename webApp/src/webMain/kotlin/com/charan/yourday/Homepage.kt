@@ -503,19 +503,41 @@ private fun Footer(onOpenGitHub: () -> Unit) {
             )
         }
 
-        val interactionSource = remember { MutableInteractionSource() }
-        val isHovered by interactionSource.collectIsHoveredAsState()
-        AppText(
-            text = "Source on GitHub",
-            style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Medium),
-            color = if (isHovered) Color.White else ZincMuted,
-            modifier = Modifier
-                .pointerHoverIcon(PointerIcon.Hand)
-                .clickable(
-                    interactionSource = interactionSource,
-                    indication = null,
-                    onClick = onOpenGitHub,
-                ),
-        )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            val privacyInteractionSource = remember { MutableInteractionSource() }
+            val isPrivacyHovered by privacyInteractionSource.collectIsHoveredAsState()
+            AppText(
+                text = "Privacy Policy",
+                style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Medium),
+                color = if (isPrivacyHovered) Color.White else ZincMuted,
+                modifier = Modifier
+                    .pointerHoverIcon(PointerIcon.Hand)
+                    .clickable(
+                        interactionSource = privacyInteractionSource,
+                        indication = null,
+                        onClick = {
+                            window.location.href = "/privacy-policy"
+                        },
+                    ),
+            )
+
+            val interactionSource = remember { MutableInteractionSource() }
+            val isHovered by interactionSource.collectIsHoveredAsState()
+            AppText(
+                text = "Source on GitHub",
+                style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Medium),
+                color = if (isHovered) Color.White else ZincMuted,
+                modifier = Modifier
+                    .pointerHoverIcon(PointerIcon.Hand)
+                    .clickable(
+                        interactionSource = interactionSource,
+                        indication = null,
+                        onClick = onOpenGitHub,
+                    ),
+            )
+        }
     }
 }

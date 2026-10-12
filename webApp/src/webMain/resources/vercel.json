@@ -1,6 +1,8 @@
 {
   "routes": [
     { "handle": "filesystem" },
+    { "src": "/privacy", "dest": "/privacy/index.html" },
+    { "src": "/privacy-policy", "dest": "/privacy-policy/index.html" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
 }

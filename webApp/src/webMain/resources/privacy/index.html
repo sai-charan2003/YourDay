@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy — YourDay</title>
+    <meta name="description" content="Privacy Policy for YourDay - Daily Weather, Calendar & Tasks companion app.">
+    <link rel="icon" type="image/png" href="/image.png">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #09090b;
+            --card-bg: #121215;
+            --card-border: #27272a;
+            --text-primary: #fafafa;
+            --text-secondary: #a1a1aa;
+            --text-muted: #71717a;
+            --accent: #e25a53;
+            --accent-bg: rgba(226, 90, 83, 0.12);
+            --accent-border: rgba(226, 90, 83, 0.25);
+            --code-bg: #18181b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            line-height: 1.65;
+            padding: 0;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 840px;
+            margin: 0 auto;
+            padding: 40px 24px 80px 24px;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 32px;
+            margin-bottom: 32px;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+
+        .brand img {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+        }
+
+        .brand span {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 8px 14px;
+            border-radius: 8px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            transition: all 0.15s ease;
+        }
+
+        .back-link:hover {
+            color: #ffffff;
+            border-color: #3f3f46;
+            background: #18181b;
+        }
+
+        .hero-section {
+            margin-bottom: 40px;
+        }
+
+        .badge {
+            display: inline-block;
+            background: var(--accent-bg);
+            border: 1px solid var(--accent-border);
+            color: #fca5a5;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            font-size: 36px;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            line-height: 1.25;
+        }
+
+        .meta {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+        }
+
+        .lead {
+            font-size: 17px;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 24px 28px;
+            margin-bottom: 24px;
+        }
+
+        h2 {
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            color: var(--text-primary);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-top: 18px;
+            margin-bottom: 8px;
+        }
+
+        p {
+            color: var(--text-secondary);
+            font-size: 15px;
+            margin-bottom: 14px;
+        }
+
+        p:last-child {
+            margin-bottom: 0;
+        }
+
+        ul {
+            list-style: none;
+            padding-left: 0;
+            margin-top: 8px;
+            margin-bottom: 14px;
+        }
+
+        li {
+            position: relative;
+            padding-left: 20px;
+            margin-bottom: 8px;
+            font-size: 14.5px;
+            color: var(--text-secondary);
+        }
+
+        li::before {
+            content: "•";
+            position: absolute;
+            left: 6px;
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            background: var(--code-bg);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #e4e4e7;
+            border: 1px solid #27272a;
+        }
+
+        a {
+            color: #f87171;
+            text-decoration: underline;
+            text-underline-offset: 3px;
+            transition: color 0.15s ease;
+        }
+
+        a:hover {
+            color: #fca5a5;
+        }
+
+        .highlight-box {
+            background: rgba(226, 90, 83, 0.08);
+            border-left: 3px solid var(--accent);
+            padding: 14px 18px;
+            border-radius: 0 8px 8px 0;
+            margin: 16px 0;
+            font-size: 14px;
+            color: #d4d4d8;
+        }
+
+        footer {
+            margin-top: 56px;
+            padding-top: 32px;
+            border-top: 1px solid var(--card-border);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        footer a {
+            color: var(--text-secondary);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            color: #ffffff;
+        }
+
+        @media (max-width: 640px) {
+            h1 {
+                font-size: 28px;
+            }
+            .card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="/" class="brand">
+                <img src="/image.png" alt="YourDay Logo">
+                <span>YourDay</span>
+            </a>
+            <a href="/" class="back-link">
+                ← Back to App
+            </a>
+        </header>
+
+        <div class="hero-section">
+            <span class="badge">Legal &amp; Privacy</span>
+            <h1>Privacy Policy</h1>
+            <p class="meta">Effective Date: March 2026 &bull; Version 1.0</p>
+            <p class="lead">
+                YourDay is an open-source daily companion app built with Kotlin Multiplatform that brings together your weather forecast, scheduled calendar events, and task list into a unified overview. We believe your personal schedule and daily routines belong solely to you.
+            </p>
+        </div>
+
+        <div class="card">
+            <h2>1. Overview &amp; Guiding Philosophy</h2>
+            <p>
+                YourDay is designed from the ground up around local-first data processing and user privacy. The application does not require you to create a proprietary account with us, does not sell your personal data, and does not run any third-party tracking or advertising SDKs.
+            </p>
+            <p>
+                All sensitive personal records (such as your calendar events, task lists, and preference settings) remain on your local device or are transmitted directly between your device and the third-party APIs you choose to connect.
+            </p>
+        </div>
+
+        <div class="card">
+            <h2>2. Information Collection and Use</h2>
+
+            <h3>A. Location Information (Weather)</h3>
+            <p>
+                To provide current local weather conditions and hourly forecasts, YourDay requests device location permission (approximate or precise).
+            </p>
+            <ul>
+                <li><strong>Purpose:</strong> Your coordinates (latitude and longitude) are sent directly to <strong>WeatherAPI</strong> (<code>api.weatherapi.com</code>) to retrieve localized weather data.</li>
+                <li><strong>Storage:</strong> Your coordinates are neither saved on our servers nor combined with any personal identifiers or location histories. If you prefer, you can search for a city name instead of granting GPS access.</li>
+            </ul>
+
+            <h3>B. Calendar Events</h3>
+            <p>
+                YourDay requests read-only calendar access to show your schedule alongside your tasks.
+            </p>
+            <ul>
+                <li><strong>Android:</strong> Uses the system <code>CalendarContract</code> content provider.</li>
+                <li><strong>iOS:</strong> Uses Apple's native <code>EventKit</code> framework.</li>
+                <li><strong>Local-only execution:</strong> Your calendar entries (event titles, times, attendees, locations) are read entirely on your device in memory. They are <strong>never</strong> uploaded to any remote server or third-party service.</li>
+            </ul>
+
+            <h3>C. Task Management (Todoist / TickTick)</h3>
+            <p>
+                If you choose to link your Todoist or TickTick account, YourDay enables you to view and interact with your tasks:
+            </p>
+            <ul>
+                <li><strong>OAuth Authorization:</strong> You authenticate directly with the provider via a standard OAuth flow. Your password is never seen or collected by YourDay.</li>
+                <li><strong>Token Storage:</strong> The resulting OAuth access token is saved locally on your device in encrypted local storage (Jetpack DataStore preferences).</li>
+                <li><strong>Direct Communication:</strong> Task queries and updates communicate directly between your device and the provider's API endpoints (e.g., <code>api.todoist.com</code>). No intermediate proxy server is used.</li>
+                <li><strong>Revocation:</strong> You can disconnect your task accounts at any time inside the app settings, which immediately purges the token from your device.</li>
+            </ul>
+
+            <h3>D. User Preferences &amp; Local Storage</h3>
+            <p>
+                Your selected settings (temperature unit &deg;C/&deg;F, selected city, task filter preferences, and theme choices) are stored strictly locally on your device using DataStore.
+            </p>
+
+            <h3>E. Diagnostics &amp; Crash Reporting</h3>
+            <p>
+                To help identify unexpected errors and ensure stability across different devices and OS versions, YourDay uses <strong>Firebase Crashlytics</strong>.
+            </p>
+            <ul>
+                <li><strong>Data Collected:</strong> Anonymous device state information, OS version, device model, and stack traces when a crash occurs.</li>
+                <li><strong>No PII:</strong> Crash logs do not include personal user data, calendar contents, or task names.</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>3. Device Permissions Used</h2>
+            <p>The app requests the following system permissions to provide core features:</p>
+            <ul>
+                <li><code>ACCESS_COARSE_LOCATION</code> / <code>ACCESS_FINE_LOCATION</code> (Android) &amp; <code>NSLocationWhenInUseUsageDescription</code> (iOS): Used solely to fetch weather for your immediate location.</li>
+                <li><code>READ_CALENDAR</code> (Android) &amp; <code>NSCalendarsUsageDescription</code> (iOS): Used solely to display your scheduled events on your daily agenda.</li>
+                <li><code>INTERNET</code>: Required to fetch weather forecasts and synchronize tasks with your connected task management accounts.</li>
+            </ul>
+            <div class="highlight-box">
+                You can grant, modify, or revoke any of these permissions at any time through your operating system's device settings.
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>4. Third-Party Services &amp; Links</h2>
+            <p>
+                YourDay interacts with select external APIs to deliver weather forecasts, task synchronization, and stability diagnostics. Each service governs data according to its own privacy policy:
+            </p>
+            <ul>
+                <li>
+                    <strong>WeatherAPI:</strong> Provides weather forecasts. 
+                    <br><a href="https://www.weatherapi.com/privacy.aspx" target="_blank" rel="noopener noreferrer">WeatherAPI Privacy Policy</a>
+                </li>
+                <li>
+                    <strong>Todoist / Doist:</strong> Provides task integration when enabled by the user. 
+                    <br><a href="https://todoist.com/privacy" target="_blank" rel="noopener noreferrer">Todoist Privacy Policy</a>
+                </li>
+                <li>
+                    <strong>Google Firebase Crashlytics:</strong> Collects anonymous crash diagnostic logs. 
+                    <br><a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener noreferrer">Firebase Privacy Information</a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>5. Data Retention &amp; Deletion</h2>
+            <p>
+                Because YourDay does not maintain user accounts or central databases:
+            </p>
+            <ul>
+                <li>All local preferences, cached weather snippets, and OAuth tokens are permanently removed when you clear the app storage or uninstall YourDay from your device.</li>
+                <li>You can disconnect third-party integrations at any moment from the Settings screen.</li>
+                <li>You may revoke OAuth authorizations at any time directly through your Todoist or third-party account management settings.</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>6. Security</h2>
+            <p>
+                We are committed to protecting your information. All network communications with external providers (WeatherAPI, Todoist, Firebase) are strictly transmitted over encrypted HTTPS/TLS connections. Sensitive tokens are kept in private app storage protected by operating system sandboxing.
+            </p>
+        </div>
+
+        <div class="card">
+            <h2>7. Children's Privacy</h2>
+            <p>
+                YourDay does not knowingly collect or solicit personal identifiable information from anyone under the age of 13. If you believe a child has provided personal information to the application, please contact us and we will take immediate steps to address it.
+            </p>
+        </div>
+
+        <div class="card">
+            <h2>8. Open Source &amp; Transparency</h2>
+            <p>
+                The complete source code for YourDay is public and open source. You can inspect every network call, permission check, and storage routine yourself in our repository at:
+                <br>
+                <a href="https://github.com/sai0x20charan/YourDay" target="_blank" rel="noopener noreferrer">https://github.com/sai0x20charan/YourDay</a>
+            </p>
+        </div>
+
+        <div class="card">
+            <h2>9. Changes to This Privacy Policy</h2>
+            <p>
+                We may update our Privacy Policy periodically to reflect new features or platform changes. Any revisions will be published on this page with an updated effective date. Continued use of the application after changes constitute acceptance of the updated policy.
+            </p>
+        </div>
+
+        <div class="card">
+            <h2>10. Contact Us</h2>
+            <p>
+                If you have any questions, suggestions, or concerns regarding this Privacy Policy or your data privacy while using YourDay, feel free to contact:
+            </p>
+            <p>
+                <strong>Developer:</strong> Sai Charan<br>
+                <strong>Email:</strong> <a href="mailto:saicharannallapaneni@gmail.com">saicharannallapaneni@gmail.com</a><br>
+                <strong>Project Repository:</strong> <a href="https://github.com/sai0x20charan/YourDay" target="_blank" rel="noopener noreferrer">github.com/sai0x20charan/YourDay</a>
+            </p>
+        </div>
+
+        <footer>
+            <span>&copy; 2026 YourDay. Created by Sai Charan.</span>
+            <div style="display: flex; gap: 16px;">
+                <a href="/">Home</a>
+                <a href="https://github.com/sai0x20charan/YourDay" target="_blank" rel="noopener noreferrer">GitHub</a>
+                <a href="mailto:saicharannallapaneni@gmail.com">Contact</a>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>
