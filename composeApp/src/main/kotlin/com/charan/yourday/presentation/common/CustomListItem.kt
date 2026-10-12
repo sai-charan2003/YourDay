@@ -1,5 +1,6 @@
 package com.charan.yourday.presentation.common
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -18,13 +19,15 @@ import com.charan.yourday.ui.theme.customListItemShapes
 fun CustomListItem(
     modifier: Modifier = Modifier,
     indexItem: IndexItem,
+    isHorizontal: Boolean = false,
     headLineContent: @Composable () -> Unit,
     supportingContent: @Composable (() -> Unit)? = null,
     trailingContent: @Composable (() -> Unit)? = null,
     leadingContent: @Composable (() -> Unit)? = null,
     onClick: (() -> Unit)? = null,
     contentPadding: PaddingValues = PaddingValues(16.dp),
-    verticalAlignment: Alignment.Vertical = ListItemDefaults.verticalAlignment()
+    verticalAlignment: Alignment.Vertical = ListItemDefaults.verticalAlignment(),
+    isSelected : Boolean = false
 ) {
     SegmentedListItem(
         content = headLineContent,
@@ -32,10 +35,21 @@ fun CustomListItem(
         supportingContent = supportingContent,
         trailingContent = trailingContent,
         leadingContent = leadingContent,
-        shapes = customListItemShapes(indexItem),
-        colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+        shapes = customListItemShapes(indexItem, isHorizontal),
+        colors = ListItemDefaults.colors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+            disabledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+            selectedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+
+        ),
         modifier = modifier.padding(1.dp),
         contentPadding = contentPadding,
-        verticalAlignment = verticalAlignment
+        verticalAlignment = verticalAlignment,
+        selected = isSelected,
+
+
+
+
     )
 }

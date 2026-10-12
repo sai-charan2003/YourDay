@@ -49,7 +49,7 @@ class TodoistApi(
                     append("Accept", "application/json")
                 }
                 path("api/v1/tasks")
-                parameters.append("filter", "today|overdue")
+                parameters.append("query", "today|overdue")
             }
         }
     }

@@ -11,7 +11,8 @@ import androidx.compose.runtime.Composable
 @Composable
 fun customListItemShapes(
     indexItem: IndexItem,
-    defaultShape : ListItemShapes = ListItemDefaults.shapes()
+    isHorizontal: Boolean = false,
+    defaultShape: ListItemShapes = ListItemDefaults.shapes()
 ): ListItemShapes {
     val overrideShape = ShapeDefaults.Large
     val shape = when (indexItem) {
@@ -19,11 +20,17 @@ fun customListItemShapes(
             val defaultBaseShape = defaultShape.shape
             if (defaultBaseShape is CornerBasedShape) {
                 defaultShape.copy(
-                    shape =
+                    shape = if (isHorizontal) {
+                        defaultBaseShape.copy(
+                            topStart = overrideShape.topStart,
+                            bottomStart = overrideShape.bottomStart,
+                        )
+                    } else {
                         defaultBaseShape.copy(
                             topStart = overrideShape.topStart,
                             topEnd = overrideShape.topEnd,
                         )
+                    }
                 )
             } else {
                 defaultShape
@@ -33,11 +40,17 @@ fun customListItemShapes(
             val defaultBaseShape = defaultShape.shape
             if (defaultBaseShape is CornerBasedShape) {
                 defaultShape.copy(
-                    shape =
+                    shape = if (isHorizontal) {
+                        defaultBaseShape.copy(
+                            topEnd = overrideShape.topEnd,
+                            bottomEnd = overrideShape.bottomEnd,
+                        )
+                    } else {
                         defaultBaseShape.copy(
                             bottomStart = overrideShape.bottomStart,
                             bottomEnd = overrideShape.bottomEnd,
                         )
+                    }
                 )
             } else {
                 defaultShape
@@ -52,8 +65,6 @@ fun customListItemShapes(
             defaultShape.copy(
                 shape = ShapeDefaults.Large
             )
-
-
         }
     }
 

@@ -10,16 +10,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -27,11 +25,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.charan.yourday.MR
 import com.charan.yourday.cloudy
 import com.charan.yourday.presentation.home.ForecastWeatherState
 import com.charan.yourday.presentation.home.WeatherState
+import com.charan.yourday.ui.theme.IndexItem
 import dev.icerock.moko.resources.ImageResource
 import dev.icerock.moko.resources.compose.painterResource
 
@@ -39,7 +37,8 @@ import dev.icerock.moko.resources.compose.painterResource
 fun WeatherCard(
     weatherState: WeatherState,
     grantPermission: () -> Unit,
-    scrollToCurrentTimeIndex: Int
+    scrollToCurrentTimeIndex: Int,
+    modifier: Modifier = Modifier
 ) {
     WeatherCard(
         isLoading = weatherState.isLoading,
@@ -53,7 +52,8 @@ fun WeatherCard(
         onLocationPermissionAccess = grantPermission,
         weatherUnits = weatherState.weatherUnits,
         forecastData = weatherState.forecastWeather,
-        scrollToCurrentTimeIndex = scrollToCurrentTimeIndex
+        scrollToCurrentTimeIndex = scrollToCurrentTimeIndex,
+        modifier = modifier
     )
 }
 
@@ -71,7 +71,8 @@ fun WeatherCard(
     onLocationPermissionAccess: () -> Unit,
     weatherUnits: String,
     forecastData: List<ForecastWeatherState>,
-    scrollToCurrentTimeIndex: Int
+    scrollToCurrentTimeIndex: Int,
+    modifier: Modifier = Modifier
 ) {
     val lazyScrollState = rememberLazyListState()
 
@@ -85,6 +86,7 @@ fun WeatherCard(
         isLoading = isLoading,
         hasError = error,
         hasContent = hasContent,
+        modifier = modifier,
         content = {
             if (!isPermissionGranted) {
                 GrantPermissionContent(
@@ -94,7 +96,7 @@ fun WeatherCard(
                 }
             } else {
                 Column(
-                    modifier = Modifier.padding(16.dp),
+                    modifier = Modifier.padding(8.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     Row(
@@ -123,10 +125,9 @@ fun WeatherCard(
                             Spacer(Modifier.height(6.dp))
                             Text(
                                 text = "${currentTemperature.orEmpty()}°$weatherUnits",
-                                fontSize = 52.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                lineHeight = 56.sp
+                                style = MaterialTheme.typography.headlineLarge.copy(
+                                    fontWeight = FontWeight.Bold
+                                ),
                             )
 
                             Text(
@@ -153,10 +154,15 @@ fun WeatherCard(
 
                         LazyRow(
                             state = lazyScrollState,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
                         ) {
-                            items(forecastData) { item ->
-                                CompactForecastChip(item, weatherUnits)
+                            itemsIndexed(forecastData) { index, item ->
+                                WeatherForecastItem(
+                                    item = item,
+                                    weatherUnits = weatherUnits,
+                                    indexItem = IndexItem.FIRST_AND_LAST,
+                                    isCurrentTimeItem = index == scrollToCurrentTimeIndex
+                                )
                             }
                         }
                     }
@@ -164,42 +170,4 @@ fun WeatherCard(
             }
         }
     )
-}
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-private fun CompactForecastChip(
-    item: ForecastWeatherState,
-    weatherUnits: String,
-) {
-    Surface(
-        shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.5f),
-    ) {
-        Column(
-            modifier = Modifier
-                .padding(horizontal = 10.dp, vertical = 8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Text(
-                text = item.time.orEmpty(),
-                style = MaterialTheme.typography.labelSmallEmphasized,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Image(
-                painter = painterResource(item.icon ?: MR.images.cloudy),
-                contentDescription = null,
-                modifier = Modifier.size(26.dp)
-            )
-
-            Text(
-                text = "${item.temp}°$weatherUnits",
-                style = MaterialTheme.typography.labelMediumEmphasized,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
-    }
 }
