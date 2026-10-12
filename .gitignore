@@ -22,3 +22,6 @@ captures
 iosApp/iosApp/GoogleService-Info.plist
 .hotswan/
 .vercel
+__pycache__/
+*.pyc
+/play-release-verification.json
