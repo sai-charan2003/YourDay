@@ -48,7 +48,7 @@ class TodoistApi(
                     append("Authorization", "Bearer $token")
                     append("Accept", "application/json")
                 }
-                path("api/v1/tasks")
+                path("api/v1/tasks/filter")
                 parameters.append("query", "today|overdue")
             }
         }
