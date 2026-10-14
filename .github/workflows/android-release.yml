@@ -99,18 +99,12 @@ jobs:
 
       - name: Prepare Release Notes
         run: |
-          RELEASE_DATE=$(date +'%Y-%m-%d')
-
-          # GitHub Release (with date)
-          echo "# $RELEASE_TITLE" > release_notes.md
-          echo "" >> release_notes.md
-          echo "Released: $RELEASE_DATE" >> release_notes.md
-          echo "" >> release_notes.md
-          cat whatsnew.md >> release_notes.md
-
-          # Play Store (without date)
           mkdir -p whatsnew
-          sed 's/^## //' whatsnew.md | head -c 500 > whatsnew/whatsnew-en-US
+          if [ -f composeApp/src/main/assets/CHANGELOG.md ]; then
+            sed 's/^## //' composeApp/src/main/assets/CHANGELOG.md | head -c 500 > whatsnew/whatsnew-en-US
+          else
+            echo "Released on $(date +'%Y-%m-%d')" > whatsnew/whatsnew-en-US
+          fi
 
       - name: Upload To Play Store
         uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5 # v1
@@ -118,7 +112,7 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
           packageName: com.charan.yourday
           releaseFile: composeApp/build/outputs/bundle/release/*.aab
-          track: internal
+          track: alpha
           inAppUpdatePriority: 5
           whatsNewDirectory: whatsnew
 
@@ -128,7 +122,7 @@ jobs:
           tag_name: ${{ github.ref_name }}
           name: ${{ env.RELEASE_TITLE }}
           prerelease: ${{ env.IS_BETA == 'true' }}
-          body_path: release_notes.md
+          body_path: composeApp/src/main/assets/CHANGELOG.md
           files: composeApp/build/outputs/apk/release/*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
